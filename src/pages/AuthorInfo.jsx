@@ -1,7 +1,8 @@
-import { BookOpen, FileText, CheckCircle, AlertCircle } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { BookOpen, FileText, CheckCircle, AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Navbar from "../components/layout/Navbar";
 
 export default function AuthorInfo() {
   const requirements = [
@@ -37,46 +38,24 @@ export default function AuthorInfo() {
         "ORCID (при наличии)",
       ],
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">Qalam Masters</span>
-            </div>
-            <nav className="hidden md:flex items-center gap-8">
-              <a href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Главная
-              </a>
-              <a href="/about-journal" className="text-gray-600 hover:text-gray-900 transition-colors">
-                О журнале
-              </a>
-              <a href="/editorial-board" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Редколлегия
-              </a>
-              <a href="/author-info" className="text-blue-600 font-medium">
-                Информация для авторов
-              </a>
-              <a href="/publication-terms" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Условия публикации
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
-
+      <Navbar></Navbar>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-green-50 via-white to-blue-50 py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge className="bg-green-100 text-green-800 mb-6">Информация для авторов</Badge>
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Требования к оформлению статей</h1>
+          <Badge className="bg-green-100 text-green-800 mb-6">
+            Информация для авторов
+          </Badge>
+          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            Требования к оформлению статей
+          </h1>
           <p className="text-xl text-gray-600 leading-relaxed">
-            Подробная информация о требованиях к оформлению и подаче научных статей в журнал
+            Подробная информация о требованиях к оформлению и подаче научных
+            статей в журнал
           </p>
         </div>
       </section>
@@ -113,25 +92,48 @@ export default function AuthorInfo() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Процесс подачи и рецензирования</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Процесс подачи и рецензирования
+            </h2>
             <p className="text-gray-600 max-w-3xl mx-auto">
-              Пошаговое руководство по процессу подачи статьи и её рецензирования
+              Пошаговое руководство по процессу подачи статьи и её
+              рецензирования
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { step: "1", title: "Подача статьи", desc: "Загрузите статью через личный кабинет" },
-              { step: "2", title: "Первичная проверка", desc: "Проверка на соответствие требованиям" },
-              { step: "3", title: "Рецензирование", desc: "Двойное слепое рецензирование" },
-              { step: "4", title: "Публикация", desc: "Размещение в ближайшем номере" },
+              {
+                step: "1",
+                title: "Подача статьи",
+                desc: "Загрузите статью через личный кабинет",
+              },
+              {
+                step: "2",
+                title: "Первичная проверка",
+                desc: "Проверка на соответствие требованиям",
+              },
+              {
+                step: "3",
+                title: "Рецензирование",
+                desc: "Двойное слепое рецензирование",
+              },
+              {
+                step: "4",
+                title: "Публикация",
+                desc: "Размещение в ближайшем номере",
+              },
             ].map((item, index) => (
               <Card key={index} className="border-0 shadow-lg text-center">
                 <CardContent className="p-6">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-blue-600 font-bold text-lg">{item.step}</span>
+                    <span className="text-blue-600 font-bold text-lg">
+                      {item.step}
+                    </span>
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    {item.title}
+                  </h3>
                   <p className="text-gray-600 text-sm">{item.desc}</p>
                 </CardContent>
               </Card>
@@ -148,11 +150,22 @@ export default function AuthorInfo() {
               <div className="flex items-start gap-4">
                 <AlertCircle className="h-6 w-6 text-orange-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Важные замечания</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Важные замечания
+                  </h3>
                   <ul className="space-y-2 text-gray-600">
-                    <li>• Статьи, не соответствующие требованиям оформления, возвращаются авторам без рассмотрения</li>
-                    <li>• Плагиат и самоплагиат недопустимы - все статьи проверяются на оригинальность</li>
-                    <li>• Авторы несут ответственность за достоверность представленных данных</li>
+                    <li>
+                      • Статьи, не соответствующие требованиям оформления,
+                      возвращаются авторам без рассмотрения
+                    </li>
+                    <li>
+                      • Плагиат и самоплагиат недопустимы - все статьи
+                      проверяются на оригинальность
+                    </li>
+                    <li>
+                      • Авторы несут ответственность за достоверность
+                      представленных данных
+                    </li>
                     <li>• Конфликт интересов должен быть указан в статье</li>
                   </ul>
                 </div>
@@ -168,5 +181,5 @@ export default function AuthorInfo() {
         </div>
       </section>
     </div>
-  )
+  );
 }

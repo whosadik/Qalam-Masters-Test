@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import {
   AlertCircle,
   BookOpen,
 } from "lucide-react";
+import Navbar from "../components/layout/Navbar";
 
 export default function SubmitArticle() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -94,10 +96,10 @@ export default function SubmitArticle() {
       setCurrentStep(currentStep - 1);
     }
   };
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleSubmit = () => {
-    console.log("Submitting article:", formData);
-    // Здесь будет логика отправки формы
+    setShowSuccessModal(true);
   };
 
   return (
@@ -598,6 +600,30 @@ export default function SubmitArticle() {
                     Завершить отправку
                   </Button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {showSuccessModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
+                <h2 className="text-2xl font-bold mb-4">
+                  🎉 Статья отправлена!
+                </h2>
+                <p className="text-gray-700 mb-6">
+                  Ваша статья успешно отправлена. Мы свяжемся с вами после
+                  рецензирования.
+                </p>
+                <Link to="/">
+                  <Button
+                    onClick={() => {
+                      setShowSuccessModal(false);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    На главную
+                  </Button>
+                </Link>
               </div>
             </div>
           )}

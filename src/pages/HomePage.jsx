@@ -1,35 +1,13 @@
-import {
-  ArrowRight,
-  BookOpen,
-  CheckCircle,
-  FileText,
-  Shield,
-  Users,
-  BarChart3,
-  Mail,
-  Phone,
-  Globe,
-  Award,
-  Clock,
-  Eye,
-} from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom"; // добавьте импорт
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import Navbar from "../components/layout/Navbar";
 import Sardar from "../../public/sardar.png";
-import Logo from "../../public/writing 1.png";
 
 export default function HomePage() {
   const journalInfo = {
-    title: 'Научный журнал "Qalam Masters"',
+    title: "Веб-платформа для автоматизации работы журнала",
     description:
       "Сардар — это научный рецензируемый журнал, публикующий оригинальные исследования, обзоры и аналитические материалы по широкому спектру дисциплин. Мы объединяем ученых, преподавателей, аспирантов и исследователей для обмена знаниями, опытом и передовыми идеями.",
     mission:
@@ -38,102 +16,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      {/*       <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-900 flex items-center">
-                <img
-                  src={Logo}
-                  alt="Qalam Masters logo"
-                  className="mr-2 h-10 w-10"
-                />{" "}
-                Qalam Masters
-              </span>
-            </div>
-            <nav className="hidden md:flex items-center gap-8">
-              <a
-                href="#about"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                О журнале
-              </a>
-              <a
-                href="#topics"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Тематика
-              </a>
-              <a
-                href="#editorial"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Редколлегия
-              </a>
-              <a
-                href="#info"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Информация
-              </a>
-              <a
-                href="#contact"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Контакты
-              </a>
-            </nav>
-            <div className="flex items-center gap-4">
-              <Button variant="outline">Войти</Button>
-              <Button>Зарегистрироваться</Button>
-            </div>
-          </div>
-        </div>
-      </header> */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">
-                Qalam Masters
-              </span>
-            </div>
-            {/* Обновляем навигацию для ссылок на отдельные страницы */}
-            <nav className="hidden md:flex items-center gap-8">
-              <Link
-                to="/about-journal"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                О журнале
-              </Link>
-              <Link
-                to="/editorial-board"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Редколлегия
-              </Link>
-              <Link
-                to="/author-info"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Информация для авторов
-              </Link>
-              <Link
-                to="/publication-terms"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Условия публикации
-              </Link>
-            </nav>
-            <div className="flex items-center gap-4">
-              <Button variant="outline">Войти</Button>
-              <Button>Подать статью в журнал</Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar></Navbar>
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20 ">
@@ -154,17 +37,21 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-lg px-8 py-6">
-                  Подать статью в журнал
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-lg px-8 py-6 bg-transparent"
-                >
-                  Требования к оформлению
-                </Button>
+                <Link to="/register">
+                  <Button size="lg" className="text-lg px-8 py-6">
+                    Зарегистрироваться
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>{" "}
+                </Link>
+                <Link to="/requirements">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="text-lg px-8 py-6 bg-transparent"
+                  >
+                    Требования к оформлению
+                  </Button>
+                </Link>
               </div>
 
               <div className="flex items-center gap-8 pt-4">

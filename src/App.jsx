@@ -20,6 +20,9 @@ import EditorialBoard from "./pages/EditorialBoard";
 import AuthorInfo from "./pages/AuthorInfo";
 import PublicationTerms from "./pages/PublicationTerms";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import RequirementsPage from "./pages/RequirementsPage";
+import LoginPage from "./pages/Login/LoginPage";
+import RegisterPage from "./pages/Login/RegisterPage";
 
 function AppContent() {
   const location = useLocation();
@@ -29,6 +32,9 @@ function AppContent() {
     "/editorial-board",
     "/author-info",
     "/publication-terms",
+    "/requirements",
+    "/login",
+    "/register",
   ];
   const shouldUseDashboard = !pagesWithoutDashboard.includes(location.pathname);
 
@@ -41,6 +47,9 @@ function AppContent() {
           <Route path="/editorial-board" element={<EditorialBoard />} />
           <Route path="/author-info" element={<AuthorInfo />} />
           <Route path="/publication-terms" element={<PublicationTerms />} />
+          <Route path="/requirements" element={<RequirementsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </div>
     );
