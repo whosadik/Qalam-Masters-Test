@@ -4,7 +4,6 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import Navigation from "./components/Navigation";
 import HomePage from "./pages/HomePage";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import ReviewerDashboard from "./pages/ReviewerDashboard";
@@ -23,6 +22,10 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import RequirementsPage from "./pages/RequirementsPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Login/RegisterPage";
+import OrganizationList from "@/pages/admin/organizations/OrganizationList";
+import OrganizationCreate from "@/pages/admin/organizations/OrganizationCreate";
+import OrganizationView from "@/pages/admin/organizations/OrganizationView";
+import OrganizationEdit from "@/pages/admin/organizations/OrganizationEdit";
 
 function AppContent() {
   const location = useLocation();

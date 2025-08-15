@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -43,6 +43,74 @@ import {
 } from "lucide-react";
 
 export default function AuthorDashboard() {
+  const [reviews] = useState([
+  {
+    id: 1,
+    articleTitle: "Применение машинного обучения в прогнозировании изменения климата",
+    reviewer: "Иван Петров",
+    date: "12.02.2024",
+    comment: "Хорошее исследование, но требуется уточнить методы прогнозирования и добавить больше данных."
+  },
+  {
+    id: 2,
+    articleTitle: "Квантовые вычисления в криптографии",
+    reviewer: "Анна Смирнова",
+    date: "10.02.2024",
+    comment: "Рекомендую доработать раздел с практическими примерами, чтобы укрепить выводы."
+  }
+]);
+const [messages, setMessages] = useState([
+  { id: 1, from: "editor", text: "Здравствуйте! Получили вашу статью.", time: "10:00" },
+  { id: 2, from: "me", text: "Здравствуйте! Когда ждать рецензию?", time: "10:05" },
+  { id: 3, from: "editor", text: "Обычно в течение двух недель.", time: "10:07" },
+]);
+
+const [archiveArticles] = useState([
+  {
+    id: 1,
+    title: "Моделирование изменения климата в Центральной Азии",
+    journal: "Журнал климатологии",
+    category: "Экология",
+    date: "15.03.2023",
+    version: "v1.0"
+  },
+  {
+    id: 2,
+    title: "Развитие солнечных батарей нового поколения",
+    journal: "Энергетические технологии",
+    category: "Энергетика",
+    date: "22.11.2022",
+    version: "v2.2"
+  }
+]);
+
+const [newMessage, setNewMessage] = useState("");
+
+const sendMessage = () => {
+  if (!newMessage.trim()) return;
+  const newMsg = {
+    id: messages.length + 1,
+    from: "me",
+    text: newMessage,
+    time: new Date().toLocaleTimeString().slice(0, 5),
+  };
+  setMessages([...messages, newMsg]);
+  setNewMessage("");
+
+  // Имитация ответа редактора через 1 сек
+  setTimeout(() => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        from: "editor",
+        text: "Спасибо за сообщение! Мы рассмотрим.",
+        time: new Date().toLocaleTimeString().slice(0, 5),
+      },
+    ]);
+  }, 1000);
+};
+
   const [articles] = useState([
     {
       id: 1,
@@ -85,6 +153,14 @@ export default function AuthorDashboard() {
       category: "Энергетика",
     },
   ]);
+
+  const [journalQuery, setJournalQuery] = useState("");
+const [journals] = useState([
+  { id: 1, name: "Международный журнал экологических исследований", category: "Экология" },
+  { id: 2, name: "Журнал вычислительной физики", category: "Физика" },
+  { id: 3, name: "Журнал возобновляемой энергетики", category: "Энергетика" },
+]);
+
 
   const [notifications] = useState([
     {
@@ -174,10 +250,12 @@ export default function AuthorDashboard() {
               )}
             </Button>
           </div>
+          <Link to="/submit-article">
           <Button className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full sm:w-auto">
             <PlusCircle className="h-4 w-4 mr-2" />
             Новая статья
           </Button>
+          </Link>
         </div>
       </div>
 
@@ -251,13 +329,6 @@ export default function AuthorDashboard() {
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Мои статьи</span>
             <span className="sm:hidden">Статьи</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="create"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <Edit className="h-4 w-4" />
-            <span>Создать</span>
           </TabsTrigger>
           <TabsTrigger
             value="journals"
@@ -432,87 +503,202 @@ export default function AuthorDashboard() {
           </div>
         </TabsContent>
 
-        {/* Создать статью */}
-        <TabsContent value="create" className="space-y-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Создать новую статью
-          </h2>
+      <TabsContent value="journals" className="space-y-6">
+  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+    Поиск журналов
+  </h2>
+  <Input
+    placeholder="Введите название журнала..."
+    className="w-full sm:w-96"
+    onChange={(e) => setJournalQuery(e.target.value)}
+  />
 
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-5 sm:p-8">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Название статьи
-                    </label>
-                    <Input placeholder="Введите название вашей статьи..." />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Область науки
-                    </label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите область" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="environmental">
-                          Экологические науки
-                        </SelectItem>
-                        <SelectItem value="physics">Физика</SelectItem>
-                        <SelectItem value="energy">Энергетика</SelectItem>
-                        <SelectItem value="computer">Информатика</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+  <div className="grid gap-4 sm:gap-6">
+    {journals
+      .filter(j => j.name.toLowerCase().includes(journalQuery.toLowerCase()))
+      .map(journal => (
+        <Card
+          key={journal.id}
+          className="border shadow-sm hover:shadow-md transition-all duration-200"
+        >
+          <CardHeader>
+            <CardTitle>{journal.name}</CardTitle>
+            <CardDescription>{journal.category}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => alert(`Открыть ${journal.name}`)}>
+              <Eye className="h-4 w-4 mr-1" /> Смотреть
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => alert(`Отправить статью в ${journal.name}`)}>
+              <Upload className="h-4 w-4 mr-1" /> Отправить статью
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+  </div>
+</TabsContent>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Аннотация
-                  </label>
-                  <Textarea
-                    placeholder="Краткое описание вашего исследования..."
-                    className="min-h-[120px]"
-                  />
-                </div>
+{/* Рецензии */}
+<TabsContent value="reviews" className="space-y-6">
+  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+    Мои рецензии
+  </h2>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Ключевые слова
-                  </label>
-                  <Input placeholder="машинное обучение, климат, прогнозирование..." />
-                </div>
+  <div className="grid gap-4 sm:gap-6">
+    {reviews.map((review) => (
+      <Card
+        key={review.id}
+        className="border shadow-sm hover:shadow-md transition-all duration-200"
+      >
+        <CardHeader>
+          <CardTitle className="text-lg">{review.articleTitle}</CardTitle>
+          <CardDescription>
+            Рецензент: {review.reviewer} • Дата: {review.date}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-gray-700">{review.comment}</p>
+          <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => alert(`Открыть полный текст рецензии на "${review.articleTitle}"`)}
+            >
+              <Eye className="h-4 w-4 mr-1" /> Посмотреть
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => alert(`Написать ответ рецензенту ${review.reviewer}`)}
+            >
+              <MessageSquare className="h-4 w-4 mr-1" /> Ответить
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => alert(`Принять правки по статье "${review.articleTitle}"`)}
+            >
+              <CheckCircle className="h-4 w-4 mr-1" /> Принять правки
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+</TabsContent>
 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 sm:p-8 text-center">
-                  <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                    Загрузите файл статьи
-                  </p>
-                  <p className="text-sm sm:text-base text-gray-600 mb-4">
-                    Поддерживаемые форматы: PDF, DOC, DOCX (до 10 МБ)
-                  </p>
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Выбрать файл
-                  </Button>
-                </div>
+{/* Переписка */}
+<TabsContent value="messages" className="space-y-6">
+  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+    Переписка с редактором
+  </h2>
 
-                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    Сохранить черновик
-                  </Button>
-                  <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
-                    Создать статью
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+  {/* Окно чата */}
+  <div className="border rounded-lg shadow-sm flex flex-col h-[400px] bg-white">
+    <div className="flex-1 p-4 overflow-y-auto space-y-3">
+      {messages.map((msg) => (
+        <div
+          key={msg.id}
+          className={`flex ${msg.from === "me" ? "justify-end" : "justify-start"}`}
+        >
+          <div
+            className={`max-w-[70%] p-3 rounded-lg ${
+              msg.from === "me"
+                ? "bg-blue-500 text-white rounded-br-none"
+                : "bg-gray-200 text-gray-900 rounded-bl-none"
+            }`}
+          >
+            <p className="text-sm">{msg.text}</p>
+            <span className="block text-xs opacity-70 mt-1">
+              {msg.time}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
 
-        {/* Остальные TabsContent остаются такими же, как в оригинале (их тоже можно сделать адаптивными по аналогии) */}
+    {/* Поле ввода */}
+    <div className="border-t p-3 flex gap-2">
+      <Input
+        placeholder="Введите сообщение..."
+        value={newMessage}
+        onChange={(e) => setNewMessage(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+      />
+      <Button onClick={sendMessage} disabled={!newMessage.trim()}>
+        <Mail className="h-4 w-4" />
+      </Button>
+    </div>
+  </div>
+</TabsContent>
+
+{/* Архив */}
+<TabsContent value="archive" className="space-y-6">
+  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+    Архив публикаций
+  </h2>
+
+  <div className="grid gap-4 sm:gap-6">
+    {archiveArticles.map((item) => (
+      <Card
+        key={item.id}
+        className="border shadow-sm hover:shadow-md transition-all duration-200"
+      >
+        <CardHeader>
+          <CardTitle className="text-lg">{item.title}</CardTitle>
+          <CardDescription>
+            {item.journal} • {item.category}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
+          <div className="text-sm text-gray-500">
+            <p>Дата публикации: <span className="font-medium">{item.date}</span></p>
+            <p>Версия: <span className="font-medium">{item.version}</span></p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => alert(`Просмотр архива: ${item.title}`)}
+            >
+              <Eye className="h-4 w-4 mr-1" /> Просмотр
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const blob = new Blob([`Архивная версия статьи: ${item.title}`], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${item.title} (архив).txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              <Download className="h-4 w-4 mr-1" /> Скачать
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => alert(`Восстановить статью "${item.title}" в работу`)}
+            >
+              <History className="h-4 w-4 mr-1" /> Восстановить
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+</TabsContent>
+
+
+
+
       </Tabs>
 
       {/* Notifications Panel */}

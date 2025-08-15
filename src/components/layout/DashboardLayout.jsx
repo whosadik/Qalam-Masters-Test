@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "./Sidebar";
-import Topbar from "./Topbar";
 import { cn } from "@/lib/utils";
+import Navbar from "./Navbar";
 
 export default function DashboardLayout({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -38,50 +37,16 @@ export default function DashboardLayout({ children }) {
       >
         Перейти к контенту
       </a>
-
-      {/* Sidebar: off‑canvas на мобилке, статичен на ≥md */}
-      <div
-        id="app-sidebar"
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 transform shadow md:shadow-none",
-          "bg-white md:bg-transparent md:border-0 border-r border-gray-200",
-          "transition-transform duration-300 motion-reduce:transition-none",
-          "md:translate-x-0",
-          isMobileMenuOpen
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
-        )}
-      >
-        <Sidebar
-          onCloseMobile={() => setIsMobileMenuOpen(false)}
-          isMobileOpen={isMobileMenuOpen}
-        />
-      </div>
-
-      {/* Мобильный оверлей */}
-      {isMobileMenuOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-30 bg-black/50 md:hidden"
-          aria-label="Закрыть меню"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
       {/* Topbar */}
-      <Topbar
-        onMenuClick={() => setIsMobileMenuOpen((v) => !v)}
-        isMobileMenuOpen={isMobileMenuOpen}
-        aria-controls="app-sidebar"
-        aria-expanded={isMobileMenuOpen}
-      />
+      <Navbar
+        onToggleMobileMenu={() => setIsMobileMenuOpen((v) => !v)}
+        isMobileMenuOpen={isMobileMenuOpen}></Navbar>
 
       {/* Контент */}
       <main
         id="main"
         className={cn(
-          "pt-16 transition-[margin] duration-300 motion-reduce:transition-none",
-          "md:ml-64"
+          "transition-[margin] duration-300 motion-reduce:transition-none",
         )}
       >
         <div className="mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
