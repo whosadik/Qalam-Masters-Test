@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "url";
 
 export default defineConfig({
-  base: "/Qalam-Masters-Test/",
+  base: "/Qalam-Masters-Test/home-page",
   plugins: [react()],
   resolve: {
     alias: {

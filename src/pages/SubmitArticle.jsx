@@ -614,7 +614,7 @@ export default function SubmitArticle() {
                   Ваша статья успешно отправлена. Мы свяжемся с вами после
                   рецензирования.
                 </p>
-                <Link to="/">
+                <Link to="/Qalam-Masters-Test/home-page">
                   <Button
                     onClick={() => {
                       setShowSuccessModal(false);
