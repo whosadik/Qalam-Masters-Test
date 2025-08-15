@@ -91,7 +91,7 @@ export default function Navbar() {
   return (
     <>
        <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-3 md:py-4">
             {/* Лого */}
             <Link to="/" className="shrink-0">
@@ -241,7 +241,7 @@ export default function Navbar() {
           open ? "translate-y-0" : "-translate-y-full",
         ].join(" ")}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 pt-20">
+        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 pb-6 pt-20">
           {!isAuthenticated ? (
             <nav className="grid gap-4">
               <Link to="/about-journal" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">О платформе</Link>
