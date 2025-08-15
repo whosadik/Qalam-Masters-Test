@@ -30,7 +30,7 @@ import OrganizationEdit from "@/pages/admin/organizations/OrganizationEdit";
 function AppContent() {
   const location = useLocation();
   const pagesWithoutDashboard = [
-    "/Qalam-Masters-Test/home-page",
+    "/",
     "/about-journal",
     "/editorial-board",
     "/author-info",
@@ -45,7 +45,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          <Route path="/Qalam-Masters-Test/home-page" element={<HomePage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/about-journal" element={<AboutJournal />} />
           <Route path="/editorial-board" element={<EditorialBoard />} />
           <Route path="/author-info" element={<AuthorInfo />} />

@@ -94,7 +94,7 @@ export default function Navbar() {
         <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-3 md:py-4">
             {/* Лого */}
-            <Link to="/Qalam-Masters-Test/home-page" className="shrink-0">
+            <Link to="/" className="shrink-0">
               <span className="flex items-center gap-2">
                 <img className="h-10 w-10 object-contain" src={Logo} alt="Qalam Masters логотип" width={40} height={40} />
                 <span className="text-xl sm:text-2xl font-bold text-gray-900">Qalam Masters</span>
