@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import AuthorDashboard from "./pages/AuthorDashboard";
-import ReviewerDashboard from "./pages/ReviewerDashboard";
 import EditorialProfile from "./pages/EditorialProfile";
 import EditorialBoardDashboard from "./pages/EditorialBoardDashboard";
 import EditorChiefDashboard from "./pages/EditorChiefDashboard";
@@ -15,17 +14,25 @@ import AuthorProfile from "./pages/AuthorProfile";
 import ReviewerProfile from "./pages/ReviewerProfile";
 import SubmitArticle from "./pages/SubmitArticle";
 import AboutJournal from "./pages/AboutJournal";
-import EditorialBoard from "./pages/EditorialBoard";
 import AuthorInfo from "./pages/AuthorInfo";
 import PublicationTerms from "./pages/PublicationTerms";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import RequirementsPage from "./pages/RequirementsPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Login/RegisterPage";
-import OrganizationList from "@/pages/admin/organizations/OrganizationList";
-import OrganizationCreate from "@/pages/admin/organizations/OrganizationCreate";
-import OrganizationView from "@/pages/admin/organizations/OrganizationView";
-import OrganizationEdit from "@/pages/admin/organizations/OrganizationEdit";
+import OrganizationList from "@/pages/moderator/organizations/OrganizationList";
+import OrganizationCreate from "@/pages/moderator/organizations/OrganizationCreate";
+import OrganizationView from "@/pages/moderator/organizations/OrganizationView";
+import OrganizationEdit from "@/pages/moderator/organizations/OrganizationEdit";
+import ModeratorDashboard from "@/pages/moderator/ModeratorDashboard";
+import AddJournal from "@/pages/moderator/journals/AddJournal";
+import JournalView from "@/pages/moderator/journals/JournalView";
+import JournalSettings from "@/pages/moderator/journals/JournalSettings";
+import Reviewers from "@/pages/moderator/journals/Reviewers";
+import EditorialBoard from "@/pages/moderator/journals/EditorialBoard";
+import ReviewerDashboard from "@/pages/moderator/journals/ReviewerDashboard";
+import EditorialWorkflow from "@/pages/moderator/journals/EditorialWorkflow";
+import EditorialCouncil from "@/pages/moderator/journals/EditorialCouncil";
 
 function AppContent() {
   const location = useLocation();
@@ -62,7 +69,6 @@ function AppContent() {
     <DashboardLayout>
       <Routes>
         <Route path="/author-dashboard" element={<AuthorDashboard />} />
-        <Route path="/reviewer-dashboard" element={<ReviewerDashboard />} />
         <Route path="/editorial-profile" element={<EditorialProfile />} />
         <Route
           path="/editorial-board-dashboard"
@@ -76,6 +82,49 @@ function AppContent() {
         <Route path="/author-profile" element={<AuthorProfile />} />
         <Route path="/reviewer-profile" element={<ReviewerProfile />} />
         <Route path="/submit-article" element={<SubmitArticle />} />
+
+        <Route path="/moderator" element={<ModeratorDashboard />} />
+        <Route
+          path="/moderator/organizations/new"
+          element={<OrganizationCreate />}
+        />
+        <Route
+          path="/moderator/organizations/:id"
+          element={<OrganizationView />}
+        />
+        <Route
+          path="/moderator/organizations/:id/edit"
+          element={<OrganizationEdit />}
+        />
+        <Route
+          path="/moderator/organizations/:id/add-journal"
+          element={<AddJournal />}
+        />
+        <Route path="/moderator/journals/:jid" element={<JournalView />} />
+        <Route
+          path="/moderator/journals/:jid/settings"
+          element={<JournalSettings />}
+        />
+        <Route
+          path="/moderator/journals/:jid/reviewers"
+          element={<Reviewers />}
+        />
+        <Route
+          path="/moderator/journals/:jid/editorial"
+          element={<EditorialBoard />}
+        />
+        <Route
+          path="/moderator/journals/:jid/reviewer"
+          element={<ReviewerDashboard />}
+        />
+        <Route
+          path="/moderator/journals/:jid/workflow"
+          element={<EditorialWorkflow />}
+        />
+        <Route
+          path="/moderator/journals/:jid/council"
+          element={<EditorialCouncil />}
+        />
       </Routes>
     </DashboardLayout>
   );

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { Compass } from "lucide-react";
-import DashboardNavigatorModal, { useCommandK } from "@/components/DashboardNavigatorModal";
+import DashboardNavigatorModal, {
+  useCommandK,
+} from "@/components/DashboardNavigatorModal";
 
 export default function FloatingDashboardLauncher() {
   const [open, setOpen] = useState(false);
@@ -13,25 +15,78 @@ export default function FloatingDashboardLauncher() {
     {
       title: "Дашборды",
       links: [
-        { to: "/author-dashboard", label: "Дашборд автора", type: "dashboard", desc: "Подачи, черновики, статусы" },
-        { to: "/reviewer-dashboard", label: "Дашборд рецензента", type: "dashboard", desc: "Рецензирование, задачи" },
-        { to: "/editorial-board-dashboard", label: "Дашборд редколлегии", type: "dashboard", desc: "Очередь, публикации" },
-        { to: "/editor-chief-dashboard", label: "Дашборд главного редактора", type: "dashboard", desc: "Управление журналом" },
-        { to: "/admin-dashboard", label: "Админ-панель", type: "dashboard", desc: "Пользователи, права, системные настройки" },
+        {
+          to: "/author-dashboard",
+          label: "Дашборд автора",
+          type: "dashboard",
+          desc: "Подачи, черновики, статусы",
+        },
+        {
+          to: "/reviewer-dashboard",
+          label: "Дашборд рецензента",
+          type: "dashboard",
+          desc: "Рецензирование, задачи",
+        },
+        {
+          to: "/editorial-board-dashboard",
+          label: "Дашборд редколлегии",
+          type: "dashboard",
+          desc: "Очередь, публикации",
+        },
+        {
+          to: "/editor-chief-dashboard",
+          label: "Дашборд главного редактора",
+          type: "dashboard",
+          desc: "Управление журналом",
+        },
+        {
+          to: "/admin-dashboard",
+          label: "Админ-панель",
+          type: "dashboard",
+          desc: "Пользователи, права, системные настройки",
+        },
+        {
+          to: "/moderator",
+          label: "Модератор организации",
+          type: "dashboard",
+          desc: "Пользователи, права, системные настройки",
+        },
+        {
+          to: "/moderator/organizations",
+          label: "фвы",
+          type: "dashboard",
+          desc: "Пользователи, права, системные настройки",
+        },
       ],
     },
     {
       title: "Профили",
       links: [
-        { to: "/author-profile", label: "Профиль автора", desc: "Личные данные, настройки" },
-        { to: "/reviewer-profile", label: "Профиль рецензента", desc: "Специализации, загрузка CV" },
-        { to: "/editorial-profile", label: "Профиль редакции", desc: "Информация об аккаунте редакции" },
+        {
+          to: "/author-profile",
+          label: "Профиль автора",
+          desc: "Личные данные, настройки",
+        },
+        {
+          to: "/reviewer-profile",
+          label: "Профиль рецензента",
+          desc: "Специализации, загрузка CV",
+        },
+        {
+          to: "/editorial-profile",
+          label: "Профиль редакции",
+          desc: "Информация об аккаунте редакции",
+        },
       ],
     },
     {
       title: "Действия",
       links: [
-        { to: "/submit-article", label: "Подать статью", desc: "Создать новую заявку" },
+        {
+          to: "/submit-article",
+          label: "Подать статью",
+          desc: "Создать новую заявку",
+        },
       ],
     },
     {

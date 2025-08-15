@@ -23,27 +23,42 @@ export default function OrganizationView() {
       <p>{organization.description}</p>
 
       <div className="border p-4 rounded space-y-1">
-        <p><strong>Руководитель:</strong> {organization.head}</p>
-        <p><strong>Телефон:</strong> {organization.phone}</p>
-        <p><strong>Email:</strong> {organization.email}</p>
-        <p><strong>Адрес:</strong> {organization.address}</p>
-        <p><strong>БИН:</strong> {organization.bin}</p>
+        <p>
+          <strong>Руководитель:</strong> {organization.head}
+        </p>
+        <p>
+          <strong>Телефон:</strong> {organization.phone}
+        </p>
+        <p>
+          <strong>Email:</strong> {organization.email}
+        </p>
+        <p>
+          <strong>Адрес:</strong> {organization.address}
+        </p>
+        <p>
+          <strong>БИН:</strong> {organization.bin}
+        </p>
       </div>
 
       <h2 className="text-xl font-semibold">Журналы организации</h2>
       <ul className="list-disc pl-6">
         {organization.journals.map((j) => (
           <li key={j.id}>
-            <Link to={`/admin/journals/${j.id}`} className="text-blue-600 underline">{j.name}</Link>
+            <Link
+              to={`/moderator/journals/${j.id}`}
+              className="text-blue-600 underline"
+            >
+              {j.name}
+            </Link>
           </li>
         ))}
       </ul>
 
       <div className="flex gap-2">
-        <Link to={`/admin/organizations/${id}/edit`}>
+        <Link to={`/moderator/organizations/${id}/edit`}>
           <Button variant="outline">Редактировать</Button>
         </Link>
-        <Link to={`/admin/organizations/${id}/add-journal`}>
+        <Link to={`/moderator/organizations/${id}/add-journal`}>
           <Button>Добавить журнал</Button>
         </Link>
       </div>
