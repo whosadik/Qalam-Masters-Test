@@ -263,9 +263,9 @@ export default function Reviewers() {
                             {r.affiliation || "—"}
                           </div>
                           <div className="text-sm text-gray-600">
-                            <a className="underline" href={`mailto:${r.email}`}>
+                            <Link  className="underline" href={`mailto:${r.email}`}>
                               {r.email}
-                            </a>{" "}
+                            </Link>{" "}
                             • Нагрузка: {r.load || 0}
                           </div>
                           {r.topics?.length > 0 && (

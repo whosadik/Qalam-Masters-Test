@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "../components/layout/Navbar";
+import { Link } from "react-router-dom";
 
 export default function PublicationTerms() {
   const journalStats = [
@@ -179,18 +180,19 @@ export default function PublicationTerms() {
             работу через личный кабинет.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/submit-article"
+            <Link 
+              to="/submit-article"
               className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-            >
+            > 
               Подать статью в журнал
-            </a>
-            <a
-              href="/author-info"
+            </Link>
+            <Link
+              to="/author-info"
+           
               className="inline-flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
             >
               Требования к оформлению
-            </a>
+            </Link>
           </div>
         </div>
       </section>

@@ -26,60 +26,67 @@ import {
 } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { ChevronsUpDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils"; // если нет — см. примечание ниже
+
+
 export default function SubmitArticle() {
+  const journals = [
+  { id: "vestnik", title: "Вестник науки", org: "Qalam University" },
+  { id: "tech", title: "Технические науки и инновации", org: "Tech Institute" },
+  { id: "edu", title: "Образование и педагогика", org: "PedAcad" },
+  { id: "econ", title: "Экономика и менеджмент", org: "BizSchool" },
+  { id: "it", title: "Информационные технологии", org: "Digital Lab" },
+];
+
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Информация о публикации
-    thematicDirection: "",
+const [formData, setFormData] = useState({
+  selectedJournal: "",   // новый шаг
 
-    // Данные автора
-    firstName: "",
-    lastName: "",
-    middleName: "",
-    academicDegree: "",
-    position: "",
-    organization: "",
-    email: "",
+  thematicDirection: "",
+  firstName: "",
+  lastName: "",
+  middleName: "",
+  academicDegree: "",
+  position: "",
+  organization: "",
+  email: "",
+  titleRu: "",
+  titleEn: "",
+  abstractRu: "",
+  abstractEn: "",
+  keywordsRu: "",
+  keywordsEn: "",
+  researchGoal: "",
+  researchTasks: "",
+  researchMethods: "",
+  articleFile: null,
+  expertConclusion: null,
+  dataConsent: false,
+  textConsent: false,
+});
 
-    // Название статьи
-    titleRu: "",
-    titleEn: "",
 
-    // Аннотация
-    abstractRu: "",
-    abstractEn: "",
+const steps = [
+  { id: 1, title: "Выбор журнала", icon: BookOpen },
+  { id: 2, title: "Информация о публикации", icon: BookOpen },
+  { id: 3, title: "Данные автора", icon: User },
+  { id: 4, title: "Название статьи", icon: FileText },
+  { id: 5, title: "Ключевые слова", icon: Target },
+  { id: 6, title: "Цель исследования", icon: Target },
+  { id: 7, title: "Файлы", icon: Upload },
+  { id: 8, title: "Подтверждение", icon: CheckSquare },
+];
 
-    // Ключевые слова
-    keywordsRu: "",
-    keywordsEn: "",
-
-    // Цель исследования
-    researchGoal: "",
-
-    // Задачи исследования
-    researchTasks: "",
-
-    // Методы исследования
-    researchMethods: "",
-
-    // Файлы
-    articleFile: null,
-    expertConclusion: null,
-
-    // Подтверждения
-    dataConsent: false,
-    textConsent: false,
-  });
-
-  const steps = [
-    { id: 1, title: "Информация о публикации", icon: BookOpen },
-    { id: 2, title: "Данные автора", icon: User },
-    { id: 3, title: "Название статьи", icon: FileText },
-    { id: 4, title: "Ключевые слова", icon: Target },
-    { id: 5, title: "Цель исследования", icon: Target },
-    { id: 6, title: "Файлы", icon: Upload },
-    { id: 7, title: "Подтверждение", icon: CheckSquare },
-  ];
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -154,6 +161,40 @@ export default function SubmitArticle() {
       {/* Form Content */}
       <Card className="border-0 shadow-lg">
         <CardContent className="p-6 sm:p-8">
+
+
+        {currentStep === 1 && (
+  <div className="space-y-6">
+    <div className="text-center mb-6">
+      <h2 className="text-xl font-bold text-gray-900 mb-2">Выбор журнала</h2>
+      <p className="text-gray-600">Укажите, в какой журнал вы хотите отправить статью</p>
+    </div>
+
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-gray-700">Журнал</label>
+      <JournalCombobox
+        value={formData.selectedJournal}
+        onChange={(val) => handleInputChange("selectedJournal", val)}
+        items={journals}
+      />
+      <p className="text-xs text-gray-500">
+        Начните печатать, чтобы отфильтровать список (по названию и организации).
+      </p>
+    </div>
+
+    {/* Пример подсказки: можно отобразить выбранный журнал */}
+    {formData.selectedJournal && (
+      <div className="p-3 rounded-lg bg-blue-50 text-blue-800 text-sm">
+        Вы выбрали:{" "}
+        <strong>
+          {journals.find((j) => j.id === formData.selectedJournal)?.title}
+        </strong>
+      </div>
+    )}
+  </div>
+)}
+
+
           {/* Шаг 1: Информация о публикации */}
           {currentStep === 1 && (
             <div className="space-y-6">
@@ -614,14 +655,14 @@ export default function SubmitArticle() {
                   Ваша статья успешно отправлена. Мы свяжемся с вами после
                   рецензирования.
                 </p>
-                <Link to="/Qalam-Masters-Test/home-page">
+                <Link to="/author-dashboard">
                   <Button
                     onClick={() => {
                       setShowSuccessModal(false);
                     }}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    На главную
+                    Вернуться в личный кабинет
                   </Button>
                 </Link>
               </div>
@@ -639,12 +680,14 @@ export default function SubmitArticle() {
               >
                 Назад
               </Button>
-              <Button
-                onClick={nextStep}
-                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
-              >
-                Далее
-              </Button>
+             <Button
+  onClick={nextStep}
+  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+  disabled={currentStep === 1 && !formData.selectedJournal}
+>
+  Далее
+</Button>
+
             </div>
           )}
         </CardContent>
@@ -719,3 +762,69 @@ function FileDropZone({ label, value, onFileChange }) {
     </div>
   );
 }
+
+function JournalCombobox({ value, onChange, items }) {
+  const [open, setOpen] = useState(false);
+  const selected = items.find((j) => j.id === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {selected ? (
+            <span className="truncate text-left">
+              <span className="font-medium">{selected.title}</span>
+              <span className="text-gray-500 ml-2">• {selected.org}</span>
+            </span>
+          ) : (
+            "Выберите журнал"
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]">
+        <Command filter={(value, search) => {
+          // Кастомная фильтрация: ищет по названию и по организации
+          const item = items.find(i => i.id === value);
+          const hay = (item?.title + " " + item?.org).toLowerCase();
+          return hay.includes(search.toLowerCase()) ? 1 : 0;
+        }}>
+          <CommandInput placeholder="Поиск журнала по названию или организации..." />
+          <CommandList>
+            <CommandEmpty>Ничего не найдено.</CommandEmpty>
+            <CommandGroup heading="Журналы">
+              {items.map((j) => (
+                <CommandItem
+                  key={j.id}
+                  value={j.id}
+                  onSelect={(val) => {
+                    onChange(val);
+                    setOpen(false);
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate">{j.title}</div>
+                    <div className="text-xs text-gray-500 truncate">{j.org}</div>
+                  </div>
+                  <Check
+                    className={cn(
+                      "h-4 w-4 flex-shrink-0",
+                      value === j.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+

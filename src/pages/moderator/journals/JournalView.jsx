@@ -130,14 +130,14 @@ export default function JournalView() {
                 {journal.site && (
                   <div className="flex items-center gap-2">
                     <ExternalLink className="w-4 h-4" />
-                    <a
-                      href={journal.site}
+                    <Link
+                      to={journal.site}
                       target="_blank"
                       rel="noreferrer"
                       className="underline text-blue-600"
                     >
                       {journal.site}
-                    </a>
+                    </Link>
                   </div>
                 )}
                 <div>

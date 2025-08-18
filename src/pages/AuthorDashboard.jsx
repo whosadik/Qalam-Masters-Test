@@ -40,7 +40,9 @@ import {
   Star,
   History,
   Mail,
+  Send,
 } from "lucide-react";
+
 
 export default function AuthorDashboard() {
   const [reviews] = useState([
@@ -64,6 +66,17 @@ const [messages, setMessages] = useState([
   { id: 2, from: "me", text: "Здравствуйте! Когда ждать рецензию?", time: "10:05" },
   { id: 3, from: "editor", text: "Обычно в течение двух недель.", time: "10:07" },
 ]);
+const periodicityLabel = (p) =>
+  p === "monthly" ? "Ежемесячно" :
+  p === "quarterly" ? "Ежеквартально" :
+  p === "yearly" ? "Ежегодно" : "—";
+
+const journalProgress = (j) => Math.min(100, Math.round(j.completeness ?? 0));
+const journalStatus = (pct) => {
+  if (pct >= 80) return { label: "Готов", cls: "bg-green-100 text-green-700" };
+  if (pct >= 40) return { label: "В работе", cls: "bg-amber-100 text-amber-700" };
+  return { label: "Черновик", cls: "bg-slate-100 text-slate-700" };
+};
 
 const [archiveArticles] = useState([
   {
@@ -189,20 +202,21 @@ const [journals] = useState([
     },
   ]);
 
-  const getStatusColor = () => {
-    switch (status) {
-      case "Опубликовано":
-        return "bg-green-100 text-green-800 hover:bg-green-100";
-      case "На рецензировании":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-100";
-      case "Требует правок":
-        return "bg-orange-100 text-orange-800 hover:bg-orange-100";
-      case "Отклонено":
-        return "bg-red-100 text-red-800 hover:bg-red-100";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100";
-    }
-  };
+const getStatusColor = (status) => {
+  switch (status) {
+    case "Опубликовано":
+      return "bg-green-100 text-green-800 hover:bg-green-100";
+    case "На рецензировании":
+      return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+    case "Требует правок":
+      return "bg-orange-100 text-orange-800 hover:bg-orange-100";
+    case "Отклонено":
+      return "bg-red-100 text-red-800 hover:bg-red-100";
+    default:
+      return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+  }
+};
+
 
   const getNotificationIcon = (type) => {
     switch (type) {
@@ -503,40 +517,119 @@ const [journals] = useState([
           </div>
         </TabsContent>
 
-      <TabsContent value="journals" className="space-y-6">
-  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-    Поиск журналов
-  </h2>
+     <TabsContent value="journals" className="space-y-6">
+  <div className="flex items-center justify-between gap-3">
+    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Поиск журналов</h2>
+  </div>
+
   <Input
+    value={journalQuery}
+    onChange={(e) => setJournalQuery(e.target.value)}
     placeholder="Введите название журнала..."
     className="w-full sm:w-96"
-    onChange={(e) => setJournalQuery(e.target.value)}
   />
 
-  <div className="grid gap-4 sm:gap-6">
-    {journals
-      .filter(j => j.name.toLowerCase().includes(journalQuery.toLowerCase()))
-      .map(journal => (
-        <Card
-          key={journal.id}
-          className="border shadow-sm hover:shadow-md transition-all duration-200"
-        >
-          <CardHeader>
-            <CardTitle>{journal.name}</CardTitle>
-            <CardDescription>{journal.category}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => alert(`Открыть ${journal.name}`)}>
-              <Eye className="h-4 w-4 mr-1" /> Смотреть
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => alert(`Отправить статью в ${journal.name}`)}>
-              <Upload className="h-4 w-4 mr-1" /> Отправить статью
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
-  </div>
+  <Card className="border-0 shadow-sm">
+    <CardContent className="p-0">
+      {journals
+        .filter((j) => (j.name || "").toLowerCase().includes(journalQuery.toLowerCase()))
+        .length === 0 ? (
+        <div className="p-6 text-gray-500">Журналы не найдены.</div>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {journals
+            .filter((j) => (j.name || "").toLowerCase().includes(journalQuery.toLowerCase()))
+            .map((j) => {
+              const pct = journalProgress(j);
+              const st = journalStatus(pct);
+              const topics = Array.isArray(j.topics) ? j.topics.slice(0, 3) : [];
+              const more = Math.max(0, (Array.isArray(j.topics) ? j.topics.length : 0) - topics.length);
+
+              return (
+                <li key={j.id} className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2">
+                  <div className="flex items-stretch gap-4">
+                    {/* мини-обложка */}
+                    <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
+                      {j.coverUrl ? (
+                        <img src={j.coverUrl} alt="cover" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-2xl font-bold text-indigo-600">
+                            {(j.name || "J")[0]}
+                          </span>
+                        </div>
+                      )}
+                      {j.issn && (
+                        <div className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-white">
+                          ISSN: {j.issn}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* контент */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-lg leading-tight truncate">
+                          {j.name || "Без названия"}
+                        </h3>
+                        <span className={`text-xs px-2 py-0.5 rounded shrink-0 ${st.cls}`}>{st.label}</span>
+                      </div>
+
+                      <div className="text-sm text-gray-600 mt-0.5">
+                        {(j.field || j.category || "—")} • Язык: {j.lang?.toUpperCase() || "—"} • Периодичность: {periodicityLabel(j.periodicity)}
+                      </div>
+
+                      {topics.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {topics.map((t) => (
+                            <span key={t} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                              {t}
+                            </span>
+                          ))}
+                          {more > 0 && (
+                            <span className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                              +{more}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-3 max-w-xl">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-gray-600">Заполненность</span>
+                          <span className="font-medium">{pct}%</span>
+                        </div>
+                        <Progress value={pct} />
+                      </div>
+
+                      {j.description && (
+                        <p className="mt-3 text-sm text-gray-600 line-clamp-2">{j.description}</p>
+                      )}
+                    </div>
+
+                    {/* действия — оставь свою логику обработчиков */}
+                    <div className="flex flex-col gap-2 self-center shrink-0">
+                     <Link to={`/journals/${j.id}`}>
+    <Button size="sm" className="w-40">
+      <Eye className="w-4 h-4 mr-2" /> Открыть
+    </Button>
+  </Link>
+                     <Link to={`/submit-article?journalId=${j.id}`}>
+    <Button size="sm" variant="outline" className="w-40">
+      <Upload className="w-4 h-4 mr-2" /> Отправить статью
+    </Button>
+  </Link>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+        </ul>
+      )}
+    </CardContent>
+  </Card>
 </TabsContent>
+
 
 {/* Рецензии */}
 <TabsContent value="reviews" className="space-y-6">
@@ -743,6 +836,123 @@ const [journals] = useState([
               Показать все уведомления
             </Button>
           </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+function JournalsSearchSection({ journals = [], query, setQuery, onView, onSubmit }) {
+  return (
+    <div className="space-y-4">
+      {/* Заголовок + поиск */}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold">Поиск журналов</h2>
+      </div>
+
+      <Input
+        value={query}
+        onChange={(e) => setQuery?.(e.target.value)}
+        placeholder="Введите название журнала..."
+        className="max-w-xl"
+      />
+
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-0">
+          {journals.length === 0 ? (
+            <div className="p-6 text-gray-500">Журналы не найдены.</div>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {journals.map((j) => {
+                const pct = journalProgress(j);
+                const st = journalStatus(pct);
+
+                return (
+                  <li
+                    key={j.id}
+                    className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
+                  >
+                    <div className="flex items-stretch gap-4">
+                      {/* mini-cover */}
+                      <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
+                        {j.coverUrl ? (
+                          <img
+                            src={j.coverUrl}
+                            alt="cover"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-2xl font-bold text-indigo-600">
+                              {(j.name || "J")[0]}
+                            </span>
+                          </div>
+                        )}
+
+                        {j.issn && (
+                          <div className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-white">
+                            ISSN: {j.issn}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-lg leading-tight truncate">
+                            {j.name || "Без названия"}
+                          </h3>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded shrink-0 ${st.cls}`}
+                          >
+                            {st.label}
+                          </span>
+                        </div>
+
+                        <div className="text-sm text-gray-600 mt-0.5">
+                          {j.field || j.subject || "—"} • Язык: {j.lang?.toUpperCase() || "—"} • Периодичность: {periodicityLabel(j.periodicity)}
+                        </div>
+
+                        {/* прогресс */}
+                        <div className="mt-3 max-w-xl">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-gray-600">Заполненность</span>
+                            <span className="font-medium">{pct}%</span>
+                          </div>
+                          <Progress value={pct} />
+                        </div>
+
+                        {/* описание (опционально) */}
+                        {j.description && (
+                          <p className="mt-3 text-sm text-gray-600 line-clamp-2">
+                            {j.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* actions (сохраняем функционал) */}
+                      <div className="flex flex-col gap-2 self-center shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-40"
+                          onClick={() => onView?.(j)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" /> Смотреть
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="w-40"
+                          onClick={() => onSubmit?.(j)}
+                        >
+                          <Send className="w-4 h-4 mr-2" /> Отправить статью
+                        </Button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>

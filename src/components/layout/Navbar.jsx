@@ -108,7 +108,6 @@ export default function Navbar() {
       links: [
         { to: "/", label: "Главная", type: "home" },
         { to: "/about-journal", label: "О платформе" },
-        { to: "/editorial-board", label: "Редколлегия" },
         { to: "/author-info", label: "Информация для авторов" },
         { to: "/publication-terms", label: "Условия публикации" },
         { to: "/requirements", label: "Требования" },
@@ -165,12 +164,7 @@ export default function Navbar() {
               >
                 О платформе
               </Link>
-              <Link
-                to="/editorial-board"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Редколлегия
-              </Link>
+
               <Link
                 to="/author-info"
                 className="text-gray-600 hover:text-gray-900 transition-colors"

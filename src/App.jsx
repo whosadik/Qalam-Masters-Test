@@ -34,6 +34,7 @@ import ReviewerDashboard from "@/pages/moderator/journals/ReviewerDashboard";
 import EditorialWorkflow from "@/pages/moderator/journals/EditorialWorkflow";
 import EditorialCouncil from "@/pages/moderator/journals/EditorialCouncil";
 
+
 function AppContent() {
   const location = useLocation();
   const pagesWithoutDashboard = [
@@ -60,6 +61,7 @@ function AppContent() {
           <Route path="/requirements" element={<RequirementsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
         </Routes>
       </div>
     );
@@ -125,6 +127,7 @@ function AppContent() {
           path="/moderator/journals/:jid/council"
           element={<EditorialCouncil />}
         />
+        <Route path="/journals/:jid" element={<JournalView />} />
       </Routes>
     </DashboardLayout>
   );
@@ -132,7 +135,7 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <div className="min-h-screen bg-gray-50">
         <AppContent />
       </div>
