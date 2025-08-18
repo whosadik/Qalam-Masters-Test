@@ -39,6 +39,22 @@ import { ChevronsUpDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils"; // если нет — см. примечание ниже
 
 
+function Toggle({ label, hint, checked, onChange }) {
+  return (
+    <label className="flex items-start gap-3 cursor-pointer select-none py-2">
+      <input
+        type="checkbox"
+        className="mt-1 h-5 w-5 accent-blue-600"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <div>
+        <div className="font-medium text-gray-900">{label}</div>
+        {hint && <div className="text-sm text-gray-600">{hint}</div>}
+      </div>
+    </label>
+  );
+}
 export default function SubmitArticle() {
   const journals = [
   { id: "vestnik", title: "Вестник науки", org: "Qalam University" },
@@ -108,6 +124,16 @@ const steps = [
   const handleSubmit = () => {
     setShowSuccessModal(true);
   };
+        const [toggles, setToggles] = useState({
+        expertConclusion: !!formData.expertConclusion,
+        originalityCertificate: !!formData.originalityCertificate,
+        authorsConsent: !!formData.authorsConsent,
+        conflictOfInterest: !!formData.conflictOfInterest,
+        ethicsApproval: !!formData.ethicsApproval,
+      });
+
+      const setToggle = (key, val) =>
+        setToggles((t) => ({ ...t, [key]: val }));
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -536,37 +562,154 @@ const steps = [
           )}
 
           {/* Шаг 6: Файлы */}
-          {currentStep === 6 && (
-            <div className="space-y-6">
-              {/* Файл статьи */}
-              <FileDropZone
-                label="Файл статьи"
-                value={formData.articleFile}
-                onFileChange={(file) => handleInputChange("articleFile", file)}
-              />
 
-              {/* Экспертное заключение */}
-              <FileDropZone
-                label="Экспертное заключение"
-                value={formData.expertConclusion}
-                onFileChange={(file) =>
-                  handleInputChange("expertConclusion", file)
-                }
-              />
 
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">Оплата</h4>
-                <p className="text-sm text-blue-800 mb-2">
-                  Стоимость публикации: 10 000 тенге/статья. Оплата производится
-                  после принятия статьи к публикации.
-                </p>
-                <p className="text-sm text-blue-800">
-                  Оплата производится через банковский перевод. Банковские
-                  реквизиты будут предоставлены после принятия статьи.
-                </p>
-              </div>
+
+{/* === Вставь внутрь твоего компонента, где есть formData и handleInputChange === */}
+{currentStep === 6 && (
+  <div className="space-y-6">
+    {/* 1) Главный файл статьи — сразу drag&drop */}
+    <FileDropZone
+      label="Файл статьи (обязательно)"
+      value={formData.articleFile}
+      onFileChange={(file) => handleInputChange("articleFile", file)}
+      required
+    />
+
+    {(() => {
+
+
+      return (
+        <div className="space-y-4">
+          <div className="rounded-lg border border-gray-200 p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">
+              Дополнительные документы (по необходимости)
+            </h4>
+            <div className="space-y-2">
+              <Toggle
+                label="Загрузить Экспертное заключение (ЗГС)"
+                hint="Для организаций с режимом (НИИ, вузы, госструктуры)"
+                checked={toggles.expertConclusion}
+                onChange={(v) => {
+                  setToggle("expertConclusion", v);
+                  if (!v) handleInputChange("expertConclusion", null);
+                }}
+              />
+              {toggles.expertConclusion && (
+                <div className="pl-8 pt-2">
+                  <FileDropZone
+                    label="Экспертное заключение"
+                    value={formData.expertConclusion}
+                    onFileChange={(file) =>
+                      handleInputChange("expertConclusion", file)
+                    }
+                  />
+                </div>
+              )}
+
+              <Toggle
+                label="Загрузить Сертификат об оригинальности (антиплагиат)"
+                hint="Отчёт/сертификат из системы проверки оригинальности"
+                checked={toggles.originalityCertificate}
+                onChange={(v) => {
+                  setToggle("originalityCertificate", v);
+                  if (!v) handleInputChange("originalityCertificate", null);
+                }}
+              />
+              {toggles.originalityCertificate && (
+                <div className="pl-8 pt-2">
+                  <FileDropZone
+                    label="Сертификат об оригинальности"
+                    value={formData.originalityCertificate}
+                    onFileChange={(file) =>
+                      handleInputChange("originalityCertificate", file)
+                    }
+                  />
+                </div>
+              )}
+
+              <Toggle
+                label="Согласие авторов на публикацию"
+                hint="Подписанное письмо/форма согласия всех соавторов"
+                checked={toggles.authorsConsent}
+                onChange={(v) => {
+                  setToggle("authorsConsent", v);
+                  if (!v) handleInputChange("authorsConsent", null);
+                }}
+              />
+              {toggles.authorsConsent && (
+                <div className="pl-8 pt-2">
+                  <FileDropZone
+                    label="Согласие авторов"
+                    value={formData.authorsConsent}
+                    onFileChange={(file) =>
+                      handleInputChange("authorsConsent", file)
+                    }
+                  />
+                </div>
+              )}
+
+              <Toggle
+                label="Заявление об отсутствии конфликта интересов"
+                checked={toggles.conflictOfInterest}
+                onChange={(v) => {
+                  setToggle("conflictOfInterest", v);
+                  if (!v) handleInputChange("conflictOfInterest", null);
+                }}
+              />
+              {toggles.conflictOfInterest && (
+                <div className="pl-8 pt-2">
+                  <FileDropZone
+                    label="Конфликт интересов"
+                    value={formData.conflictOfInterest}
+                    onFileChange={(file) =>
+                      handleInputChange("conflictOfInterest", file)
+                    }
+                  />
+                </div>
+              )}
+
+              <Toggle
+                label="Этическое одобрение (IRB/ЭКО)"
+                hint="Для исследований с участием людей/животных"
+                checked={toggles.ethicsApproval}
+                onChange={(v) => {
+                  setToggle("ethicsApproval", v);
+                  if (!v) handleInputChange("ethicsApproval", null);
+                }}
+              />
+              {toggles.ethicsApproval && (
+                <div className="pl-8 pt-2">
+                  <FileDropZone
+                    label="Этическое одобрение"
+                    value={formData.ethicsApproval}
+                    onFileChange={(file) =>
+                      handleInputChange("ethicsApproval", file)
+                    }
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        </div>
+      );
+    })()}
+
+    {/* 3) Блок оплаты — как у тебя было */}
+    <div className="p-4 bg-blue-50 rounded-lg">
+      <h4 className="font-semibold text-blue-900 mb-2">Оплата</h4>
+      <p className="text-sm text-blue-800 mb-2">
+        Стоимость публикации: 10 000 тенге/статья. Оплата производится после
+        принятия статьи к публикации.
+      </p>
+      <p className="text-sm text-blue-800">
+        Оплата производится через банковский перевод. Банковские реквизиты будут
+        предоставлены после принятия статьи.
+      </p>
+    </div>
+  </div>
+)}
+
 
           {/* Шаг 7: Подтверждение */}
           {currentStep === 7 && (
@@ -827,4 +970,5 @@ function JournalCombobox({ value, onChange, items }) {
     </Popover>
   );
 }
+
 

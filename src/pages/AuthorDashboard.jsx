@@ -43,6 +43,8 @@ import {
   Send,
 } from "lucide-react";
 
+import EditArticleSheet from "@/components/articles/EditArticleSheet";
+
 
 export default function AuthorDashboard() {
   const [reviews] = useState([
@@ -124,7 +126,7 @@ const sendMessage = () => {
   }, 1000);
 };
 
-  const [articles] = useState([
+  const [articles, setArticles] = useState([
     {
       id: 1,
       title:
@@ -166,7 +168,20 @@ const sendMessage = () => {
       category: "Энергетика",
     },
   ]);
+const [editOpen, setEditOpen] = useState(false);
+const [editingArticle, setEditingArticle] = useState(null);
 
+const openEdit = (article) => {
+  setEditingArticle(article);
+  setEditOpen(true);
+};
+
+const handleSaveArticle = async (updated) => {
+  // здесь позже будет вызов API, пока — локальное обновление
+  setArticles(prev =>
+    prev.map(a => (a.id === updated.id ? { ...a, ...updated } : a))
+  );
+};
   const [journalQuery, setJournalQuery] = useState("");
 const [journals] = useState([
   { id: 1, name: "Международный журнал экологических исследований", category: "Экология" },
@@ -478,22 +493,23 @@ const getStatusColor = (status) => {
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 border-t border-gray-100">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-2 bg-transparent"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>Просмотр</span>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-2 bg-transparent"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span>Редактировать</span>
-                    </Button>
+<Link to={`/articles/${article.id}`}>
+  <Button size="sm" variant="outline" className="flex items-center gap-2 bg-transparent">
+    <Eye className="h-4 w-4" />
+    <span>Просмотр</span>
+  </Button>
+</Link>
+
+                 <Button
+  size="sm"
+  variant="outline"
+  className="flex items-center gap-2 bg-transparent"
+  onClick={() => openEdit(article)}
+>
+  <Edit className="h-4 w-4" />
+  <span>Редактировать</span>
+</Button>
+
                     <Button
                       size="sm"
                       variant="outline"
@@ -793,6 +809,13 @@ const getStatusColor = (status) => {
 
 
       </Tabs>
+      <EditArticleSheet
+  open={editOpen}
+  onOpenChange={setEditOpen}
+  article={editingArticle}
+  onSave={handleSaveArticle}
+/>
+
 
       {/* Notifications Panel */}
       <Card>
@@ -841,6 +864,7 @@ const getStatusColor = (status) => {
     </div>
   );
 }
+
 function JournalsSearchSection({ journals = [], query, setQuery, onView, onSubmit }) {
   return (
     <div className="space-y-4">

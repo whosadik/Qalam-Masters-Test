@@ -33,6 +33,9 @@ import EditorialBoard from "@/pages/moderator/journals/EditorialBoard";
 import ReviewerDashboard from "@/pages/moderator/journals/ReviewerDashboard";
 import EditorialWorkflow from "@/pages/moderator/journals/EditorialWorkflow";
 import EditorialCouncil from "@/pages/moderator/journals/EditorialCouncil";
+import ArticlePage from "@/pages/ArticlePage";
+import InitialScreeningPage from "@/pages/editorial/InitialScreeningPage";
+
 
 
 function AppContent() {
@@ -128,6 +131,10 @@ function AppContent() {
           element={<EditorialCouncil />}
         />
         <Route path="/journals/:jid" element={<JournalView />} />
+        <Route path="/articles/:id" element={<ArticlePage />} />
+        <Route path="/editorial/screening" element={<InitialScreeningPage />} />
+
+
       </Routes>
     </DashboardLayout>
   );
