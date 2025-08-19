@@ -2,8 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "url";
 
+// Cloudflare Pages / custom domain build
+// IMPORTANT: base must be "/" so assets resolve correctly at app.qalam-masters.kz
 export default defineConfig({
-  base: "/Qalam-Masters-2.0/",
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {
