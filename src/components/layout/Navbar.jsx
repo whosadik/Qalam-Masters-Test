@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import Logo from "../../../public/writing 1.png";
+import Logo from "../../assets/QM_logo-.png";
 import NotificationsButton from "@/components/NotificationsButton";
 import ProfileMenu from "@/components/ProfileMenu";
 import { User as UserIcon, Compass } from "lucide-react";
@@ -149,15 +149,19 @@ export default function Navbar() {
                   width={40}
                   height={40}
                 />
-                <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                  Qalam Masters
-                </span>
+             
               </span>
             </Link>
 
             {/* Десктоп-навигация */}
 
             <nav className="hidden md:flex items-center gap-8">
+                  <Link
+                to="/"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Главная
+              </Link>
               <Link
                 to="/about-journal"
                 className="text-gray-600 hover:text-gray-900 transition-colors"

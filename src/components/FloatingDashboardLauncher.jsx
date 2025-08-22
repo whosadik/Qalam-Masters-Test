@@ -28,7 +28,7 @@ export default function FloatingDashboardLauncher() {
           desc: "Рецензирование, задачи",
         },
         {
-          to: "/editorial-board-dashboard",
+          to: "/editorial/screening",
           label: "Дашборд редколлегии",
           type: "dashboard",
           desc: "Очередь, публикации",
@@ -94,7 +94,7 @@ export default function FloatingDashboardLauncher() {
       links: [
         { to: "/", label: "Главная", type: "home" },
         { to: "/about-journal", label: "О платформе" },
-        { to: "/editorial-board", label: "Редколлегия" },
+        { to: "/editorial-screening", label: "Редколлегия" },
         { to: "/author-info", label: "Информация для авторов" },
         { to: "/publication-terms", label: "Условия публикации" },
         { to: "/requirements", label: "Требования" },

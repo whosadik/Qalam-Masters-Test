@@ -23,6 +23,11 @@ import {
 import { articlesStore } from "@/store/articlesStore";
 import ScreeningCard from "@/components/editorial/ScreeningCard";
 import { ARTICLE_STATUS } from "@/constants/articleStatus";
+import ReviewerPicker from "@/components/editorial/ReviewerPicker";
+import ScreeningRow from "@/components/editorial/ScreeningRow";
+import ReviewerSelectModal from "@/components/editorial/ReviewerSelectModal";
+
+
 
 export default function EditorialProfile() {
   const [screeningItems, setScreeningItems] = useState([]);
@@ -113,6 +118,9 @@ const handleDecision = async (id, decision, payload) => {
     });
     await loadScreening();
   };
+const [selected, setSelected] = useState(null); // article | null
+const openArticle = (a) => setSelected(a);
+const closeArticle = () => setSelected(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50">
@@ -130,6 +138,7 @@ const handleDecision = async (id, decision, payload) => {
           </div>
         </div>
       </header>
+      
 
       {/* Main */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -143,65 +152,119 @@ const handleDecision = async (id, decision, payload) => {
                 </span>
               )}
             </TabsTrigger>
-<TabsTrigger value="inreview">В рецензировании</TabsTrigger>
-<TabsTrigger value="decisions">Решения</TabsTrigger>
+  <TabsTrigger value="reviewers">Назначение рецензентов</TabsTrigger>   {/* ← ДОБАВЬ */}
+
           </TabsList>
 
           {/* --- Поданные статьи (Первичная проверка) --- */}
-          <TabsContent value="submissions" className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Поданные статьи (Первичная проверка)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Поиск / Обновить */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="relative w-full sm:w-96">
-                    <Input
-                      placeholder="Поиск по названию/журналу…"
-                      value={q}
-                      onChange={(e) => setQ(e.target.value)}
-                      className="pl-9"
-                    />
-                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={loadScreening} className="gap-2">
-                      <RefreshCcw className="w-4 h-4" />
-                      Обновить
-                    </Button>
-                    <Link to="/editorial/screening">
-                      <Button variant="outline" className="gap-2">
-                        Открыть в полноэкранном режиме
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-                </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="inreview" className="space-y-6">
-        <Card className="border-0 shadow-lg">
-            <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                В рецензировании
-            </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-            {inReviewItems.length === 0 ? (
-                <p className="text-gray-600">Нет статей в рецензировании.</p>
-            ) : (
-                inReviewItems.map((a) => (
-                <ReviewStatusRow key={a.id} article={a} onMoveToDecision={moveToDecision} />
-                ))
-            )}
-                </CardContent>
-            </Card>
-        </TabsContent>
+       <TabsContent value="submissions" className="space-y-6">
+  {!selected ? (
+    <>
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Поданные статьи (Первичная проверка)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Поиск / Обновить */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="relative w-full sm:w-96">
+              <Input
+                placeholder="Поиск по названию/журналу…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="pl-9"
+              />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={loadScreening} className="gap-2">
+                <RefreshCcw className="w-4 h-4" />
+                Обновить
+              </Button>
+              {/* при желании можешь оставить линк на полноэкранную страницу */}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* СПИСОК */}
+      <div className="grid gap-3">
+        {filteredScreening.length === 0 ? (
+          <div className="text-gray-500">Нет статей на первичной проверке.</div>
+        ) : (
+          filteredScreening.map((a) => (
+            <ScreeningRow key={a.id} article={a} onOpen={setSelected} />
+          ))
+        )}
+      </div>
+    </>
+  ) : (
+    /* ДЕТАЛЬ СТАТЬИ — ПОЛНОЭКРАННО */
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="border-b">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-xl">{selected.title}</CardTitle>
+            <div className="text-sm text-gray-600">
+              {selected.journal} • {selected.category}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setSelected(null)}>← К списку</Button>
+          </div>
+        </div>
+      </CardHeader>
+
+      {/* КНОПКА АНТИПЛАГИАТ + быстрые проценты */}
+      <CardContent className="border-b p-4 flex items-center gap-3">
+        <Button
+          onClick={async () => {
+            const updated = await articlesStore.runPlagiarism(selected.id);
+            setSelected(updated);
+            await loadScreening(); // список тоже обновим
+          }}
+        >
+          Провести антиплагиат
+        </Button>
+        {selected.plagiarism && (
+          <div className="text-sm text-gray-700">
+            Оригинальность: <b>{selected.plagiarism.originality}%</b> •
+            Совпадения: <b>{selected.plagiarism.matches}%</b>
+          </div>
+        )}
+      </CardContent>
+
+      {/* ЧЕК-ЛИСТ и КНОПКИ «Вернуть»/«Допустить» */}
+      <CardContent className="p-4">
+        <ScreeningCard
+          article={selected}
+          // ВАЖНО: префилл полей антиплагиата в чек-листе
+          defaultChecklist={{
+            plagiarism: {
+              originality: selected?.plagiarism?.originality ?? "",
+              matches: selected?.plagiarism?.matches ?? "",
+              reportUrl: selected?.plagiarism?.reportUrl ?? "",
+            },
+          }}
+          onAllowToReview={async (id, checklist) => {
+            await handleAllow(id, checklist);
+            await loadScreening();
+            setSelected(null); // вернёмся к списку
+          }}
+          onReturnToAuthor={async (id, checklist) => {
+            await handleReturn(id, checklist);
+            await loadScreening();
+            setSelected(null);
+          }}
+        />
+      </CardContent>
+    </Card>
+  )}
+</TabsContent>
+
 
   <TabsContent value="decisions" className="space-y-6">
     <Card className="border-0 shadow-lg">
@@ -224,23 +287,6 @@ const handleDecision = async (id, decision, payload) => {
   </TabsContent>
 
 
-
-
-                {/* Список карточек */}
-                <div className="grid gap-4">
-                  {filteredScreening.length === 0 ? (
-                    <div className="text-gray-500">Нет статей на первичной проверке.</div>
-                  ) : (
-                    filteredScreening.map((a) => (
-                      <ScreeningCard
-                        key={a.id}
-                        article={a}
-                        onAllowToReview={handleAllow}
-                        onReturnToAuthor={handleReturn}
-                      />
-                    ))
-                  )}
-                </div>
 
           {/* --- Проверка структуры (инфоблок) --- */}
           <TabsContent value="structure" className="space-y-6">
@@ -297,118 +343,74 @@ const handleDecision = async (id, decision, payload) => {
             </Card>
           </TabsContent>
 
-          {/* --- Антиплагиат (инфоблок) --- */}
-          <TabsContent value="plagiarism" className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Проверка на плагиат
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Здесь появится интеграция с системой антиплагиата и отображение отчётов.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* --- Переписка (инфоблок) --- */}
-          <TabsContent value="communication" className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Переписка с авторами и рецензентами
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Встроенная система сообщений добавим позже.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* --- Контроль сроков (инфоблок) --- */}
-          <TabsContent value="deadlines" className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Контроль сроков рецензирования
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Мониторинг дедлайнов, напоминания, продления — после подключения рецензентов.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+         
+        
         </Tabs>
       </main>
     </div>
   );
 }
-
-/** ---------------------------------------------
- * Мини-строка назначения рецензентов (локальная)
- * --------------------------------------------*/
 function AssignRow({ article, onDone }) {
-  const [reviewers, setReviewers] = useState("");
+  const [selected, setSelected] = useState([]); // [{id,name,email}]
   const [deadline, setDeadline] = useState("");
+  const [showSelect, setShowSelect] = useState(false);
 
-  const canSend = reviewers.trim().length > 0 && deadline;
+  const canSend = selected.length >= 1 && selected.length <= 2 && !!deadline;
 
   const sendInvites = async () => {
-    const names = reviewers
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .slice(0, 3); // максимум 3
-
-    await articlesStore.addNote(article.id, {
-      type: "assignment",
-      reviewers: names,
-      deadline,
-    });
-    // В реале здесь будет создание инвайтов; для MVP двигаем статус
-    await articlesStore.setStatus(article.id, ARTICLE_STATUS.IN_REVIEW);
-    setReviewers("");
+    await articlesStore.assignReviewers(article.id, selected, deadline);
+    setSelected([]);
     setDeadline("");
     await onDone?.();
-    // Можно всплывашку/тост подключить, пока console/info
-    console.info("Invites sent:", { articleId: article.id, names, deadline });
   };
 
   return (
     <div className="border rounded-lg p-4 bg-white">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="font-semibold text-gray-900 truncate">{article.title}</div>
           <div className="text-sm text-gray-600 truncate">
             {article.journal} • {article.category}
           </div>
         </div>
-        <Badge variant="secondary">{ARTICLE_STATUS.REVIEWER_ASSIGNMENT}</Badge>
+        <Badge variant="secondary">Reviewer Assignment</Badge>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Input
-          placeholder="Рецензенты (до 3), через запятую"
-          value={reviewers}
-          onChange={(e) => setReviewers(e.target.value)}
-        />
-        <Input
-          type="date"
-          placeholder="Дедлайн рецензии"
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-        />
-        <Button onClick={sendInvites} disabled={!canSend}>
-          Разослать инвайты
-        </Button>
+      <div className="mt-3 space-y-3">
+        {/* выбранные */}
+        <div className="flex flex-wrap gap-2">
+          {selected.map((p) => (
+            <Badge key={p.id} className="bg-blue-100 text-blue-800">{p.name}</Badge>
+          ))}
+          <Button variant="outline" onClick={() => setShowSelect(true)}>
+            Выбрать из списка
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Input
+            type="date"
+            placeholder="Дедлайн рецензии"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+          />
+          <div className="sm:col-span-2 flex items-center justify-end">
+            <Button onClick={sendInvites} disabled={!canSend}>
+              Разослать инвайты (1–2 рецензента)
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* МОДАЛ-ВЫБОР */}
+      <ReviewerSelectModal
+        isOpen={showSelect}
+        initialSelected={selected}
+        onClose={() => setShowSelect(false)}
+        onSubmit={(arr) => { setSelected(arr); setShowSelect(false); }}
+      />
     </div>
   );
 }

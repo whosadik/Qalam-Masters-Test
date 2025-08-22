@@ -14,7 +14,12 @@ let _articles = [
   },
   // добавляй по мере надобности
 ];
-
+let _reviewers = [
+  { id: "rv-1", name: "Ы. Фафыв", email: "y@example.com", active: true, fields: ["Гуманитарные"], workload: 0, about: "ывафыва" },
+  { id: "rv-2", name: "И. Ким",   email: "kim@example.com", active: true, fields: ["Экология","ML"], workload: 2, about: "экология, ML" },
+  { id: "rv-3", name: "С. Нурлыбек", email: "sn@example.com", active: false, fields: ["История"], workload: 1, about: "история наук" },
+  // добавляй своих
+];
 export const articlesStore = {
   async listForScreening() {
     return _articles.filter(
@@ -24,6 +29,10 @@ export const articlesStore = {
 
   async listByStatus(status) {
     return _articles.filter((a) => a.status === status);
+  },
+    async listReviewers() {
+    return [..._reviewers].sort((a,b) => (b.active - a.active) || (a.workload - b.workload));
+    
   },
 
   async setStatus(id, status, payload = {}) {
@@ -68,4 +77,94 @@ export const articlesStore = {
       ...payload, // например { revisionType: 'minor'|'major', deadline: '2025-09-01' }
     });
   },
+  async searchReviewers(q) {
+    const s = (q || "").toLowerCase();
+    if (!s) return this.listReviewers();
+    return (await this.listReviewers()).filter(p =>
+      p.name.toLowerCase().includes(s) ||
+      p.email.toLowerCase().includes(s) ||
+      (p.fields||[]).join(",").toLowerCase().includes(s)
+    );
+  },
+    async assignReviewers(articleId, reviewers, deadline) {
+    if (!Array.isArray(reviewers) || reviewers.length === 0 || reviewers.length > 2) {
+      throw new Error("Нужно выбрать 1–2 рецензента");
+    }
+    // уменьшаем «свободную нагрузку»
+    reviewers.forEach(r => {
+      const idx = _reviewers.findIndex(x => x.id === r.id);
+      if (idx >= 0) _reviewers[idx].workload = (_reviewers[idx].workload || 0) + 1;
+    });
+
+    // привязываем к статье
+    _articles = _articles.map(a => {
+      if (a.id !== articleId) return a;
+      return {
+        ...a,
+        review: {
+          ...(a.review || {}),
+          assignments: [
+            ...(a.review?.assignments || []),
+            ...reviewers.map(r => ({
+              reviewerId: r.id, name: r.name, email: r.email,
+              invitedAt: new Date().toISOString(),
+              deadline, status: "invited",
+            })),
+          ],
+        },
+        status: "In Review", // или "Reviewer Assignment" — если хочешь ожидать акцепта
+      };
+    });
+   await this.addNote(articleId, {
+      type: "assignment",
+      reviewers: reviewers.map(r => ({ id: r.id, name: r.name, email: r.email })),
+      deadline,
+    });
+
+    return _articles.find(a => a.id === articleId);
+  },
+
+
+  /** (опционально) отметить отклик рецензента */
+  async markInvitation(articleId, reviewerId, action /* 'accepted'|'declined' */) {
+    _articles = _articles.map((a) => {
+      if (a.id !== articleId) return a;
+      const as = a.review?.assignments?.map(x =>
+        x.reviewerId === reviewerId ? { ...x, status: action } : x
+      );
+      return { ...a, review: { ...(a.review||{}), assignments: as } };
+    });
+    return _articles.find((a) => a.id === articleId);
+  },
+    async runPlagiarism(id) {
+    // имитация результатов
+    const originality = Math.round(75 + Math.random() * 25); // 75–100
+    const matches = 100 - originality;
+    const reportUrl = `https://report.example.com/${id}-${Date.now()}`;
+
+    _articles = _articles.map(a =>
+      a.id === id
+        ? {
+            ...a,
+            plagiarism: {
+              originality,
+              matches,
+              topSource: Math.round(matches * 0.5 * 10) / 10,
+              reportUrl,
+            },
+          }
+        : a
+    );
+
+    await this.addNote(id, {
+      type: "plagiarism_run",
+      when: new Date().toISOString(),
+      result: { originality, matches, reportUrl },
+    });
+
+    return _articles.find(a => a.id === id);
+  },
+
+
 };
+
