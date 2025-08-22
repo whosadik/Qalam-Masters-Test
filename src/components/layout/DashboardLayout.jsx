@@ -1,33 +1,58 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Sidebar from "./Sidebar"
-import Topbar from "./Topbar"
-import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import Navbar from "./Navbar";
 
 export default function DashboardLayout({ children }) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Закрыть меню по Escape
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Блокируем скролл страницы при открытом мобильном меню
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.documentElement.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar />
-
-      {/* Mobile sidebar overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* Skip link */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:shadow"
+      >
+        Перейти к контенту
+      </a>
       {/* Topbar */}
-      <Topbar onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+      <Navbar
+        onToggleMobileMenu={() => setIsMobileMenuOpen((v) => !v)}
+        isMobileMenuOpen={isMobileMenuOpen}></Navbar>
 
-      {/* Main content */}
-      <main className={cn("transition-all duration-300 pt-16", "md:ml-64")}>
-        <div className="p-4 md:p-6">{children}</div>
+      {/* Контент */}
+      <main
+        id="main"
+        className={cn(
+          "transition-[margin] duration-300 motion-reduce:transition-none",
+        )}
+      >
+        <div className="mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
+          {children}
+        </div>
       </main>
     </div>
-  )
+  );
 }
