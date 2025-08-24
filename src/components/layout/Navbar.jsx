@@ -143,20 +143,19 @@ export default function Navbar() {
             <Link to="/" className="shrink-0">
               <span className="flex items-center gap-2">
                 <img
-                  className="h-10 w-10 object-contain"
+                  className="h-16 w-16 object-contain"
                   src={Logo}
                   alt="Qalam Masters логотип"
-                  width={40}
+                  width={60}
                   height={40}
                 />
-             
               </span>
             </Link>
 
             {/* Десктоп-навигация */}
 
             <nav className="hidden md:flex items-center gap-8">
-                  <Link
+              <Link
                 to="/"
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >

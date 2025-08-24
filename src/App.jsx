@@ -30,13 +30,11 @@ import JournalView from "@/pages/moderator/journals/JournalView";
 import JournalSettings from "@/pages/moderator/journals/JournalSettings";
 import Reviewers from "@/pages/moderator/journals/Reviewers";
 import EditorialBoard from "@/pages/moderator/journals/EditorialBoard";
-import ReviewerDashboard from "@/pages/moderator/journals/ReviewerDashboard";
+import ReviewerDashboard from "@/pages/ReviewerDashboard";
 import EditorialWorkflow from "@/pages/moderator/journals/EditorialWorkflow";
 import EditorialCouncil from "@/pages/moderator/journals/EditorialCouncil";
 import ArticlePage from "@/pages/ArticlePage";
 import InitialScreeningPage from "@/pages/editorial/InitialScreeningPage";
-
-
 
 function AppContent() {
   const location = useLocation();
@@ -64,7 +62,6 @@ function AppContent() {
           <Route path="/requirements" element={<RequirementsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-
         </Routes>
       </div>
     );
@@ -118,10 +115,8 @@ function AppContent() {
           path="/moderator/journals/:jid/editorial"
           element={<EditorialBoard />}
         />
-        <Route
-          path="/moderator/journals/:jid/reviewer"
-          element={<ReviewerDashboard />}
-        />
+        <Route path="/reviewer" element={<ReviewerDashboard />} />
+
         <Route
           path="/moderator/journals/:jid/workflow"
           element={<EditorialWorkflow />}
@@ -133,8 +128,6 @@ function AppContent() {
         <Route path="/journals/:jid" element={<JournalView />} />
         <Route path="/articles/:id" element={<ArticlePage />} />
         <Route path="/editorial/screening" element={<InitialScreeningPage />} />
-
-
       </Routes>
     </DashboardLayout>
   );
