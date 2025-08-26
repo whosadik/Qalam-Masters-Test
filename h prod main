@@ -1,0 +1,17 @@
+M	package-lock.json
+M	src/App.jsx
+A	src/api/articles.js
+A	src/api/auth.js
+A	src/components/auth/ProtectedRoute.jsx
+A	src/components/editorial/ReviewFormModal.jsx
+M	src/components/editorial/ReviewStatusRow.jsx
+M	src/components/layout/Navbar.jsx
+M	src/constants/articleStatus.js
+A	src/constants/review.js
+A	src/context/AuthContext.js
+A	src/lib/apiClient.js
+M	src/pages/Login/LoginPage.jsx
+M	src/pages/Login/RegisterPage.jsx
+M	src/pages/ReviewerDashboard.jsx
+M	src/pages/editorial/EditorialProfile.jsx
+M	src/store/articlesStore.js

@@ -1,7 +1,9 @@
 import axios from "axios";
+const BASE = import.meta.env.VITE_API_URL || "https://api.qalam-masters.kz";
+console.log("[api] baseURL:", BASE);
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: BASE,
   timeout: 20000,
 });
 
