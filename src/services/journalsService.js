@@ -1,4 +1,4 @@
-import { http, withParams } from "@/lib/http";
+import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 
 export async function listJournals({ search, ordering, page, page_size } = {}) {

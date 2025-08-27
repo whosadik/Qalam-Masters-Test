@@ -4,13 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "../../assets/QM_logo-.png";
-import NotificationsButton from "@/components/NotificationsButton";
+// import NotificationsButton from "@/components/NotificationsButton"; // <- пока убрали
 import ProfileMenu from "@/components/ProfileMenu";
 import { User as UserIcon, Compass } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
-import DashboardNavigatorModal, {
-  useCommandK,
-} from "@/components/DashboardNavigatorModal";
+import DashboardNavigatorModal, { useCommandK } from "@/components/DashboardNavigatorModal";
+import { me as fetchMe } from "@/services/authService"; // GET /api/users/me/
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -18,7 +17,10 @@ export default function Navbar() {
   useCommandK(setNavOpen);
 
   const navigate = useNavigate();
-  const { isAuthenticated, user, login, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
+
+  // локальный user для показа, если контекст ещё пуст
+  const [displayUser, setDisplayUser] = useState(user || null);
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && setOpen(false);
@@ -30,78 +32,55 @@ export default function Navbar() {
     };
   }, [open]);
 
-  const closeMenu = () => setOpen(false);
+  // если авторизованы, но в контексте ещё нет профиля — подтянем /me
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      if (isAuthenticated) {
+        try {
+          // если useAuth уже отдал пользователя — используем его
+          if (user && !ignore) {
+            setDisplayUser(user);
+            return;
+          }
+          // иначе пробуем получить профиль напрямую
+          const data = await fetchMe();
+          if (!ignore) setDisplayUser(data || null);
+        } catch {
+          // в случае 401/ошибок просто оставим без профиля
+          if (!ignore) setDisplayUser(null);
+        }
+      } else {
+        setDisplayUser(null);
+      }
+    })();
+    return () => { ignore = true; };
+  }, [isAuthenticated, user]);
 
-  const demoLogin = () => {
-    login();
-    navigate("/author-dashboard");
-  };
+  const closeMenu = () => setOpen(false);
 
   const navItems = [
     {
       title: "Дашборды",
       links: [
-        {
-          to: "/author-dashboard",
-          label: "Дашборд автора",
-          type: "dashboard",
-          desc: "Подачи, черновики, статусы",
-        },
-        {
-          to: "/reviewer-dashboard",
-          label: "Дашборд рецензента",
-          type: "dashboard",
-          desc: "Рецензирование, задачи",
-        },
-        {
-          to: "/editorial-board-dashboard",
-          label: "Дашборд редколлегии",
-          type: "dashboard",
-          desc: "Очередь, публикации",
-        },
-        {
-          to: "/editor-chief-dashboard",
-          label: "Дашборд главного редактора",
-          type: "dashboard",
-          desc: "Управление журналом",
-        },
-        {
-          to: "/admin-dashboard",
-          label: "Админ-панель",
-          type: "dashboard",
-          desc: "Пользователи, права, системные настройки",
-        },
+        { to: "/author-dashboard", label: "Дашборд автора", type: "dashboard", desc: "Подачи, черновики, статусы" },
+        { to: "/reviewer-dashboard", label: "Дашборд рецензента", type: "dashboard", desc: "Рецензирование, задачи" },
+        { to: "/editorial-board-dashboard", label: "Дашборд редколлегии", type: "dashboard", desc: "Очередь, публикации" },
+        { to: "/editor-chief-dashboard", label: "Дашборд главного редактора", type: "dashboard", desc: "Управление журналом" },
+        { to: "/admin-dashboard", label: "Админ-панель", type: "dashboard", desc: "Пользователи, права, системные настройки" },
       ],
     },
     {
       title: "Профили",
       links: [
-        {
-          to: "/author-profile",
-          label: "Профиль автора",
-          desc: "Личные данные, настройки",
-        },
-        {
-          to: "/reviewer-profile",
-          label: "Профиль рецензента",
-          desc: "Специализации, загрузка CV",
-        },
-        {
-          to: "/editorial-profile",
-          label: "Профиль редакции",
-          desc: "Информация об аккаунте редакции",
-        },
+        { to: "/author-profile", label: "Профиль автора", desc: "Личные данные, настройки" },
+        { to: "/reviewer-profile", label: "Профиль рецензента", desc: "Специализации, загрузка CV" },
+        { to: "/editorial-profile", label: "Профиль редакции", desc: "Информация об аккаунте редакции" },
       ],
     },
     {
       title: "Действия",
-      links: [
-        {
-          to: "/submit-article",
-          label: "Подать статью",
-          desc: "Создать новую заявку",
-        },
-      ],
+      links: [{ to: "/submit-article", label: "Подать статью", desc: "Создать новую заявку" }],
     },
     {
       title: "Публичные страницы",
@@ -122,17 +101,24 @@ export default function Navbar() {
     },
   ];
 
-  // в модалке гостю — публичные/вход; пользователю — рабочие секции
+  // гостю — публичные/вход; пользователю — рабочие секции
   const filteredNavItems = useMemo(() => {
     if (isAuthenticated) {
-      return navItems.filter(
-        (s) => s.title !== "Вход" && s.title !== "Публичные страницы"
-      );
+      return navItems.filter((s) => s.title !== "Вход" && s.title !== "Публичные страницы");
     }
-    return navItems.filter(
-      (s) => s.title === "Публичные страницы" || s.title === "Вход"
-    );
+    return navItems.filter((s) => s.title === "Публичные страницы" || s.title === "Вход");
   }, [isAuthenticated]);
+
+  const avatarNode = (
+    <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+      <UserIcon className="h-4 w-4 text-white" />
+    </div>
+  );
+
+  const displayName =
+    (displayUser?.first_name || displayUser?.last_name)
+      ? `${displayUser?.first_name || ""} ${displayUser?.last_name || ""}`.trim()
+      : (displayUser?.name || "Профиль");
 
   return (
     <>
@@ -149,36 +135,21 @@ export default function Navbar() {
                   width={40}
                   height={40}
                 />
-             
               </span>
             </Link>
 
             {/* Десктоп-навигация */}
-
             <nav className="hidden md:flex items-center gap-8">
-                  <Link
-                to="/"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
+              <Link to="/" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Главная
               </Link>
-              <Link
-                to="/about-journal"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
+              <Link to="/about-journal" className="text-gray-600 hover:text-gray-900 transition-colors">
                 О платформе
               </Link>
-
-              <Link
-                to="/author-info"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
+              <Link to="/author-info" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Информация для авторов
               </Link>
-              <Link
-                to="/publication-terms"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
+              <Link to="/publication-terms" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Условия публикации
               </Link>
             </nav>
@@ -193,10 +164,6 @@ export default function Navbar() {
                   <Link to="/register">
                     <Button>Зарегистрироваться</Button>
                   </Link>
-                  {/* удалить после макета */}
-                  <Button variant="ghost" onClick={demoLogin} title="Демо-вход">
-                    Демо-вход
-                  </Button>
                 </>
               ) : (
                 <>
@@ -204,30 +171,14 @@ export default function Navbar() {
                     <Button variant="outline">Личный кабинет</Button>
                   </Link>
 
-                  <NotificationsButton
-                    count={3}
-                    items={[
-                      {
-                        id: 1,
-                        title: "Новая статья на рецензию",
-                        time: "2 минуты назад",
-                      },
-                      { id: 2, title: "Рецензия готова", time: "1 час назад" },
-                      {
-                        id: 3,
-                        title: "Статья принята к публикации",
-                        time: "3 часа назад",
-                      },
-                    ]}
-                  />
+                  {/* Уведомления (подключим позже, когда появится API)
+                  <NotificationsButton count={unreadCount} items={itemsFromApi} />
+                  */}
+
                   <ProfileMenu
-                    name={(user && user.name) || "Профиль"}
-                    email={user && user.email}
-                    avatar={
-                      <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                        <UserIcon className="h-4 w-4 text-white" />
-                      </div>
-                    }
+                    name={displayName}
+                    email={displayUser?.email}
+                    avatar={avatarNode}
                     onProfile={() => navigate("/author-profile")}
                     onSettings={() => navigate("/settings")}
                     onLogout={() => {
@@ -253,48 +204,23 @@ export default function Navbar() {
               {!isAuthenticated ? (
                 <>
                   <Link to="/login">
-                    <Button variant="outline" size="sm">
-                      Войти
-                    </Button>
+                    <Button variant="outline" size="sm">Войти</Button>
                   </Link>
                   <Link to="/register">
                     <Button size="sm">Регистрация</Button>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={demoLogin}
-                    title="Демо-вход"
-                  >
-                    Демо
-                  </Button>
                 </>
               ) : (
                 <>
                   <Link to="/author-dashboard">
-                    <Button variant="outline" size="sm">
-                      ЛК
-                    </Button>
+                    <Button variant="outline" size="sm">ЛК</Button>
                   </Link>
-                  <NotificationsButton
-                    count={3}
-                    items={[
-                      {
-                        id: 1,
-                        title: "Новая статья на рецензию",
-                        time: "2 минуты назад",
-                      },
-                      { id: 2, title: "Рецензия готова", time: "1 час назад" },
-                      {
-                        id: 3,
-                        title: "Статья принята к публикации",
-                        time: "3 часа назад",
-                      },
-                    ]}
-                  />
+
+                  {/* <NotificationsButton ... /> */}
+
                   <ProfileMenu
-                    name={(user && user.name) || "Профиль"}
-                    email={user && user.email}
+                    name={displayName}
+                    email={displayUser?.email}
                     showNameOnDesktop={false}
                     onProfile={() => {
                       closeMenu();
@@ -323,29 +249,13 @@ export default function Navbar() {
                 onClick={() => setOpen((v) => !v)}
               >
                 {open ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 6L6 18M6 6l12 12" />
                   </svg>
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 6h18M3 12h18M3 18h18" />
                   </svg>
                 )}
@@ -364,6 +274,7 @@ export default function Navbar() {
           onClick={closeMenu}
         />
       )}
+
       {/* Мобильное меню */}
       <div
         id="mobile-menu"
@@ -377,63 +288,31 @@ export default function Navbar() {
         <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 pb-6 pt-20">
           {!isAuthenticated ? (
             <nav className="grid gap-4">
-              <Link
-                to="/about-journal"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/about-journal" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 О платформе
               </Link>
-              <Link
-                to="/editorial-board"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/editorial-board" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 Редколлегия
               </Link>
-              <Link
-                to="/author-info"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/author-info" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 Информация для авторов
               </Link>
-              <Link
-                to="/publication-terms"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/publication-terms" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 Условия публикации
               </Link>
             </nav>
           ) : (
             <nav className="grid gap-4">
-              <Link
-                to="/author-dashboard"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/author-dashboard" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 Мои статьи
               </Link>
-              <Link
-                to="/reviews"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/reviews" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 Рецензии
               </Link>
-              <Link
-                to="/messages"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/messages" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 Переписка
               </Link>
-              <Link
-                to="/archive"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
+              <Link to="/archive" onClick={closeMenu} className="py-2 text-base text-gray-700 hover:text-gray-900">
                 Архив
               </Link>
             </nav>
