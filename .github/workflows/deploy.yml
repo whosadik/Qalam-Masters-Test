@@ -2,8 +2,8 @@ name: Deploy Vite app to GitHub Pages
 
 on:
   push:
-    branches: [ main ]   # если у тебя default ветка "master" — замени здесь
-  workflow_dispatch:      # ручной запуск из вкладки Actions
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -29,6 +29,14 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # ⬇️ добавь этот шаг
+      - name: Create .env.production
+        run: |
+          echo "VITE_APP_ENV=production" >> .env.production
+          echo "VITE_API_URL=https://api.qalam-masters.kz" >> .env.production
+          # если хочешь совместимость со старым именем:
+          echo "VITE_API_BASE_URL=https://api.qalam-masters.kz" >> .env.production
 
       - name: Build
         run: npm run build
