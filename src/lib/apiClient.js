@@ -1,16 +1,31 @@
 // src/lib/apiClient.js
 import axios from "axios";
 
-
+import { BASE_URL } from "@/constants/api";
 // ===== tokens in localStorage =====
 const ACCESS_KEY = "qm_access_token";
 const REFRESH_KEY = "qm_refresh_token";
 export const tokenStore = {
-  get access()  { return localStorage.getItem(ACCESS_KEY); },
-  set access(v) { v ? localStorage.setItem(ACCESS_KEY, v) : localStorage.removeItem(ACCESS_KEY); },
-  get refresh() { return localStorage.getItem(REFRESH_KEY); },
-  set refresh(v){ v ? localStorage.setItem(REFRESH_KEY, v) : localStorage.removeItem(REFRESH_KEY); },
-  clear()       { this.access = null; this.refresh = null; },
+  get access() {
+    return localStorage.getItem(ACCESS_KEY);
+  },
+  set access(v) {
+    v
+      ? localStorage.setItem(ACCESS_KEY, v)
+      : localStorage.removeItem(ACCESS_KEY);
+  },
+  get refresh() {
+    return localStorage.getItem(REFRESH_KEY);
+  },
+  set refresh(v) {
+    v
+      ? localStorage.setItem(REFRESH_KEY, v)
+      : localStorage.removeItem(REFRESH_KEY);
+  },
+  clear() {
+    this.access = null;
+    this.refresh = null;
+  },
 };
 
 export const http = axios.create({
@@ -32,7 +47,9 @@ let subscribers = [];
 const subscribeTokenRefresh = (cb) => subscribers.push(cb);
 const notifySubscribers = (token) => {
   subscribers.forEach((cb) => {
-    try { cb(token); } catch {}
+    try {
+      cb(token);
+    } catch {}
   });
   subscribers = [];
 };
@@ -54,7 +71,11 @@ http.interceptors.response.use(
       if (isRefreshing) {
         return new Promise((resolve) => {
           subscribeTokenRefresh((newToken) => {
-            if (newToken) original.headers = { ...(original.headers || {}), Authorization: `Bearer ${newToken}` };
+            if (newToken)
+              original.headers = {
+                ...(original.headers || {}),
+                Authorization: `Bearer ${newToken}`,
+              };
             resolve(http(original));
           });
         });
@@ -77,7 +98,10 @@ http.interceptors.response.use(
         isRefreshing = false;
 
         // повторяем оригинальный запрос
-        original.headers = { ...(original.headers || {}), Authorization: `Bearer ${newAccess}` };
+        original.headers = {
+          ...(original.headers || {}),
+          Authorization: `Bearer ${newAccess}`,
+        };
         return http(original);
       } catch (e) {
         isRefreshing = false;
@@ -110,7 +134,9 @@ export const buildWsUrl = (wsPath = "/ws") => {
   try {
     const u = new URL(BASE_URL || window.location.origin);
     u.protocol = u.protocol === "https:" ? "wss:" : "ws:";
-    u.pathname = [u.pathname.replace(/\/+$/,''), wsPath.replace(/^\/+/, '')].filter(Boolean).join("/");
+    u.pathname = [u.pathname.replace(/\/+$/, ""), wsPath.replace(/^\/+/, "")]
+      .filter(Boolean)
+      .join("/");
     return u.toString();
   } catch {
     return wsPath; // фолбэк

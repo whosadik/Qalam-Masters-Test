@@ -1,11 +1,14 @@
+// src/pages/SubmitArticle.jsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -23,10 +26,15 @@ import {
   CheckSquare,
   AlertCircle,
   BookOpen,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
-import Navbar from "../components/layout/Navbar";
 
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -35,10 +43,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ChevronsUpDown, Check } from "lucide-react";
-import { cn } from "@/lib/utils"; // если нет — см. примечание ниже
 
+import { cn } from "@/lib/utils";
+import { http } from "@/lib/apiClient";
+import { API } from "@/constants/api";
+import { createArticle } from "@/services/articlesService";
 
+// ────────────────────────────────────────────────────────────────────────────────
+// Вспомогательные контролы
 function Toggle({ label, hint, checked, onChange }) {
   return (
     <label className="flex items-start gap-3 cursor-pointer select-none py-2">
@@ -55,85 +67,370 @@ function Toggle({ label, hint, checked, onChange }) {
     </label>
   );
 }
+
+function FileDropZone({ label, value, onFileChange }) {
+  const [isDragActive, setIsDragActive] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+  const handleDragLeave = () => setIsDragActive(false);
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) onFileChange(file);
+  };
+  const handleChange = (e) => {
+    const file = e.target?.files?.[0];
+    if (file) onFileChange(file);
+  };
+  const handleButtonClick = () => inputRef.current?.click();
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <div
+        className={cn(
+          "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+          isDragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
+        )}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-lg font-medium text-gray-900 mb-2">
+          {value ? value.name : "Выберите или перетащите файл"}
+        </p>
+        <p className="text-gray-600 mb-4">
+          Поддерживаемые форматы: PDF, DOC, DOCX
+        </p>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".pdf,.doc,.docx"
+          className="hidden"
+          onChange={handleChange}
+        />
+        <Button variant="outline" onClick={handleButtonClick}>
+          <Upload className="h-4 w-4 mr-2" />
+          Выбрать файл
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function JournalCombobox({ value, onChange, items }) {
+  const [open, setOpen] = useState(false);
+  const selected = items.find((j) => String(j.id) === String(value));
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {selected ? (
+            <span className="truncate text-left">
+              <span className="font-medium">{selected.title}</span>
+              <span className="text-gray-500 ml-2">
+                • {selected.org || "—"}
+              </span>
+            </span>
+          ) : (
+            "Выберите журнал"
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]">
+        <Command
+          filter={(value, search) => {
+            const item = items.find((i) => String(i.id) === String(value));
+            const hay = (
+              (item?.title || "") +
+              " " +
+              (item?.org || "")
+            ).toLowerCase();
+            return hay.includes(search.toLowerCase()) ? 1 : 0;
+          }}
+        >
+          <CommandInput placeholder="Поиск журнала по названию или организации..." />
+          <CommandList>
+            <CommandEmpty>Ничего не найдено.</CommandEmpty>
+            <CommandGroup heading="Журналы">
+              {items.map((j) => (
+                <CommandItem
+                  key={j.id}
+                  value={String(j.id)}
+                  onSelect={(val) => {
+                    onChange(val);
+                    setOpen(false);
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate">{j.title}</div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {j.org || "—"}
+                    </div>
+                  </div>
+                  <Check
+                    className={cn(
+                      "h-4 w-4 flex-shrink-0",
+                      String(value) === String(j.id)
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────────
+
 export default function SubmitArticle() {
-  const journals = [
-  { id: "vestnik", title: "Вестник науки", org: "Qalam University" },
-  { id: "tech", title: "Технические науки и инновации", org: "Tech Institute" },
-  { id: "edu", title: "Образование и педагогика", org: "PedAcad" },
-  { id: "econ", title: "Экономика и менеджмент", org: "BizSchool" },
-  { id: "it", title: "Информационные технологии", org: "Digital Lab" },
-];
+  const navigate = useNavigate();
+
+  // шаги (исправлено: 1..8 — разные экраны)
+  const steps = [
+    { id: 1, title: "Выбор журнала", icon: BookOpen },
+    { id: 2, title: "Информация о публикации", icon: BookOpen },
+    { id: 3, title: "Данные автора", icon: User },
+    { id: 4, title: "Название и аннотация", icon: FileText },
+    { id: 5, title: "Ключевые слова", icon: Target },
+    { id: 6, title: "Цель/задачи/методы", icon: Target },
+    { id: 7, title: "Файлы", icon: Upload },
+    { id: 8, title: "Подтверждение", icon: CheckSquare },
+  ];
 
   const [currentStep, setCurrentStep] = useState(1);
-const [formData, setFormData] = useState({
-  selectedJournal: "",   // новый шаг
 
-  thematicDirection: "",
-  firstName: "",
-  lastName: "",
-  middleName: "",
-  academicDegree: "",
-  position: "",
-  organization: "",
-  email: "",
-  titleRu: "",
-  titleEn: "",
-  abstractRu: "",
-  abstractEn: "",
-  keywordsRu: "",
-  keywordsEn: "",
-  researchGoal: "",
-  researchTasks: "",
-  researchMethods: "",
-  articleFile: null,
-  expertConclusion: null,
-  dataConsent: false,
-  textConsent: false,
-});
+  const [searchParams] = useSearchParams();
 
+  useEffect(() => {
+    // читаем ?journalId=...
+    const qid = searchParams.get("journalId");
+    if (!qid) return;
 
-const steps = [
-  { id: 1, title: "Выбор журнала", icon: BookOpen },
-  { id: 2, title: "Информация о публикации", icon: BookOpen },
-  { id: 3, title: "Данные автора", icon: User },
-  { id: 4, title: "Название статьи", icon: FileText },
-  { id: 5, title: "Ключевые слова", icon: Target },
-  { id: 6, title: "Цель исследования", icon: Target },
-  { id: 7, title: "Файлы", icon: Upload },
-  { id: 8, title: "Подтверждение", icon: CheckSquare },
-];
+    // если у тебя id из списка — число, нормализуем к строке для сравнения
+    // (в твоём локальном примере ids строковые: "vestnik", "tech", ...)
+    const found = journals.find((j) => String(j.id) === String(qid));
 
+    if (found) {
+      // подставим выбранный журнал
+      setFormData((prev) => ({
+        ...prev,
+        selectedJournal: String(found.id),
+      }));
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const nextStep = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1);
+      // опционально: сразу перепрыгнуть на следующий шаг
+      // (если не хочешь — просто удали строку ниже)
+      if (currentStep === 1) {
+        setCurrentStep(2);
+      }
+    } else {
+      // если журнал не найден в локальном массиве (например, пришёл реальный id)
+      // просто сохраним значение, чтобы не терять выбор;
+      // позже, когда подгрузишь журналы с бэка — подставится корректно
+      setFormData((prev) => ({
+        ...prev,
+        selectedJournal: String(qid),
+      }));
+      if (currentStep === 1) {
+        setCurrentStep(2);
+      }
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  // форма
+  const [formData, setFormData] = useState({
+    selectedJournal: "",
+    thematicDirection: "",
+    firstName: "",
+    lastName: "",
+    middleName: "",
+    academicDegree: "",
+    position: "",
+    organization: "",
+    email: "",
+    titleRu: "",
+    titleEn: "",
+    abstractRu: "",
+    abstractEn: "",
+    keywordsRu: "",
+    keywordsEn: "",
+    researchGoal: "",
+    researchTasks: "",
+    researchMethods: "",
+    articleFile: null,
+    expertConclusion: null,
+    originalityCertificate: null,
+    authorsConsent: null,
+    conflictOfInterest: null,
+    ethicsApproval: null,
+    dataConsent: false,
+    textConsent: false,
+  });
+
+  // тумблеры для доп. файлов
+  const [toggles, setToggles] = useState({
+    expertConclusion: false,
+    originalityCertificate: false,
+    authorsConsent: false,
+    conflictOfInterest: false,
+    ethicsApproval: false,
+  });
+  const setToggle = (key, val) => setToggles((t) => ({ ...t, [key]: val }));
+
+  // журналы из API
+  const [journals, setJournals] = useState([]);
+  const [loadingJournals, setLoadingJournals] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingJournals(true);
+        const { data } = await http.get(API.JOURNALS);
+        const items = (data?.results || []).map((j) => ({
+          id: String(j.id),
+          title: j.title || j.name || "Без названия",
+          org: j.organization_name || j.publisher || "",
+        }));
+        setJournals(items);
+      } catch (e) {
+        console.error("journals load failed", e);
+        setJournals([]);
+      } finally {
+        setLoadingJournals(false);
+      }
+    })();
+  }, []);
+
+  // статусы модал/загрузки
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    setShowSuccessModal(true);
-  };
-        const [toggles, setToggles] = useState({
-        expertConclusion: !!formData.expertConclusion,
-        originalityCertificate: !!formData.originalityCertificate,
-        authorsConsent: !!formData.authorsConsent,
-        conflictOfInterest: !!formData.conflictOfInterest,
-        ethicsApproval: !!formData.ethicsApproval,
+  // helpers
+  const handleInputChange = (field, value) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, steps.length));
+  const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 1));
+
+  // сабмит — создаём статью
+  const handleSubmit = async () => {
+    if (!formData.selectedJournal) return alert("Выберите журнал");
+    if (!formData.titleRu?.trim()) return alert("Укажите название статьи (RU)");
+    if (!formData.dataConsent || !formData.textConsent) return;
+
+    try {
+      setSubmitting(true);
+
+      const hasAnyFile =
+        formData.articleFile ||
+        formData.expertConclusion ||
+        formData.originalityCertificate ||
+        formData.authorsConsent ||
+        formData.conflictOfInterest ||
+        formData.ethicsApproval;
+
+      if (hasAnyFile) {
+        const fd = new FormData();
+        // обязательное
+        fd.append("journal", String(formData.selectedJournal));
+        fd.append("title", formData.titleRu.trim());
+
+        // расширенные поля (подстрой под бек, если названия отличаются)
+        if (formData.titleEn) fd.append("title_en", formData.titleEn.trim());
+        if (formData.abstractRu)
+          fd.append("abstract_ru", formData.abstractRu.trim());
+        if (formData.abstractEn)
+          fd.append("abstract_en", formData.abstractEn.trim());
+        if (formData.keywordsRu)
+          fd.append("keywords_ru", formData.keywordsRu.trim());
+        if (formData.keywordsEn)
+          fd.append("keywords_en", formData.keywordsEn.trim());
+        if (formData.thematicDirection)
+          fd.append("theme", formData.thematicDirection);
+        if (formData.researchGoal) fd.append("goal", formData.researchGoal);
+        if (formData.researchTasks) fd.append("tasks", formData.researchTasks);
+        if (formData.researchMethods)
+          fd.append("methods", formData.researchMethods);
+
+        // авторские (если бек это хранит на статье)
+        if (formData.firstName) fd.append("author_name", formData.firstName);
+        if (formData.organization)
+          fd.append("author_org", formData.organization);
+        if (formData.email) fd.append("author_email", formData.email);
+
+        // файлы
+        if (formData.articleFile)
+          fd.append("article_file", formData.articleFile);
+        if (formData.expertConclusion)
+          fd.append("expert_conclusion", formData.expertConclusion);
+        if (formData.originalityCertificate)
+          fd.append("plagiarism_certificate", formData.originalityCertificate);
+        if (formData.authorsConsent)
+          fd.append("authors_consent", formData.authorsConsent);
+        if (formData.conflictOfInterest)
+          fd.append("conflict_of_interest", formData.conflictOfInterest);
+        if (formData.ethicsApproval)
+          fd.append("ethics_approval", formData.ethicsApproval);
+
+        const { data: created } = await http.post(API.ARTICLES, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        setShowSuccessModal(true);
+        // небольшой таймаут, чтобы пользователь увидел подтверждение
+        setTimeout(
+          () => navigate(`/articles/${created.id}`, { replace: true }),
+          600
+        );
+        return;
+      }
+
+      // если файлов нет — JSON
+      const created = await createArticle({
+        journal: Number(formData.selectedJournal),
+        title: formData.titleRu.trim(),
+        // при желании докинь поля, если бек их принимает в JSON
+        // title_en: formData.titleEn?.trim(),
+        // abstract_ru: formData.abstractRu?.trim(),
+        // ...
       });
 
-      const setToggle = (key, val) =>
-        setToggles((t) => ({ ...t, [key]: val }));
+      setShowSuccessModal(true);
+      setTimeout(
+        () => navigate(`/articles/${created.id}`, { replace: true }),
+        600
+      );
+    } catch (e) {
+      console.error("submit failed", e);
+      alert(
+        "Не удалось отправить статью. Проверьте поля и попробуйте ещё раз."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -144,30 +441,36 @@ const steps = [
         </div>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Научный журнал "Вестник науки"
+            Подача статьи
           </h1>
-          <p className="text-gray-600">Подача статьи в журнал</p>
+          <p className="text-gray-600">
+            Заполните информацию и отправьте рукопись в журнал
+          </p>
         </div>
       </div>
 
-      {/* Progress Steps */}
+      {/* Steps */}
       <Card className="border-0 shadow-lg">
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-6 overflow-x-auto pb-2">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-shrink-0">
                 <div
-                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
+                  className={cn(
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center",
                     currentStep >= step.id
                       ? "bg-blue-600 text-white"
                       : "bg-gray-200 text-gray-600"
-                  }`}
+                  )}
                 >
                   <step.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`w-8 sm:w-16 h-1 mx-1 sm:mx-2 ${currentStep > step.id ? "bg-blue-600" : "bg-gray-200"}`}
+                    className={cn(
+                      "w-8 sm:w-16 h-1 mx-1 sm:mx-2",
+                      currentStep > step.id ? "bg-blue-600" : "bg-gray-200"
+                    )}
                   />
                 )}
               </div>
@@ -184,45 +487,56 @@ const steps = [
         </CardContent>
       </Card>
 
-      {/* Form Content */}
+      {/* Content */}
       <Card className="border-0 shadow-lg">
         <CardContent className="p-6 sm:p-8">
-
-
-        {currentStep === 1 && (
-  <div className="space-y-6">
-    <div className="text-center mb-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-2">Выбор журнала</h2>
-      <p className="text-gray-600">Укажите, в какой журнал вы хотите отправить статью</p>
-    </div>
-
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">Журнал</label>
-      <JournalCombobox
-        value={formData.selectedJournal}
-        onChange={(val) => handleInputChange("selectedJournal", val)}
-        items={journals}
-      />
-      <p className="text-xs text-gray-500">
-        Начните печатать, чтобы отфильтровать список (по названию и организации).
-      </p>
-    </div>
-
-    {/* Пример подсказки: можно отобразить выбранный журнал */}
-    {formData.selectedJournal && (
-      <div className="p-3 rounded-lg bg-blue-50 text-blue-800 text-sm">
-        Вы выбрали:{" "}
-        <strong>
-          {journals.find((j) => j.id === formData.selectedJournal)?.title}
-        </strong>
-      </div>
-    )}
-  </div>
-)}
-
-
-          {/* Шаг 1: Информация о публикации */}
+          {/* Step 1: Журнал */}
           {currentStep === 1 && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  Выбор журнала
+                </h2>
+                <p className="text-gray-600">
+                  Укажите, в какой журнал вы хотите отправить статью
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Журнал
+                </label>
+                <JournalCombobox
+                  value={formData.selectedJournal}
+                  onChange={(val) => handleInputChange("selectedJournal", val)}
+                  items={journals}
+                />
+                {loadingJournals && (
+                  <p className="text-xs text-gray-500">Загрузка журналов…</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Начните печатать, чтобы отфильтровать список (по названию и
+                  организации).
+                </p>
+              </div>
+
+              {formData.selectedJournal && (
+                <div className="p-3 rounded-lg bg-blue-50 text-blue-800 text-sm">
+                  Вы выбрали:{" "}
+                  <strong>
+                    {
+                      journals.find(
+                        (j) => String(j.id) === String(formData.selectedJournal)
+                      )?.title
+                    }
+                  </strong>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 2: Инфо о публикации */}
+          {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -238,15 +552,19 @@ const steps = [
                   Тематическая направленность
                 </label>
                 <Select
-                  value={formData.thematicDirection}
-                  onValueChange={(value) =>
-                    handleInputChange("thematicDirection", value)
+                  value={formData.thematicDirection || "__none__"}
+                  onValueChange={(val) =>
+                    handleInputChange(
+                      "thematicDirection",
+                      val === "__none__" ? "" : val
+                    )
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Выберите направление исследования" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__">Не выбрано</SelectItem>
                     <SelectItem value="natural">
                       Естественные и технические науки
                     </SelectItem>
@@ -272,24 +590,22 @@ const steps = [
                   <p className="font-medium mb-1">Важная информация:</p>
                   <p>
                     Данный материал не был ранее опубликован и не подавался в
-                    другие издания. Текст соответствует всем требованиям,
-                    указанным в Требованиях к оформлению рукописи для авторов.
+                    другие издания. Текст соответствует всем требованиям для
+                    авторов.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Шаг 2: Данные автора */}
-          {currentStep === 2 && (
+          {/* Step 3: Автор */}
+          {currentStep === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
                   Данные автора
                 </h2>
-                <p className="text-gray-600">
-                  Заполните информацию об авторе статьи
-                </p>
+                <p className="text-gray-600">Заполните информацию об авторе</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -310,15 +626,19 @@ const steps = [
                     Ученое звание
                   </label>
                   <Select
-                    value={formData.academicDegree}
-                    onValueChange={(value) =>
-                      handleInputChange("academicDegree", value)
+                    value={formData.academicDegree || "__none__"}
+                    onValueChange={(val) =>
+                      handleInputChange(
+                        "academicDegree",
+                        val === "__none__" ? "" : val
+                      )
                     }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите ученое звание" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="__none__">Не выбрано</SelectItem>
                       <SelectItem value="professor">Профессор</SelectItem>
                       <SelectItem value="docent">Доцент</SelectItem>
                       <SelectItem value="senior">
@@ -351,7 +671,7 @@ const steps = [
                   Организация
                 </label>
                 <Input
-                  placeholder="Казахстанский Национальный университет им. аль-Фараби"
+                  placeholder="КазНУ им. аль-Фараби"
                   value={formData.organization}
                   onChange={(e) =>
                     handleInputChange("organization", e.target.value)
@@ -373,23 +693,22 @@ const steps = [
             </div>
           )}
 
-          {/* Шаг 3: Название статьи */}
-          {currentStep === 3 && (
+          {/* Step 4: Название и аннотация */}
+          {currentStep === 4 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Название статьи
+                  Название и аннотация
                 </h2>
                 <p className="text-gray-600">
-                  Укажите название на русском и английском языках
+                  Укажите названия и аннотацию на двух языках
                 </p>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Название на русском языке
+                    <Globe className="h-4 w-4" /> Название на русском языке
                   </label>
                   <Input
                     placeholder="Введите название статьи на русском языке"
@@ -402,8 +721,7 @@ const steps = [
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Название на английском языке
+                    <Globe className="h-4 w-4" /> Название на английском языке
                   </label>
                   <Input
                     placeholder="Enter article title in English"
@@ -451,15 +769,15 @@ const steps = [
             </div>
           )}
 
-          {/* Шаг 4: Ключевые слова */}
-          {currentStep === 4 && (
+          {/* Step 5: Ключевые слова */}
+          {currentStep === 5 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
                   Ключевые слова
                 </h2>
                 <p className="text-gray-600">
-                  Укажите ключевые слова через запятую, не более двух слов
+                  Укажите ключевые слова через запятую
                 </p>
               </div>
 
@@ -494,25 +812,22 @@ const steps = [
 
                 <div className="p-4 bg-amber-50 rounded-lg">
                   <p className="text-sm text-amber-800">
-                    <strong>Добавить ключевые слова:</strong> Ключевые слова
-                    должны отражать основные темы и концепции вашего
-                    исследования.
+                    <strong>Подсказка:</strong> используйте 4–8 ключевых слов,
+                    отражающих суть работы.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Шаг 5: Цель исследования */}
-          {currentStep === 5 && (
+          {/* Step 6: Цель/задачи/методы */}
+          {currentStep === 6 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
                   Цель исследования
                 </h2>
-                <p className="text-gray-600">
-                  Опишите цель, задачи и методы вашего исследования
-                </p>
+                <p className="text-gray-600">Опишите цель, задачи и методы</p>
               </div>
 
               <div className="space-y-6">
@@ -561,158 +876,139 @@ const steps = [
             </div>
           )}
 
-          {/* Шаг 6: Файлы */}
-
-
-
-{/* === Вставь внутрь твоего компонента, где есть formData и handleInputChange === */}
-{currentStep === 6 && (
-  <div className="space-y-6">
-    {/* 1) Главный файл статьи — сразу drag&drop */}
-    <FileDropZone
-      label="Файл статьи (обязательно)"
-      value={formData.articleFile}
-      onFileChange={(file) => handleInputChange("articleFile", file)}
-      required
-    />
-
-    {(() => {
-
-
-      return (
-        <div className="space-y-4">
-          <div className="rounded-lg border border-gray-200 p-4">
-            <h4 className="font-semibold text-gray-900 mb-2">
-              Дополнительные документы (по необходимости)
-            </h4>
-            <div className="space-y-2">
-              <Toggle
-                label="Загрузить Экспертное заключение (ЗГС)"
-                hint="Для организаций с режимом (НИИ, вузы, госструктуры)"
-                checked={toggles.expertConclusion}
-                onChange={(v) => {
-                  setToggle("expertConclusion", v);
-                  if (!v) handleInputChange("expertConclusion", null);
-                }}
-              />
-              {toggles.expertConclusion && (
-                <div className="pl-8 pt-2">
-                  <FileDropZone
-                    label="Экспертное заключение"
-                    value={formData.expertConclusion}
-                    onFileChange={(file) =>
-                      handleInputChange("expertConclusion", file)
-                    }
-                  />
-                </div>
-              )}
-
-              <Toggle
-                label="Загрузить Сертификат об оригинальности (антиплагиат)"
-                hint="Отчёт/сертификат из системы проверки оригинальности"
-                checked={toggles.originalityCertificate}
-                onChange={(v) => {
-                  setToggle("originalityCertificate", v);
-                  if (!v) handleInputChange("originalityCertificate", null);
-                }}
-              />
-              {toggles.originalityCertificate && (
-                <div className="pl-8 pt-2">
-                  <FileDropZone
-                    label="Сертификат об оригинальности"
-                    value={formData.originalityCertificate}
-                    onFileChange={(file) =>
-                      handleInputChange("originalityCertificate", file)
-                    }
-                  />
-                </div>
-              )}
-
-              <Toggle
-                label="Согласие авторов на публикацию"
-                hint="Подписанное письмо/форма согласия всех соавторов"
-                checked={toggles.authorsConsent}
-                onChange={(v) => {
-                  setToggle("authorsConsent", v);
-                  if (!v) handleInputChange("authorsConsent", null);
-                }}
-              />
-              {toggles.authorsConsent && (
-                <div className="pl-8 pt-2">
-                  <FileDropZone
-                    label="Согласие авторов"
-                    value={formData.authorsConsent}
-                    onFileChange={(file) =>
-                      handleInputChange("authorsConsent", file)
-                    }
-                  />
-                </div>
-              )}
-
-              <Toggle
-                label="Заявление об отсутствии конфликта интересов"
-                checked={toggles.conflictOfInterest}
-                onChange={(v) => {
-                  setToggle("conflictOfInterest", v);
-                  if (!v) handleInputChange("conflictOfInterest", null);
-                }}
-              />
-              {toggles.conflictOfInterest && (
-                <div className="pl-8 pt-2">
-                  <FileDropZone
-                    label="Конфликт интересов"
-                    value={formData.conflictOfInterest}
-                    onFileChange={(file) =>
-                      handleInputChange("conflictOfInterest", file)
-                    }
-                  />
-                </div>
-              )}
-
-              <Toggle
-                label="Этическое одобрение (IRB/ЭКО)"
-                hint="Для исследований с участием людей/животных"
-                checked={toggles.ethicsApproval}
-                onChange={(v) => {
-                  setToggle("ethicsApproval", v);
-                  if (!v) handleInputChange("ethicsApproval", null);
-                }}
-              />
-              {toggles.ethicsApproval && (
-                <div className="pl-8 pt-2">
-                  <FileDropZone
-                    label="Этическое одобрение"
-                    value={formData.ethicsApproval}
-                    onFileChange={(file) =>
-                      handleInputChange("ethicsApproval", file)
-                    }
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    })()}
-
-    {/* 3) Блок оплаты — как у тебя было */}
-    <div className="p-4 bg-blue-50 rounded-lg">
-      <h4 className="font-semibold text-blue-900 mb-2">Оплата</h4>
-      <p className="text-sm text-blue-800 mb-2">
-        Стоимость публикации: 10 000 тенге/статья. Оплата производится после
-        принятия статьи к публикации.
-      </p>
-      <p className="text-sm text-blue-800">
-        Оплата производится через банковский перевод. Банковские реквизиты будут
-        предоставлены после принятия статьи.
-      </p>
-    </div>
-  </div>
-)}
-
-
-          {/* Шаг 7: Подтверждение */}
+          {/* Step 7: Файлы */}
           {currentStep === 7 && (
+            <div className="space-y-6">
+              <FileDropZone
+                label="Файл статьи (обязательно)"
+                value={formData.articleFile}
+                onFileChange={(file) => handleInputChange("articleFile", file)}
+              />
+
+              <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  Дополнительные документы (по необходимости)
+                </h4>
+
+                <Toggle
+                  label="Загрузить Экспертное заключение (ЗГС)"
+                  hint="Для организаций (НИИ, вузы, госструктуры)"
+                  checked={toggles.expertConclusion}
+                  onChange={(v) => {
+                    setToggle("expertConclusion", v);
+                    if (!v) handleInputChange("expertConclusion", null);
+                  }}
+                />
+                {toggles.expertConclusion && (
+                  <div className="pl-8 pt-2">
+                    <FileDropZone
+                      label="Экспертное заключение"
+                      value={formData.expertConclusion}
+                      onFileChange={(file) =>
+                        handleInputChange("expertConclusion", file)
+                      }
+                    />
+                  </div>
+                )}
+
+                <Toggle
+                  label="Сертификат об оригинальности (антиплагиат)"
+                  hint="Отчёт/сертификат из системы проверки оригинальности"
+                  checked={toggles.originalityCertificate}
+                  onChange={(v) => {
+                    setToggle("originalityCertificate", v);
+                    if (!v) handleInputChange("originalityCertificate", null);
+                  }}
+                />
+                {toggles.originalityCertificate && (
+                  <div className="pl-8 pt-2">
+                    <FileDropZone
+                      label="Сертификат об оригинальности"
+                      value={formData.originalityCertificate}
+                      onFileChange={(file) =>
+                        handleInputChange("originalityCertificate", file)
+                      }
+                    />
+                  </div>
+                )}
+
+                <Toggle
+                  label="Согласие авторов на публикацию"
+                  checked={toggles.authorsConsent}
+                  onChange={(v) => {
+                    setToggle("authorsConsent", v);
+                    if (!v) handleInputChange("authorsConsent", null);
+                  }}
+                />
+                {toggles.authorsConsent && (
+                  <div className="pl-8 pt-2">
+                    <FileDropZone
+                      label="Согласие авторов"
+                      value={formData.authorsConsent}
+                      onFileChange={(file) =>
+                        handleInputChange("authorsConsent", file)
+                      }
+                    />
+                  </div>
+                )}
+
+                <Toggle
+                  label="Заявление об отсутствии конфликта интересов"
+                  checked={toggles.conflictOfInterest}
+                  onChange={(v) => {
+                    setToggle("conflictOfInterest", v);
+                    if (!v) handleInputChange("conflictOfInterest", null);
+                  }}
+                />
+                {toggles.conflictOfInterest && (
+                  <div className="pl-8 pt-2">
+                    <FileDropZone
+                      label="Конфликт интересов"
+                      value={formData.conflictOfInterest}
+                      onFileChange={(file) =>
+                        handleInputChange("conflictOfInterest", file)
+                      }
+                    />
+                  </div>
+                )}
+
+                <Toggle
+                  label="Этическое одобрение (IRB/ЭКО)"
+                  hint="Для исследований с участием людей/животных"
+                  checked={toggles.ethicsApproval}
+                  onChange={(v) => {
+                    setToggle("ethicsApproval", v);
+                    if (!v) handleInputChange("ethicsApproval", null);
+                  }}
+                />
+                {toggles.ethicsApproval && (
+                  <div className="pl-8 pt-2">
+                    <FileDropZone
+                      label="Этическое одобрение"
+                      value={formData.ethicsApproval}
+                      onFileChange={(file) =>
+                        handleInputChange("ethicsApproval", file)
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2">Оплата</h4>
+                <p className="text-sm text-blue-800 mb-2">
+                  Стоимость публикации: 10 000 тенге/статья. Оплата после
+                  принятия статьи.
+                </p>
+                <p className="text-sm text-blue-800">
+                  Реквизиты будут предоставлены после принятия статьи.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 8: Подтверждение */}
+          {currentStep === 8 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -727,11 +1023,9 @@ const steps = [
                 <div className="p-6 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-700 leading-relaxed">
                     Настоящим подтверждаю, что статья не была ранее опубликована
-                    ни в одном из изданий и не находится на рассмотрении в
-                    других изданиях. Автор несет полную ответственность за
-                    содержание статьи, достоверность представленных данных и
-                    соблюдение авторских прав. При выявлении нарушений автор
-                    обязуется возместить ущерб, причиненный журналу.
+                    и не находится на рассмотрении в других изданиях. Автор
+                    несёт ответственность за содержание и соблюдение авторских
+                    прав.
                   </p>
                 </div>
 
@@ -741,15 +1035,15 @@ const steps = [
                       id="dataConsent"
                       checked={formData.dataConsent}
                       onCheckedChange={(checked) =>
-                        handleInputChange("dataConsent", checked)
+                        handleInputChange("dataConsent", !!checked)
                       }
                     />
                     <label
                       htmlFor="dataConsent"
                       className="text-sm text-gray-700 leading-relaxed cursor-pointer"
                     >
-                      Данный материал не был ранее опубликован и не подавался в
-                      другие издания.
+                      Материал не публиковался ранее и не подан в другие
+                      издания.
                     </label>
                   </div>
 
@@ -758,15 +1052,14 @@ const steps = [
                       id="textConsent"
                       checked={formData.textConsent}
                       onCheckedChange={(checked) =>
-                        handleInputChange("textConsent", checked)
+                        handleInputChange("textConsent", !!checked)
                       }
                     />
                     <label
                       htmlFor="textConsent"
                       className="text-sm text-gray-700 leading-relaxed cursor-pointer"
                     >
-                      Текст соответствует всем требованиям, указанным в
-                      Требованиях к оформлению рукописи для авторов.
+                      Текст соответствует требованиям для авторов.
                     </label>
                   </div>
                 </div>
@@ -778,42 +1071,22 @@ const steps = [
                   <Button
                     size="lg"
                     className="bg-blue-600 hover:bg-blue-700"
-                    disabled={!formData.dataConsent || !formData.textConsent}
+                    disabled={
+                      !formData.dataConsent ||
+                      !formData.textConsent ||
+                      submitting
+                    }
                     onClick={handleSubmit}
                   >
-                    Завершить отправку
+                    {submitting ? "Отправляем…" : "Завершить отправку"}
                   </Button>
                 </div>
               </div>
             </div>
           )}
 
-          {showSuccessModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
-                <h2 className="text-2xl font-bold mb-4">
-                  🎉 Статья отправлена!
-                </h2>
-                <p className="text-gray-700 mb-6">
-                  Ваша статья успешно отправлена. Мы свяжемся с вами после
-                  рецензирования.
-                </p>
-                <Link to="/author-dashboard">
-                  <Button
-                    onClick={() => {
-                      setShowSuccessModal(false);
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Вернуться в личный кабинет
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Navigation Buttons */}
-          {currentStep < 7 && (
+          {/* Навигация (кроме финального экрана) */}
+          {currentStep < steps.length && (
             <div className="flex flex-col sm:flex-row justify-between gap-4 pt-8 border-t border-gray-200">
               <Button
                 variant="outline"
@@ -823,152 +1096,38 @@ const steps = [
               >
                 Назад
               </Button>
-             <Button
-  onClick={nextStep}
-  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
-  disabled={currentStep === 1 && !formData.selectedJournal}
->
-  Далее
-</Button>
-
+              <Button
+                onClick={nextStep}
+                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+                disabled={currentStep === 1 && !formData.selectedJournal}
+              >
+                Далее
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
+            <h2 className="text-2xl font-bold mb-4">🎉 Статья отправлена!</h2>
+            <p className="text-gray-700 mb-6">
+              Ваша статья успешно отправлена. Мы свяжемся с вами после
+              рецензирования.
+            </p>
+            <Link to="/author-dashboard">
+              <Button
+                onClick={() => setShowSuccessModal(false)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Вернуться в личный кабинет
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// Добавьте этот компонент внизу файла:
-function FileDropZone({ label, value, onFileChange }) {
-  const [isDragActive, setIsDragActive] = useState(false);
-  const inputRef = useRef(null);
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragActive(true);
-  };
-
-  const handleDragLeave = () => setIsDragActive(false);
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onFileChange(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      onFileChange(e.target.files[0]);
-    }
-  };
-
-  const handleButtonClick = () => {
-    if (inputRef.current) {
-      inputRef.current.click();
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-          isDragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
-        }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-lg font-medium text-gray-900 mb-2">
-          {value ? value.name : "Выберите или перетащите файл"}
-        </p>
-        <p className="text-gray-600 mb-4">
-          Поддерживаемые форматы: PDF, DOC, DOCX
-        </p>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".pdf,.doc,.docx"
-          className="hidden"
-          id={label}
-          onChange={handleChange}
-        />
-        <Button variant="outline" onClick={handleButtonClick}>
-          <Upload className="h-4 w-4 mr-2" />
-          Выбрать файл
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function JournalCombobox({ value, onChange, items }) {
-  const [open, setOpen] = useState(false);
-  const selected = items.find((j) => j.id === value);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {selected ? (
-            <span className="truncate text-left">
-              <span className="font-medium">{selected.title}</span>
-              <span className="text-gray-500 ml-2">• {selected.org}</span>
-            </span>
-          ) : (
-            "Выберите журнал"
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]">
-        <Command filter={(value, search) => {
-          // Кастомная фильтрация: ищет по названию и по организации
-          const item = items.find(i => i.id === value);
-          const hay = (item?.title + " " + item?.org).toLowerCase();
-          return hay.includes(search.toLowerCase()) ? 1 : 0;
-        }}>
-          <CommandInput placeholder="Поиск журнала по названию или организации..." />
-          <CommandList>
-            <CommandEmpty>Ничего не найдено.</CommandEmpty>
-            <CommandGroup heading="Журналы">
-              {items.map((j) => (
-                <CommandItem
-                  key={j.id}
-                  value={j.id}
-                  onSelect={(val) => {
-                    onChange(val);
-                    setOpen(false);
-                  }}
-                  className="flex items-center justify-between"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate">{j.title}</div>
-                    <div className="text-xs text-gray-500 truncate">{j.org}</div>
-                  </div>
-                  <Check
-                    className={cn(
-                      "h-4 w-4 flex-shrink-0",
-                      value === j.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-
