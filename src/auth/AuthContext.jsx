@@ -1,40 +1,59 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  login as apiLogin,
+  me as apiMe,
+  logout as apiLogout,
+  bootstrapAuth,
+} from "@/services/authService";
 
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [booted, setBooted] = useState(false); 
 
-  // читать из localStorage (для макета)
+  
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("auth_user");
-      if (raw) setUser(JSON.parse(raw));
-    } catch {}
+    let ignore = false;
+    (async () => {
+      try {
+        const { user: u } = await bootstrapAuth();
+        if (!ignore) setUser(u);
+      } finally {
+        if (!ignore) setBooted(true);
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
-  // писать в localStorage
-  useEffect(() => {
-    try {
-      if (user) localStorage.setItem("auth_user", JSON.stringify(user));
-      else localStorage.removeItem("auth_user");
-    } catch {}
-  }, [user]);
+  
+  const login = async ({ email, password }) => {
+    await apiLogin({ email, password }); 
+    const u = await apiMe();             
+    setUser(u);
+    return u;
+  };
 
-  const value = useMemo(() => {
-    return {
+  
+  const logout = () => {
+    apiLogout(); 
+    setUser(null);
+  };
+
+  const value = useMemo(
+    () => ({
       isAuthenticated: !!user,
       user,
-      login: (u) =>
-        setUser({
-          name: (u && u.name) || "Иван Иванов",
-          email: (u && u.email) || "ivan@example.com",
-        }),
-      logout: () => setUser(null),
-    };
-  }, [user]);
+      login,
+      logout,
+      booted,
+    }),
+    [user, booted]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { login as apiLogin } from "@/services/authService";
+import { useAuth } from "@/auth/AuthContext"; // <— ВАЖНО: берём login из контекста
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth(); // <— здесь
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -27,20 +29,25 @@ export default function LoginPage() {
     }
     try {
       setLoading(true);
-      // реальный запрос на бекенд
-      await apiLogin({
+
+      // ВАЖНО: логинимся через контекст (он сохранит токены и подтянет профиль /me)
+      await login({
         email: formData.email.trim(),
         password: formData.password,
       });
-      // редирект обратно на страницу, куда пытались попасть, или на /
-      const from = location.state?.from || "/";
+
+      // редирект: либо куда пытались попасть, либо в дашборд автора
+      const from =
+        typeof location.state?.from === "string"
+          ? location.state.from
+          : "/author-dashboard";
       navigate(from, { replace: true });
     } catch (err) {
-      // попытка вытащить человекочитаемую ошибку
       const msg =
         err?.response?.data?.detail ||
         err?.response?.data?.non_field_errors?.[0] ||
         err?.response?.data?.error ||
+        err?.message ||
         "Неверный email или пароль.";
       setError(String(msg));
     } finally {
@@ -76,6 +83,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 aria-invalid={!!error && !formData.email}
                 aria-describedby="email-help"
+                disabled={loading}
               />
               <p id="email-help" className="text-xs text-gray-500">
                 Используйте адрес, указанный при регистрации.
@@ -108,12 +116,14 @@ export default function LoginPage() {
                   onChange={handleChange}
                   autoComplete="current-password"
                   aria-invalid={!!error && !formData.password}
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 px-3 inline-flex items-center rounded-r-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
                   onClick={() => setShowPwd((v) => !v)}
                   aria-label={showPwd ? "Скрыть пароль" : "Показать пароль"}
+                  disabled={loading}
                 >
                   {showPwd ? (
                     <EyeOff className="h-4 w-4 text-gray-600" />

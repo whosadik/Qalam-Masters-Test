@@ -1,0 +1,49 @@
+1) Что сделать по функционалу (чек-лист)
+
+Auth (готово на 80%)
+
+ AuthContext.login уже делает TOKEN_OBTAIN + ME и кладёт профиль в user. Проверь.
+
+ На кнопке “Выйти” зови logout() → чистим токены и user.
+
+ Защитить приватные роуты RequireAuth (мы уже расписали в App.jsx).
+
+Профиль пользователя
+
+ Экран профиля: показать данные из user (/users/me/), форма редактирования → PUT/PATCH /users/update/.
+
+ Кнопка “Удалить аккаунт” → DELETE /users/delete/ + logout.
+
+Статьи (главная рабочая сущность)
+
+ Список “Мои статьи” → GET /articles/articles/?mine=true.
+
+ Создание черновика → POST /articles/articles/.
+
+ Просмотр/редактирование/удаление → GET/PUT/PATCH/DELETE /articles/articles/{id}/.
+
+ Изменение статуса скрининга → PATCH /articles/articles/{id}/screening/.
+
+ Фильтры: ?journal= и ?status=.
+
+Журналы
+
+ Пагинированный список с поиском → GET /journals/journals/?page=&page_size=&search=&ordering=.
+
+ CRUD журнала (если роль позволяет) → POST/GET/PUT/PATCH/DELETE.
+
+ Членства журнала → GET/POST /journals/journal-memberships/ и GET/PUT/PATCH/DELETE /journals/journal-memberships/{id}/.
+
+Организации
+
+ Список/создание → /organizations/organizations/ (GET/POST).
+
+ Просмотр/редактирование/удаление → /organizations/organizations/{id}/.
+
+ Членства организации → /organizations/memberships/ (аналогично журналам).
+
+Роли и доступ
+
+ На UI прятать кнопки/экшены по ролям (из user, journal_memberships, organization_memberships — получай их в дашбордах).
+
+ При попытке выполнить запрещённое действие — disable в UI + 403-хэндлинг.
