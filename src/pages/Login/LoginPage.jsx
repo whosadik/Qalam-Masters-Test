@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { login as apiLogin } from "@/api/auth";
+import { login as apiLogin } from "@/services/authService";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });

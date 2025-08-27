@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { signup as apiSignup, login as apiLogin } from "@/api/auth";
+import { signup as apiSignup, login as apiLogin } from "@/services/authService";
 
 // простая оценка силы пароля
 function scorePassword(pwd) {

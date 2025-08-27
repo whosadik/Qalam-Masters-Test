@@ -34,8 +34,6 @@ jobs:
       - name: Create .env.production
         run: |
           echo "VITE_APP_ENV=production" >> .env.production
-          echo "VITE_API_URL=https://api.qalam-masters.kz" >> .env.production
-          # если хочешь совместимость со старым именем:
           echo "VITE_API_BASE_URL=https://api.qalam-masters.kz" >> .env.production
 
       - name: Build
