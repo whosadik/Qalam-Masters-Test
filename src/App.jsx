@@ -1,9 +1,10 @@
 import {
-  BrowserRouter as Router,
+  BrowserRouter,
   Routes,
   Route,
   useLocation,
 } from "react-router-dom";
+
 import HomePage from "./pages/HomePage";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import EditorialProfile from "./pages/EditorialProfile";
@@ -142,11 +143,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <div className="min-h-screen bg-gray-50">
         <AppContent />
       </div>
-    </Router>
+    </BrowserRouter>
   );
 }
 
