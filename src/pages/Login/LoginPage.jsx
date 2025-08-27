@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { login as apiLogin } from "@/api/auth";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -25,11 +27,22 @@ export default function LoginPage() {
     }
     try {
       setLoading(true);
-      // TODO: auth запрос
-      await new Promise((r) => setTimeout(r, 400)); // имитация сети
-      navigate("/");
+      // реальный запрос на бекенд
+      await apiLogin({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+      // редирект обратно на страницу, куда пытались попасть, или на /
+      const from = location.state?.from || "/";
+      navigate(from, { replace: true });
     } catch (err) {
-      setError("Неверный email или пароль.");
+      // попытка вытащить человекочитаемую ошибку
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.response?.data?.error ||
+        "Неверный email или пароль.";
+      setError(String(msg));
     } finally {
       setLoading(false);
     }
@@ -131,7 +144,7 @@ export default function LoginPage() {
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
-          {/* Secondary actions (пример — регистрация) */}
+          {/* Secondary actions */}
           <div className="text-center text-sm text-gray-600">
             Нет аккаунта?{" "}
             <Link to="/register" className="text-blue-600 hover:underline">

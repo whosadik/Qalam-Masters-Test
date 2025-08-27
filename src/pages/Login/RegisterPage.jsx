@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { signup as apiSignup, login as apiLogin } from "@/api/auth";
 
 // простая оценка силы пароля
 function scorePassword(pwd) {
@@ -30,6 +31,14 @@ function strengthLabel(score) {
   );
 }
 
+// делим одно поле "name" на first_name / last_name
+function splitName(full) {
+  const parts = (full || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first_name: "", last_name: "" };
+  if (parts.length === 1) return { first_name: parts[0], last_name: "-" };
+  return { first_name: parts.slice(0, -1).join(" "), last_name: parts.slice(-1)[0] };
+}
+
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -41,6 +50,8 @@ export default function RegisterPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [okMsg, setOkMsg] = useState("");
   const navigate = useNavigate();
 
   const emailValid = useMemo(
@@ -60,6 +71,8 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setErrorMsg("");
+    setOkMsg("");
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -75,9 +88,36 @@ export default function RegisterPage() {
     if (hasErrors) return;
     try {
       setLoading(true);
-      // TODO: отправить данные на бэкенд
-      await new Promise((r) => setTimeout(r, 500)); // имитация сети
-      navigate("/");
+      setErrorMsg("");
+      const { first_name, last_name } = splitName(formData.name);
+
+      // 1) регистрация
+      await apiSignup({
+        email: formData.email.trim(),
+        password: formData.password,
+        first_name,
+        last_name,
+      });
+
+      setOkMsg("Аккаунт создан, выполняем вход…");
+
+      // 2) авто-логин
+      await apiLogin({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+
+      // 3) редирект
+      navigate("/", { replace: true });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.response?.data?.email?.[0] ||
+        err?.response?.data?.password?.[0] ||
+        err?.response?.data?.error ||
+        "Не удалось создать аккаунт. Попробуйте снова.";
+      setErrorMsg(String(msg));
     } finally {
       setLoading(false);
     }
@@ -99,12 +139,12 @@ export default function RegisterPage() {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                Имя
+                Имя и фамилия
               </label>
               <Input
                 id="name"
                 name="name"
-                placeholder="Ваше имя"
+                placeholder="Напр. Иван Иванов"
                 value={formData.name}
                 onChange={handleChange}
                 onBlur={onBlur}
@@ -247,6 +287,12 @@ export default function RegisterPage() {
                 <p className="text-xs text-red-600">Пароли не совпадают.</p>
               )}
             </div>
+
+            {/* Alerts */}
+            {errorMsg && (
+              <p className="text-sm text-red-600" role="alert">{errorMsg}</p>
+            )}
+            {okMsg && <p className="text-sm text-green-600">{okMsg}</p>}
 
             {/* Submit */}
             <Button type="submit" className="w-full" disabled={loading}>
