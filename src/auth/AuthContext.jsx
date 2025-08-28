@@ -12,9 +12,8 @@ const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [booted, setBooted] = useState(false); 
+  const [booted, setBooted] = useState(false);
 
-  
   useEffect(() => {
     let ignore = false;
     (async () => {
@@ -30,17 +29,15 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  
   const login = async ({ email, password }) => {
-    await apiLogin({ email, password }); 
-    const u = await apiMe();             
+    await apiLogin({ email, password });
+    const u = await apiMe();
     setUser(u);
     return u;
   };
 
-  
   const logout = () => {
-    apiLogout(); 
+    apiLogout();
     setUser(null);
   };
 
