@@ -15,55 +15,122 @@ import {
   Calendar,
 } from "lucide-react";
 
-// ── простое локальное "хранилище" (без бэка)
-const KEY_ORG = "myOrg";
-const KEY_JOURNALS = "myOrgJournals";
+import { useAuth } from "@/auth/AuthContext";
+import { http, withParams } from "@/lib/apiClient";
+import { API } from "@/constants/api";
 
-function loadOrg() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY_ORG) || "null");
-  } catch {
-    return null;
-  }
-}
-function saveOrg(org) {
-  localStorage.setItem(KEY_ORG, JSON.stringify(org));
-}
-function loadJournals() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY_JOURNALS) || "[]");
-  } catch {
-    return [];
-  }
-}
-function saveJournals(arr) {
-  localStorage.setItem(KEY_JOURNALS, JSON.stringify(arr));
-}
+/**
+ * Полезные заметки по API:
+ * - ORG_MEMBERSHIPS: /organizations/memberships/?role=admin  -> [{ id, organization, role, user }]
+ * - ORG_ID: /organizations/organizations/:id/
+ * - JOURNALS: /journals/journals/?organization=:id
+ */
 
 export default function ModeratorDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth(); // нужен user?.id
+  const [loading, setLoading] = useState(true);
   const [org, setOrg] = useState(null);
   const [journals, setJournals] = useState([]);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    setOrg(loadOrg());
-    setJournals(loadJournals());
-  }, []);
+useEffect(() => {
+  let mounted = true;
 
+  (async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      // 1) членства с ролью admin
+      const membershipsUrl = withParams(API.ORG_MEMBERSHIPS, { role: "admin" });
+      const { data: membData } = await http.get(membershipsUrl);
+
+      const memberships = Array.isArray(membData?.results)
+        ? membData.results
+        : Array.isArray(membData)
+        ? membData
+        : [];
+
+      // поддержим разные названия поля
+      const firstOrgId =
+        memberships[0]?.organization ??
+        memberships[0]?.organization_id ??
+        null;
+
+      if (!firstOrgId) {
+        if (mounted) {
+          setOrg(null);
+          setJournals([]);
+          setLoading(false);
+        }
+        return;
+      }
+
+      // 2) организация
+      const { data: orgDetail } = await http.get(API.ORG_ID(firstOrgId));
+
+      // 3) журналы — сначала пробуем ?organization, затем ?organization_id
+      let jList = [];
+      try {
+        const urlA = withParams(API.JOURNALS, { organization: firstOrgId });
+        const { data: ja } = await http.get(urlA);
+        jList = Array.isArray(ja?.results) ? ja.results : (ja || []);
+      } catch {
+        const urlB = withParams(API.JOURNALS, { organization_id: firstOrgId });
+        const { data: jb } = await http.get(urlB);
+        jList = Array.isArray(jb?.results) ? jb.results : (jb || []);
+      }
+
+      if (mounted) {
+        setOrg(orgDetail);
+        setJournals(jList);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      let msg =
+        e?.response?.data?.detail ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "Не удалось загрузить данные модератора";
+
+      // дружелюбные сообщения для auth-ошибок
+      if (e?.response?.status === 401) {
+        msg = "Сессия истекла. Войдите снова.";
+        // navigate("/login", { replace: true, state: { from: "/moderator" } });
+      }
+      if (e?.response?.status === 403) {
+        msg = "У вас нет прав модератора в организации.";
+      }
+
+      setError(String(msg));
+      setOrg(null);
+      setJournals([]);
+    } finally {
+      mounted && setLoading(false);
+    }
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, [user?.id]);
+
+
+  // оценка заполненности профиля (под API поля организации)
   const completeness = useMemo(() => {
     if (!org) return 0;
-    // грубая оценка заполненности
     const fields = [
-      "name",
+      "title",
       "description",
-      "head",
-      "phone",
-      "email",
+      "head_name",
+      "head_phone",
+      "head_email",
       "address",
       "bin",
     ];
     const filled = fields.filter(
-      (f) => String(org?.[f] || "").trim().length > 0
+      (f) => String(org?.[f] ?? "").trim().length > 0
     ).length;
     return Math.round((filled / fields.length) * 100);
   }, [org]);
@@ -71,10 +138,13 @@ export default function ModeratorDashboard() {
   const stats = useMemo(
     () => ({
       journals: journals.length,
-      avgRating: journals.length ? 4.6 : 0, // мок
-      updatedAt: org?.updatedAt || "—",
+      avgRating: journals.length ? 4.6 : 0, // нет на бэке — пока мок
+      updatedAt:
+        org?.updated_at
+          ? new Date(org.updated_at).toLocaleDateString("ru-RU")
+          : "—",
     }),
-    [journals.length, org?.updatedAt]
+    [journals.length, org?.updated_at]
   );
 
   // helpers
@@ -82,28 +152,31 @@ export default function ModeratorDashboard() {
     Array.isArray(v)
       ? v
       : typeof v === "string"
-        ? v
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [];
+      ? v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
 
   const periodicityLabel = (p) =>
-    ({
-      monthly: "Ежемесячно",
-      quarterly: "Ежеквартально",
-      biannual: "2 раза в год",
-      annual: "Ежегодно",
-    })[p] || "—";
+    (
+      {
+        monthly: "Ежемесячно",
+        quarterly: "Ежеквартально",
+        biannual: "2 раза в год",
+        annual: "Ежегодно",
+      } 
+    )[p] || "—";
 
   const journalProgress = (j) => {
+    // под стандартные поля Journal API (переименуй, если у тебя отличаются):
     const fields = [
-      "name",
+      "title",
       "description",
       "mission",
       "audience",
       "ethics",
-      "coverUrl",
+      "cover", // или cover_url
     ];
     let filled = fields.filter((k) => String(j?.[k] || "").trim()).length;
     if (safeArray(j?.topics).length) filled++;
@@ -116,32 +189,30 @@ export default function ModeratorDashboard() {
     pct >= 80
       ? { label: "Готов к публикации", cls: "bg-emerald-100 text-emerald-800" }
       : pct >= 40
-        ? { label: "Заполняется", cls: "bg-amber-100 text-amber-800" }
-        : { label: "Черновик", cls: "bg-slate-100 text-slate-700" };
+      ? { label: "Заполняется", cls: "bg-amber-100 text-amber-800" }
+      : { label: "Черновик", cls: "bg-slate-100 text-slate-700" };
 
   const handleCreateOrg = () => {
-    // перенаправляем на твою существующую страницу создания
     navigate("/moderator/organizations/new");
   };
 
-  const handleAddJournal = (j) => {
-    const next = [
-      ...journals,
-      {
-        id: Date.now(),
-        name: j.name,
-        issn: j.issn,
-        lang: "ru",
-        periodicity: "quarterly",
-        createdAt: new Date().toLocaleDateString("ru-RU"),
-        orgId: org?.id || 1,
-      },
-    ];
-    setJournals(next);
-    saveJournals(next);
-  };
+  // ── состояния загрузки / ошибки
+  if (loading) {
+    return <div className="p-6 text-gray-500">Загрузка…</div>;
+  }
 
-  // ── пустое состояние (нет организации)
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+          {error}
+        </div>
+        <Button onClick={() => window.location.reload()}>Повторить</Button>
+      </div>
+    );
+  }
+
+  // ── пустое состояние (нет админской организации)
   if (!org) {
     return (
       <div className="space-y-6">
@@ -154,8 +225,8 @@ export default function ModeratorDashboard() {
               Модератор организации
             </h1>
             <p className="text-gray-600">
-              У вас ещё нет профиля организации. Создайте его — и сможете
-              добавлять свои журналы.
+              У вас ещё нет организации, где вы админ. Создайте свою — и сможете
+              добавлять журналы.
             </p>
           </div>
         </div>
@@ -189,19 +260,21 @@ export default function ModeratorDashboard() {
             <Building2 className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{org.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {org.title || "Организация"}
+            </h1>
             <p className="text-gray-600">
               Ваш профиль организации • управляйте журналами и данными
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Link to={`/moderator/organizations/${org.id || 1}`}>
+          <Link to={`/moderator/organizations/${org.id}`}>
             <Button variant="outline" className="gap-2">
               <Eye className="w-4 h-4" /> Просмотр
             </Button>
           </Link>
-          <Link to={`/moderator/organizations/${org.id || 1}/edit`}>
+          <Link to={`/moderator/organizations/${org.id}/edit`}>
             <Button className="gap-2">
               <Edit3 className="w-4 h-4" /> Редактировать
             </Button>
@@ -237,7 +310,7 @@ export default function ModeratorDashboard() {
           <CardContent className="p-5">
             <p className="opacity-90">Обновлено</p>
             <p className="text-3xl font-bold flex items-center gap-2">
-              <Calendar className="w-6 h-6" /> {org.updatedAt || "—"}
+              <Calendar className="w-6 h-6" /> {stats.updatedAt}
             </p>
           </CardContent>
         </Card>
@@ -254,17 +327,16 @@ export default function ModeratorDashboard() {
           </div>
           <Progress value={completeness} />
           <p className="text-sm text-gray-500 mt-2">
-            Заполните все поля профиля (описание, руководитель, контакты, адрес,
+            Заполните основные поля (описание, руководитель, контакты, адрес,
             БИН), чтобы улучшить видимость вашей организации.
           </p>
         </CardContent>
       </Card>
 
       {/* Журналы организации */}
-      {/* Журналы организации */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Журналы организации</h2>
-        <Link to={`/moderator/organizations/${org.id || 1}/add-journal`}>
+        <Link to={`/moderator/organizations/${org.id}/add-journal`}>
           <Button className="gap-2">
             <FilePlus2 className="w-4 h-4" /> Создать журнал
           </Button>
@@ -296,16 +368,16 @@ export default function ModeratorDashboard() {
                     <div className="flex items-stretch gap-4">
                       {/* mini-cover */}
                       <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
-                        {j.coverUrl ? (
+                        {j.cover ? (
                           <img
-                            src={j.coverUrl}
+                            src={j.cover}
                             alt="cover"
                             className="w-full h-full object-cover"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="text-2xl font-bold text-indigo-600">
-                              {(j.name || "J")[0]}
+                              {(j.title || "J")[0]}
                             </span>
                           </div>
                         )}
@@ -320,7 +392,7 @@ export default function ModeratorDashboard() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <h3 className="font-semibold text-lg leading-tight truncate">
-                            {j.name || "Без названия"}
+                            {j.title || "Без названия"}
                           </h3>
                           <span
                             className={`text-xs px-2 py-0.5 rounded shrink-0 ${st.cls}`}
@@ -330,9 +402,14 @@ export default function ModeratorDashboard() {
                         </div>
 
                         <div className="text-sm text-gray-600 mt-0.5">
-                          Язык: {j.lang?.toUpperCase() || "—"} • Периодичность:{" "}
-                          {periodicityLabel(j.periodicity)} • Создан:{" "}
-                          {j.createdAt}
+                          Язык: {j.language?.toUpperCase() || "—"} •
+                          {" "}
+                          Периодичность: {periodicityLabel(j.periodicity)} •
+                          {" "}
+                          Создан:{" "}
+                          {j.created_at
+                            ? new Date(j.created_at).toLocaleDateString("ru-RU")
+                            : "—"}
                         </div>
 
                         {topics.length > 0 && (
