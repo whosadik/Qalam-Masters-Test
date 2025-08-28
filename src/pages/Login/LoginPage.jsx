@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { http, tokenStore } from "@/lib/apiClient";
@@ -45,7 +45,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { login } = useAuth(); // вернёт профиль (без id — норм)
 
   const handleChange = (e) => {
@@ -99,11 +98,7 @@ export default function LoginPage() {
       const isAdmin = mine.some((m) => ADMIN_ROLES.includes(String(m.role)));
 
       // 5) редирект на корректный путь (у тебя роут — /moderator)
-      const from =
-        typeof location.state?.from === "string" ? location.state.from : null;
-      navigate(from ?? (isAdmin ? "/moderator" : "/author-dashboard"), {
-        replace: true,
-      });
+      navigate(isAdmin ? "/moderator" : "/author-dashboard", { replace: true });
     } catch (err) {
       const msg =
         err?.response?.data?.detail ||
