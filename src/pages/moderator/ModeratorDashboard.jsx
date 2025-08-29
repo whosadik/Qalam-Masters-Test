@@ -144,6 +144,66 @@ function getMyIdFromJWT() {
   return raw != null ? Number(raw) : null;
 }
 
+const isFilled = (v) =>
+  v !== null && v !== undefined && String(v).trim().length > 0;
+
+const REQUIRED_JOURNAL_FIELDS = [
+  "title",
+  "email",
+  "language",
+  "frequency",
+  "year",
+];
+const OPTIONAL_JOURNAL_FIELDS = [
+  "description",
+  "phone",
+  "address",
+  "issn",
+  "target_audience",
+  "logo", // обложка
+];
+
+const FIELD_LABELS = {
+  title: "Название",
+  description: "Описание",
+  email: "Email",
+  language: "Язык",
+  frequency: "Периодичность",
+  year: "Год основания",
+  phone: "Телефон",
+  address: "Адрес",
+  issn: "ISSN",
+  target_audience: "Целевая аудитория",
+  logo: "Обложка",
+};
+
+// 100% = все обязательные + все опциональные
+function journalCompletenessFromAPI(j) {
+  const reqFilled = REQUIRED_JOURNAL_FIELDS.filter((k) => isFilled(j?.[k])).length;
+  const optFilled = OPTIONAL_JOURNAL_FIELDS.filter((k) => isFilled(j?.[k])).length;
+  const total = REQUIRED_JOURNAL_FIELDS.length + OPTIONAL_JOURNAL_FIELDS.length;
+  const pct = Math.round(((reqFilled + optFilled) / total) * 100);
+  return Math.max(0, Math.min(100, pct));
+}
+
+// (опционально) статус по проценту
+function journalStatus(pct) {
+  return pct >= 80
+    ? { label: "Готов к публикации", cls: "bg-emerald-100 text-emerald-800" }
+    : pct >= 40
+    ? { label: "Заполняется", cls: "bg-amber-100 text-amber-800" }
+    : { label: "Черновик", cls: "bg-slate-100 text-slate-700" };
+}
+
+function journalMissingFields(j) {
+  const missing = [];
+  [...REQUIRED_JOURNAL_FIELDS, ...OPTIONAL_JOURNAL_FIELDS].forEach((f) => {
+    if (!isFilled(j?.[f])) missing.push(FIELD_LABELS[f] || f);
+  });
+  return missing;
+}
+
+
 export default function ModeratorDashboard() {
   const navigate = useNavigate();
   const { user: me } = useAuth();
@@ -327,22 +387,7 @@ export default function ModeratorDashboard() {
       annually: "Ежегодно",
     })[f] || "—";
 
-  const journalProgress = (j) => {
-    const fields = [
-      "title",
-      "description",
-      "mission",
-      "audience",
-      "ethics",
-      "cover",
-    ];
-    let filled = fields.filter((k) => String(j?.[k] || "").trim()).length;
-    if (safeArray(j?.topics).length) filled += 1;
-    if (Array.isArray(j?.editorial) && j.editorial.length) filled += 1;
 
-    const total = fields.length + 2;
-    return Math.round((filled / total) * 100);
-  };
 
   const journalStatus = (pct) =>
     pct >= 80
@@ -424,7 +469,7 @@ export default function ModeratorDashboard() {
 
         const stats = {
           journals: journals.length,
-          avgRating: journals.length ? 4.6 : 0,
+          orgRating: org.rating,
           updatedAt: org?.updated_at
             ? new Date(org.updated_at).toLocaleDateString("ru-RU")
             : "—",
@@ -448,14 +493,10 @@ export default function ModeratorDashboard() {
               <div className="flex gap-2">
                 <Link to={`/moderator/organizations/${org.id}`}>
                   <Button variant="outline" className="gap-2">
-                    <Eye className="w-4 h-4" /> Просмотр
+                    <Eye className="w-4 h-4" /> Профиль организации
                   </Button>
                 </Link>
-                <Link to={`/moderator/organizations/${org.id}/edit`}>
-                  <Button className="gap-2">
-                    <Edit3 className="w-4 h-4" /> Редактировать
-                  </Button>
-                </Link>
+               
               </div>
             </div>
 
@@ -469,18 +510,18 @@ export default function ModeratorDashboard() {
               </Card>
               <Card className="border-0 shadow-sm bg-purple-600 text-white">
                 <CardContent className="p-5">
-                  <p className="opacity-90">Средний рейтинг</p>
+                  <p className="opacity-90">Рейтинг организации</p>
                   <p className="text-3xl font-bold flex items-center gap-2">
-                    {stats.avgRating || "—"} <Star className="w-6 h-6" />
+                    {stats.orgRating || "—"} <Star className="w-6 h-6" />
                   </p>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-emerald-600 text-white">
-                <CardContent className="p-5">
-                  <p className="opacity-90">Заполненность профиля</p>
-                  <span className="text-3xl font-bold">{completeness}%</span>
-                </CardContent>
-              </Card>
+             <Card className="border-0 shadow-sm bg-emerald-600 text-white">
+  <CardContent className="p-5">
+    <p className="opacity-90">Статус</p>
+    <p className="text-3xl font-bold">{org.is_active ? "Активна" : "Не активна"}</p>
+  </CardContent>
+</Card>
               <Card className="border-0 shadow-sm bg-slate-700 text-white">
                 <CardContent className="p-5">
                   <p className="opacity-90">Обновлено</p>
@@ -510,7 +551,7 @@ export default function ModeratorDashboard() {
                 ) : (
                   <ul className="divide-y divide-slate-100">
                     {journals.map((j) => {
-                      const pct = journalProgress(j);
+                      const pct = journalCompletenessFromAPI(j);
                       const st = journalStatus(pct);
                       const topics = safeArray(j.topics).slice(0, 3);
                       const more = Math.max(
@@ -557,6 +598,17 @@ export default function ModeratorDashboard() {
                                   <span className="font-medium">{pct}%</span>
                                 </div>
                                 <Progress value={pct} />
+
+                                  {pct < 100 && (
+    <div className="mt-2 text-xs text-gray-500">
+      <p className="font-medium mb-1">Советы для заполнения:</p>
+      <ul className="list-disc pl-5 space-y-0.5">
+        {journalMissingFields(j).slice(0, 4).map((field) => (
+          <li key={field}>Добавьте {field}</li>
+        ))}
+      </ul>
+    </div>
+  )}
                               </div>
                             </div>
 

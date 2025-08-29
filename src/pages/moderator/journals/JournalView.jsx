@@ -166,9 +166,21 @@ export default function JournalView() {
         </div>
       )}
 
-      <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center  gap-4">
+      <h1 className="text-3xl md:text-4xl font-bold text-center">
         {journal.name}
       </h1>
+            {org.is_verified ? (
+  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
+    Верифицирована{org.verification_date ? ` • ${new Date(org.verification_date).toLocaleDateString('ru-RU')}` : ""}
+  </span>
+) : (
+  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+    Не верифицирована
+  </span>
+)}
+      </div>
+      
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Левый сайдбар */}
@@ -245,6 +257,7 @@ export default function JournalView() {
                   ))}
                 </div>
               )}
+              
 
               <div className="flex gap-2">
                 <Button variant="outline" onClick={onPrint} className="w-full">
@@ -269,8 +282,10 @@ export default function JournalView() {
         {/* Правая колонка */}
         <main className="md:col-span-7 xl:col-span-7">
           <Card className="border shadow-sm rounded-2xl">
+            
             <CardContent className="p-6 space-y-6">
               <section className="space-y-2">
+                <h2 className="text-xl font-semibold">Описание журнала</h2>
                 <p className="text-gray-800">
                   {journal.description || SAMPLE.description}
                 </p>
@@ -299,7 +314,7 @@ export default function JournalView() {
               <Separator />
 
             
-              <Separator />
+        
 
               <section className="space-y-2">
                 <h2 className="text-xl font-semibold">Периодичность выхода</h2>
