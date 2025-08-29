@@ -12,7 +12,7 @@ const clean = (obj) =>
     )
   );
 
-// нормализация полей под API (сайт/телефон) + очистка
+//нормализация полей под API (сайт/телефон) + очистка + МАППИНГ ИМЁН
 const normalizeOrgPayload = (raw = {}) => {
   const website =
     raw.website && !/^https?:\/\//i.test(raw.website)
@@ -21,10 +21,20 @@ const normalizeOrgPayload = (raw = {}) => {
 
   const head_phone = raw.head_phone
     ? (() => {
-        const digits = String(raw.head_phone).replace(/\s+/g, "");
+       const digits = String(raw.head_phone).replace(/\s+/g, "");
         return /^\+/.test(digits) ? digits : `+${digits}`;
       })()
     : raw.head_phone;
+     // маппинг UI → API:
+        // - postal_zip (UI) -> postal_code (API)
+          // - social_link (UI, строка) -> social_links (API, массив)
+          const postal_code = raw.postal_zip?.trim();
+          const social_links =
+            typeof raw.social_link === "string" && raw.social_link.trim()
+              ? [raw.social_link.trim()]
+              : Array.isArray(raw.social_links)
+              ? raw.social_links
+              : [];
 
   return clean({
     title: raw.title?.trim(),
@@ -37,8 +47,8 @@ const normalizeOrgPayload = (raw = {}) => {
     website,
     country: raw.country?.trim(),
     city: raw.city?.trim(),
-    postal_zip: raw.postal_zip?.trim(),
-    social_link: raw.social_link?.trim(),
+   postal_code,
+   social_links,
     // НИКОГДА не отправляем служебные поля типа is_verified, created_by и т.п. из клиентской формы
   });
 };
@@ -84,7 +94,7 @@ export async function getOrganization(id) {
   return data;
 }
 
-export async function updateOrganization(id, payloadRaw, method = "put") {
+export async function updateOrganization(id, payloadRaw, method = "patch") {
   const payload = normalizeOrgPayload(payloadRaw);
   const fn = method === "put" ? http.put : http.patch;
   try {

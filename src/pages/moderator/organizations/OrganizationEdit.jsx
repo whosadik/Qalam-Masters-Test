@@ -6,33 +6,42 @@ import { Button } from "@/components/ui/button";
 import { getOrganization, updateOrganization } from "@/services/organizationsService";
 
 export default function OrganizationEdit() {
-  const { id } = useParams(); // ожидается маршрут: /moderator/organizations/:id/edit
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState("");
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState(null);
+  const [serverFieldErrors, setServerFieldErrors] = useState({});
 
-  // загрузка организации
   useEffect(() => {
     let ignore = false;
     (async () => {
       setLoading(true);
       setError("");
+      setServerFieldErrors({});
       try {
         const org = await getOrganization(id); // -> { id, title, head_name, ... }
+
         if (ignore) return;
 
-        // API -> форма
+        // ❗ КЛАДЁМ КЛЮЧИ ТАК ЖЕ, КАК ИХ ЖДЁТ ФОРМА
         setInitialData({
-          name: org.title || "",
+          title: org.title || "",
           description: org.description || "",
-          head: org.head_name || "",
-          phone: org.head_phone || "",
-          email: org.head_email || "",
+          head_name: org.head_name || "",
+          head_phone: org.head_phone || "",
+          head_email: org.head_email || "",
           address: org.address || "",
           bin: org.bin || "",
+          website: org.website || "",
+          country: org.country || "",
+          city: org.city || "",
+          // если на бэке postal_code — в форму кладём "postal_zip", а при сабмите замапим обратно
+          postal_zip: org.postal_code || "",
+          // если social_links — массив, возьмём первый для удобства редактирования
+          social_link: Array.isArray(org.social_links) && org.social_links.length ? org.social_links[0] : "",
         });
       } catch (e) {
         if (!ignore) {
@@ -50,25 +59,37 @@ export default function OrganizationEdit() {
   }, [id]);
 
   const handleSubmit = async (formValues) => {
-    // форма -> API
+    // ❗ ФОРМА → API (ключи как у API)
     const payload = {
-      title: formValues.name?.trim() || "",
-      description: formValues.description?.trim() || "",
-      head_name: formValues.head?.trim() || "",
-      head_phone: formValues.phone?.trim() || "",
-      head_email: formValues.email?.trim() || "",
-      address: formValues.address?.trim() || "",
-      bin: formValues.bin?.trim() || "",
+      title: formValues.title?.trim(),
+      description: formValues.description?.trim(),
+      head_name: formValues.head_name?.trim(),
+      head_phone: formValues.head_phone?.trim(),
+      head_email: formValues.head_email?.trim(),
+      address: formValues.address?.trim(),
+      bin: formValues.bin?.trim(),
+      website: formValues.website?.trim(),
+      country: formValues.country?.trim(),
+      city: formValues.city?.trim(),
+      postal_code: formValues.postal_zip?.trim(),     // мапим обратно
+      social_links: formValues.social_link?.trim()    // строка → массив
+        ? [formValues.social_link.trim()]
+        : [],
     };
 
     setSaving(true);
     setError("");
+    setServerFieldErrors({});
     try {
-      await updateOrganization(id, payload); // PATCH
+      await updateOrganization(id, payload); // PATCH внутри сервиса
       navigate(`/moderator/organizations/${id}`, { replace: true });
     } catch (e) {
+      // Покажем и общий, и по-полевой ошибки
+      const fieldErrs = e?.response?.data && typeof e.response.data === "object" ? e.response.data : {};
+      setServerFieldErrors(fieldErrs);
+
       const msg =
-        e?.response?.data?.detail ||
+        fieldErrs?.detail ||
         e?.response?.data?.error ||
         "Не удалось сохранить изменения";
       setError(String(msg));
@@ -107,7 +128,13 @@ export default function OrganizationEdit() {
         </div>
       )}
 
-      <OrganizationForm onSubmit={handleSubmit} initialData={initialData} disabled={saving} />
+      <OrganizationForm
+        onSubmit={handleSubmit}
+        initialData={initialData}
+        disabled={saving}
+        serverError={error}
+        serverFieldErrors={serverFieldErrors}
+      />
     </div>
   );
 }

@@ -6,6 +6,9 @@ import {
   Navigate,
 } from "react-router-dom";
 
+import { useAuth } from "@/auth/AuthContext";
+import FullScreenSplash from "@/components/FullScreenSplash";
+
 import HomePage from "./pages/HomePage";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import EditorialProfile from "./pages/EditorialProfile";
@@ -110,6 +113,9 @@ function PrivateRoutes() {
 function AppContent() {
   // Выбираем набор роутов по «публичности» текущего пути
   const location = useLocation();
+  const { booted } = useAuth();             
+  if (!booted) return <FullScreenSplash />;  
+
   const publicPaths = new Set([
     "/",
     "/about-journal",

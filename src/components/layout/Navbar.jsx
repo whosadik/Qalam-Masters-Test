@@ -9,7 +9,7 @@ import ProfileMenu from "@/components/ProfileMenu";
 import { User as UserIcon, Compass } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import DashboardNavigatorModal, { useCommandK } from "@/components/DashboardNavigatorModal";
-import { me as fetchMe } from "@/services/authService"; // GET /api/users/me/
+
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -17,10 +17,12 @@ export default function Navbar() {
   useCommandK(setNavOpen);
 
   const navigate = useNavigate();
-  const { isAuthenticated, user, logout } = useAuth();
+ const { user, isAuthenticated, isModerator, logout, booted } = useAuth();
+  // готовность навбара: дожидаемся бутстрапа контекста
+  const ready = booted;
 
   // локальный user для показа, если контекст ещё пуст
-  const [displayUser, setDisplayUser] = useState(user || null);
+   const displayUser = user || null;
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && setOpen(false);
@@ -32,30 +34,9 @@ export default function Navbar() {
     };
   }, [open]);
 
-  // если авторизованы, но в контексте ещё нет профиля — подтянем /me
-  useEffect(() => {
-    let ignore = false;
-    (async () => {
-      if (isAuthenticated) {
-        try {
-          // если useAuth уже отдал пользователя — используем его
-          if (user && !ignore) {
-            setDisplayUser(user);
-            return;
-          }
-          // иначе пробуем получить профиль напрямую
-          const data = await fetchMe();
-          if (!ignore) setDisplayUser(data || null);
-        } catch {
-          // в случае 401/ошибок просто оставим без профиля
-          if (!ignore) setDisplayUser(null);
-        }
-      } else {
-        setDisplayUser(null);
-      }
-    })();
-    return () => { ignore = true; };
-  }, [isAuthenticated, user]);
+
+
+
 
   const closeMenu = () => setOpen(false);
 
@@ -167,14 +148,20 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link to="/author-dashboard">
-                    <Button variant="outline">Личный кабинет</Button>
-                  </Link>
-
-                  {/* Уведомления (подключим позже, когда появится API)
-                  <NotificationsButton count={unreadCount} items={itemsFromApi} />
-                  */}
-
+               {!ready && (
+                <div className="h-9 w-[140px] rounded-md bg-gray-100 animate-pulse" />
+              )}
+              {ready && !isModerator && (
+                <Link to="/author-dashboard">
+                  <Button variant="outline">Личный кабинет</Button>
+                </Link>
+              )}
+              {ready && isModerator && (
+                <Link to="/moderator">
+                  <Button variant="outline">Кабинет модератора</Button>
+                </Link>
+              )}
+                
                   <ProfileMenu
                     name={displayName}
                     email={displayUser?.email}
@@ -212,9 +199,15 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link to="/author-dashboard">
-                    <Button variant="outline" size="sm">ЛК</Button>
-                  </Link>
+                   {!ready ? (
+                <div className="h-8 w-[64px] rounded bg-gray-100 animate-pulse" />
+              ) : (
+                <Link to={isModerator ? "/moderator" : "/author-dashboard"}>
+                  <Button variant="outline" size="sm">
+                    {isModerator ? "Модер." : "ЛК"}
+                  </Button>
+                </Link>
+              )}
 
                   {/* <NotificationsButton ... /> */}
 
