@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink, FileDown } from "lucide-react";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
+import { useAuth } from "@/auth/AuthContext";
+
 
 const SAMPLE = {
   id: 0,
@@ -50,6 +52,7 @@ export default function JournalView() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [forbidden, setForbidden] = useState(false);
+  const {isModerator} = useAuth();
 
   const normalize = (raw) => ({
     id: raw?.id ?? SAMPLE.id,
@@ -143,8 +146,8 @@ export default function JournalView() {
           <Link to={`/login?next=/journals/${encodeURIComponent(jid)}`}>
             <Button>Войти</Button>
           </Link>
-          <Link to="/journals">
-            <Button variant="outline">К списку журналов</Button>
+          <Link to="/">
+            <Button variant="outline">На главную страницу</Button>
           </Link>
         </div>
       </div>
@@ -248,11 +251,16 @@ export default function JournalView() {
                   <FileDown className="w-4 h-4 mr-2" />
                   Печать/PDF
                 </Button>
+                {!isModerator && (
                 <Link to="/author-dashboard">
-                  <Button variant="outline" className="w-full">
-                    В кабинет
-                  </Button>
+                  <Button variant="outline">Личный кабинет</Button>
                 </Link>
+              )}
+              {isModerator && (
+                <Link to="/moderator">
+                  <Button variant="outline">Кабинет модератора</Button>
+                </Link>
+              )}
               </div>
             </CardContent>
           </Card>
@@ -290,24 +298,7 @@ export default function JournalView() {
 
               <Separator />
 
-              <section className="space-y-2">
-                <h2 className="text-xl font-semibold">Целевая аудитория</h2>
-                <p className="text-gray-800">
-                  {journal.audience || SAMPLE.audience}
-                </p>
-              </section>
-
-              <Separator />
-
-              <section className="space-y-2">
-                <h2 className="text-xl font-semibold">
-                  Рецензирование и этика
-                </h2>
-                <p className="text-gray-800">
-                  {journal.ethics || SAMPLE.ethics}
-                </p>
-              </section>
-
+            
               <Separator />
 
               <section className="space-y-2">
@@ -319,26 +310,7 @@ export default function JournalView() {
 
               <Separator />
 
-              <section className="space-y-2">
-                <h2 className="text-xl font-semibold">
-                  Информация для авторов
-                </h2>
-                <ul className="list-disc pl-6 space-y-1 text-gray-800">
-                  <li>{journal.forAuthors?.fee || SAMPLE.forAuthors.fee}</li>
-                  <li>
-                    {journal.forAuthors?.firstDecision ||
-                      SAMPLE.forAuthors.firstDecision}
-                  </li>
-                  <li>
-                    {journal.forAuthors?.reviewTime ||
-                      SAMPLE.forAuthors.reviewTime}
-                  </li>
-                  <li>
-                    {journal.forAuthors?.publication ||
-                      SAMPLE.forAuthors.publication}
-                  </li>
-                </ul>
-              </section>
+             
             </CardContent>
           </Card>
         </main>

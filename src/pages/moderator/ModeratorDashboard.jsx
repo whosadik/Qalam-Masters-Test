@@ -79,8 +79,8 @@ const OrgLogo = ({ org }) => {
 const JournalCover = ({ journal }) => {
  const raw =
     pickFirst(journal, [
-      "logo", "logo_url", "logoUrl",     // ← главное
-      "cover", "cover_url", "coverUrl",  // ← на случай старых данных
+      "logo", "logo_url", "logoUrl",    
+      "cover", "cover_url", "coverUrl", 
       "image", "image_url", "thumbnail"
     ]) || "";
   const src = resolveImageUrl(raw);

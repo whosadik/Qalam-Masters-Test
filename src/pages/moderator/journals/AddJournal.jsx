@@ -1,112 +1,365 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+// src/pages/moderator/journals/AddJournal.jsx
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { http, withParams } from "@/lib/apiClient";
+import { API } from "@/constants/api";
 
-const KEY_JOURNALS = "myOrgJournals";
+const THEMES = [
+  { value: "science", label: "Science" },
+  { value: "arts", label: "Arts" },
+  { value: "technology", label: "Technology" },
+  { value: "business", label: "Business" },
+  { value: "health", label: "Health" },
+];
+
+const FREQUENCIES = [
+  { value: "daily", label: "Ежедневно" },
+  { value: "weekly", label: "Еженедельно" },
+  { value: "monthly", label: "Ежемесячно" },
+  { value: "quarterly", label: "Ежеквартально" },
+  { value: "annually", label: "Ежегодно" },
+];
 
 export default function AddJournal() {
   const navigate = useNavigate();
-  const { id } = useParams(); // id организации (не обязателен в моках)
+  const { id } = useParams(); // id организации из урла: /moderator/organizations/:id/add-journal
+
   const [form, setForm] = useState({
-    name: "",
+    title: "",
     description: "",
-    topics: [], // массив строк
+    theme: "science",
+    frequency: "quarterly",
+    language: "kz",
+    phone: "",
+    email: "",
+    address: "",
+    issn: "",
+    year: new Date().getFullYear(),
+    target_audience: "",
   });
 
-  const handleChange = (e) => {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState("");
+
+  // простые мемо-валидаторы
+  const canSubmit = useMemo(() => {
+    if (!form.title.trim()) return false;
+    if (!form.email.trim()) return false;
+    if (!form.phone.trim()) return false;
+    if (!form.language.trim()) return false;
+    if (!form.issn.trim()) return false;
+    if (!String(form.year).trim()) return false;
+    return true;
+  }, [form]);
+
+  const onDrop = useCallback((fileList) => {
+   const file = Array.from(fileList)[0];
+   if (!file) return;
+   // можно ограничить типы
+   if (!file.type.startsWith("image/")) {
+     setErr("Допустимы только изображения (PNG/JPEG/WebP).");
+     return;
+   }
+   setLogoFile(file);
+   setLogoPreview(URL.createObjectURL(file));
+ }, []);
+
+ const onPickFile = (e) => {
+   onDrop(e.target.files);
+ };
+
+  const onChange = (e) => {
+    setErr("");
+    setFieldErrors({});
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    setForm((f) => ({ ...f, [name]: name === "year" ? Number(value) || "" : value }));
   };
 
-  const handleTopics = (e) => {
-    const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
-    setForm((f) => ({ ...f, topics: selected }));
-  };
-
-  const handleSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return; // обязательное поле
+    if (!canSubmit || busy) return;
 
-    const existing = JSON.parse(localStorage.getItem(KEY_JOURNALS) || "[]");
-    const next = [
-      ...existing,
-      {
-        id: Date.now(),
-        orgId: Number(id) || 1,
-        name: form.name.trim(),
-        description: form.description.trim(),
-        topics: form.topics,
-        createdAt: new Date().toLocaleDateString("ru-RU"),
-        lang: "ru",
-        periodicity: "quarterly",
-      },
-    ];
+    setBusy(true);
+    setErr("");
+    setFieldErrors({});
 
-    localStorage.setItem(KEY_JOURNALS, JSON.stringify(next));
-    alert("Журнал добавлен!");
-    navigate("/moderator"); // назад в кабинет модератора организации
+    // Формируем полезную нагрузку по схеме OpenAPI
+    // Если бэк принимает связь с организацией — добавим organization
+   const fd = new FormData();
+  fd.append("title", form.title.trim());
+  if (form.description) fd.append("description", form.description);
+  fd.append("theme", form.theme);
+  fd.append("frequency", form.frequency);
+  fd.append("language", form.language.trim());
+  fd.append("phone", form.phone.trim());
+  fd.append("email", form.email.trim());
+  if (form.address) fd.append("address", form.address);
+  fd.append("issn", form.issn.trim());
+  fd.append("year", String(Number(form.year) || new Date().getFullYear()));
+  if (form.target_audience) fd.append("target_audience", form.target_audience);
+  if (logoFile) fd.append("logo", logoFile); // ВАЖНО: имя поля из схемы
+  if (id) fd.append("organization", String(Number(id)));
+
+    try {
+     const { data } = await http.post(API.JOURNALS, fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+      // если у вас есть фильтр по организации, можно редиректить назад в орг-панель
+      // иначе на настройки/страницу журнала:
+      navigate(`/moderator/journals/${data?.id || ""}`, { replace: true });
+    } catch (e) {
+      // аккуратно достанем ошибки DRF
+      const resp = e?.response;
+      const data = resp?.data || {};
+      if (typeof data === "object") {
+        const nonField = data.detail || data.non_field_errors?.[0];
+        setErr(nonField ? String(nonField) : "Не удалось создать журнал.");
+        const perField = { ...data };
+        delete perField.detail;
+        delete perField.non_field_errors;
+        setFieldErrors(perField);
+      } else {
+        setErr("Не удалось создать журнал.");
+      }
+    } finally {
+      setBusy(false);
+    }
   };
+
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-center mb-6">Добавить журнал</h1>
+    <div className="max-w-3xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Создать журнал</h1>
+        <div className="text-sm text-gray-500">
+          {id ? (
+            <>Организация: <span className="font-medium">#{id}</span></>
+          ) : (
+            <span>Без привязки к организации</span>
+          )}
+        </div>
+      </div>
+
+      {err && (
+        <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+          {err}
+        </div>
+      )}
 
       <Card className="border rounded-lg">
         <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Название журнала<span className="text-red-500">*</span>
-              </label>
-              <Input
-                name="name"
-                placeholder="Вестник Академии полиции"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
+          <form onSubmit={onSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <Label className="mb-2 block">Название *</Label>
+                <Input
+                  name="title"
+                  value={form.title}
+                  onChange={onChange}
+                  placeholder="Вестник науки"
+                  required
+                />
+                {fieldErrors.title && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.title)}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Тема *</Label>
+                <select
+                  name="theme"
+                  value={form.theme}
+                  onChange={onChange}
+                  className="w-full border rounded-md p-2 h-10"
+                >
+                  {THEMES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+                {fieldErrors.theme && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.theme)}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Периодичность *</Label>
+                <select
+                  name="frequency"
+                  value={form.frequency}
+                  onChange={onChange}
+                  className="w-full border rounded-md p-2 h-10"
+                >
+                  {FREQUENCIES.map((f) => (
+                    <option key={f.value} value={f.value}>{f.label}</option>
+                  ))}
+                </select>
+                {fieldErrors.frequency && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.frequency)}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Язык *</Label>
+                <Input
+                  name="language"
+                  value={form.language}
+                  onChange={onChange}
+                  placeholder="kz / ru / en …"
+                  required
+                />
+                {fieldErrors.language && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.language)}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Телефон *</Label>
+                <Input
+                  name="phone"
+                  value={form.phone}
+                  onChange={onChange}
+                  placeholder="+7 777 000 00 00"
+                  required
+                />
+                {fieldErrors.phone && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.phone)}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Email *</Label>
+                <Input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={onChange}
+                  placeholder="editor@journal.kz"
+                  required
+                />
+                {fieldErrors.email && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.email)}</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <Label className="mb-2 block">Описание</Label>
+                <Textarea
+                  name="description"
+                  value={form.description}
+                  onChange={onChange}
+                  placeholder="Коротко о журнале…"
+                  rows={4}
+                />
+                {fieldErrors.description && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.description)}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">ISSN *</Label>
+                <Input
+                  name="issn"
+                  value={form.issn}
+                  onChange={onChange}
+                  placeholder="1234-5678"
+                  required
+                />
+                {fieldErrors.issn && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.issn)}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Год основания *</Label>
+                <Input
+                  type="number"
+                  name="year"
+                  value={form.year}
+                  onChange={onChange}
+                  min={1800}
+                  max={9999}
+                  required
+                />
+                {fieldErrors.year && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.year)}</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <Label className="mb-2 block">Адрес</Label>
+                <Input
+                  name="address"
+                  value={form.address}
+                  onChange={onChange}
+                  placeholder="Город, улица, дом…"
+                />
+                {fieldErrors.address && (
+                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.address)}</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <Label className="mb-2 block">Целевая аудитория</Label>
+                <Input
+                  name="target_audience"
+                  value={form.target_audience}
+                  onChange={onChange}
+                  placeholder="Преподаватели, исследователи, аспиранты…"
+                />
+                {fieldErrors.target_audience && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.target_audience)}
+                  </p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+   <Label className="mb-2 block">Обложка (drag & drop или выбрать файл)</Label>
+   <div
+     onDragOver={(e) => e.preventDefault()}
+     onDrop={(e) => {
+       e.preventDefault();
+       onDrop(e.dataTransfer.files);
+     }}
+     className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center text-sm text-gray-600 hover:bg-gray-50"
+   >
+     {logoPreview ? (
+       <img
+         src={logoPreview}
+         alt="Предпросмотр обложки"
+         className="w-full max-w-sm h-48 object-contain"
+       />
+     ) : (
+       <div className="text-center">
+         Перетащите файл сюда<br/>
+         <span className="text-xs text-gray-500">PNG, JPG, WEBP • до ~10 МБ</span>
+       </div>
+     )}
+     <div className="mt-3">
+       <Input type="file" accept="image/*" onChange={onPickFile} />
+     </div>
+   </div>
+   {fieldErrors.logo && (
+    <p className="text-xs text-red-600 mt-1">{String(fieldErrors.logo)}</p>
+   )}
+ </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Описание</label>
-              <Textarea
-                name="description"
-                placeholder="Научно‑практический журнал о современных буднях полиции."
-                value={form.description}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Тематика журнала
-              </label>
-              {/* простой multiple-select для моков */}
-              <select
-                multiple
-                className="w-full border rounded-md p-2 h-28 outline-none"
-                value={form.topics}
-                onChange={handleTopics}
-              >
-                <option value="Право">Право</option>
-                <option value="Криминология">Криминология</option>
-                <option value="Госуправление">Госуправление</option>
-                <option value="Социология">Социология</option>
-                <option value="Образование">Образование</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                Удерживайте Ctrl/⌘ для выбора нескольких.
-              </p>
-            </div>
-
-            <div className="flex justify-center">
-              {/* Надпись на кнопке на скрине «Войти», но логичнее «Создать журнал» */}
-              <Button type="submit" className="px-8">
-                Создать журнал
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={!canSubmit || busy}>
+                {busy ? "Создаём…" : "Создать журнал"}
               </Button>
+              <Link to={id ? `/moderator/organizations/${id}` : "/moderator"}>
+                <Button variant="outline">Отмена</Button>
+              </Link>
             </div>
           </form>
         </CardContent>
