@@ -5,9 +5,11 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Sardar from "../../public/sardar.png";
 import FloatingDashboardLauncher from "@/components/FloatingDashboardLauncher";
+import { useAuth } from "@/auth/AuthContext";
 
 
 export default function HomePage() {
+  const { booted, isAuthenticated, isModerator } = useAuth();
   const journalInfo = {
     title: "Веб-платформа для автоматизации работы журнала",
     description:
@@ -39,12 +41,37 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/register">
-                  <Button size="lg" className="text-lg px-8 py-6">
-                    Зарегистрироваться
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>{" "}
-                </Link>
+                {/* главная CTA */}
+                {!booted ? (
+                  // скелетон, пока AuthContext бутстрапится
+                  <div className="h-12 w-56 rounded-md bg-gray-200 animate-pulse" />
+                ) : !isAuthenticated ? (
+                  // гость -> кнопка регистрации
+                  <Link to="/register">
+                    <Button size="lg" className="text-lg px-8 py-6">
+                      Зарегистрироваться
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                ) : isModerator ? (
+                  // модератор -> в кабинет модератора
+                  <Link to="/moderator">
+                    <Button size="lg" className="text-lg px-8 py-6">
+                      Кабинет модератора
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                ) : (
+                  // обычный пользователь -> в личный кабинет автора
+                  <Link to="/author-dashboard">
+                    <Button size="lg" className="text-lg px-8 py-6">
+                      Перейти в кабинет
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                )}
+
+                {/* вторичная CTA — требования к оформлению */}
                 <Link to="/requirements">
                   <Button
                     size="lg"

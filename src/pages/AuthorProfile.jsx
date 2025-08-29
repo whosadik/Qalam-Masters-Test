@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { User, Mail, MapPin, Calendar, Globe } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { updateMe, deleteMe } from "@/services/authService";
+import { http } from "@/lib/apiClient";
+import { API } from "@/constants/api";
+import { getOrganization } from "@/services/organizationsService";
 
 export default function AuthorProfile() {
   const { user, refreshMe, logout } = useAuth();
@@ -28,6 +31,9 @@ export default function AuthorProfile() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const [orgLoading, setOrgLoading] = useState(false);
+  const [orgError, setOrgError] = useState("");
+  const [adminOrgs, setAdminOrgs] = useState([]); // [{id, title}]
 
   // при первом рендере и при изменении user наполняем форму
   useEffect(() => {
@@ -44,6 +50,55 @@ export default function AuthorProfile() {
       bio: user.bio || "",
       avatar: user.avatar || "",
     });
+  }, [user]);
+
+   // тянем организации, где пользователь админ/модератор/владелец
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      if (!user) return;
+      setOrgLoading(true);
+      setOrgError("");
+      try {
+        // 1) тянем только свои членства
+        let resp;
+        try {
+          resp = await http.get(`${API.ORG_MEMBERSHIPS}?mine=true&page_size=200`);
+        } catch {
+          // если бекенд не умеет mine, можно попробовать по user, если есть id
+          // (если /me не отдаёт id — этот фолбек можно пропустить)
+          resp = await http.get(`${API.ORG_MEMBERSHIPS}?page_size=200`);
+        }
+        const raw = Array.isArray(resp?.data)
+          ? resp.data
+          : Array.isArray(resp?.data?.results)
+          ? resp.data.results
+          : [];
+        const ADMIN_ROLES = ["admin", "owner", "moderator"];
+        const myAdminMemberships = raw.filter(m => ADMIN_ROLES.includes(String(m.role)));
+
+        // 2) соберём id организаций и подтянем их названия
+        const ids = [...new Set(myAdminMemberships
+          .map(m => m.organization ?? m.organization_id)
+          .filter(Boolean))];
+
+        const items = [];
+        for (const orgId of ids) {
+          try {
+            const od = await getOrganization(orgId);
+            items.push({ id: orgId, title: od?.title || `Организация #${orgId}` });
+          } catch {
+            items.push({ id: orgId, title: `Организация #${orgId}` });
+          }
+        }
+        if (!ignore) setAdminOrgs(items);
+      } catch (e) {
+        if (!ignore) setOrgError("Не удалось загрузить организации пользователя");
+      } finally {
+        if (!ignore) setOrgLoading(false);
+      }
+    })();
+    return () => { ignore = true; };
   }, [user]);
 
   const fullName = useMemo(() => {
@@ -170,6 +225,33 @@ export default function AuthorProfile() {
               </div>
             </div>
 
+              {/* Если пользователь админ/модератор хотя бы в одной организации */}
+            {(orgLoading || adminOrgs.length > 0 || orgError) && (
+              <section className="rounded-lg border bg-slate-50 p-4">
+                <h3 className="font-semibold mb-3">Мои организации (админ)</h3>
+                {orgLoading ? (
+                  <div className="h-5 w-56 rounded bg-slate-200 animate-pulse" />
+                ) : orgError ? (
+                  <p className="text-sm text-red-600">{orgError}</p>
+                ) : adminOrgs.length === 0 ? (
+                  <p className="text-sm text-slate-600">Вы не являетесь администратором ни одной организации.</p>
+                ) : (
+                  <ul className="flex flex-wrap gap-2">
+                    {adminOrgs.map((o) => (
+                      <li
+                        key={o.id}
+                        className="px-3 py-1.5 text-sm rounded-full bg-blue-100 text-blue-800"
+                        title={`Организация #${o.id}`}
+                      >
+                        {o.title}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
+
+
             {/* Форма редактирования */}
             <section className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -203,7 +285,7 @@ export default function AuthorProfile() {
                     value={form.phone}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="+7 777 000 00 00"
+                    placeholder="7 777 000 00 00"
                     autoComplete="tel"
                   />
                 </div>
