@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  Building2,
+  Building2 ,
   Plus,
   Edit3,
   Eye,
@@ -18,12 +18,118 @@ import { useAuth } from "@/auth/AuthContext";
 import { http, withParams, tokenStore } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 
+// ── helpers: images/urls ─────────────────────────────────────
+const pickFirst = (obj, keys = []) => {
+  for (const k of keys) {
+    const v = obj?.[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return "";
+};
+
+const resolveImageUrl = (raw) => {
+  if (!raw) return "";
+  const url = String(raw).trim();
+  // абсолютная ссылка / data-uri — возвращаем как есть
+  if (/^https?:\/\//i.test(url) || /^data:/i.test(url)) return url;
+  // если начинается с / — считаем, что это корректный абсолютный путь на текущем домене
+  if (url.startsWith("/")) return url;
+  // иначе пробуем склеить с бекенд-оригином из env (или молча вернём как есть)
+  const origin = import.meta.env.VITE_BACKEND_ORIGIN || "";
+  return origin ? `${origin.replace(/\/$/, "")}/${url.replace(/^\//, "")}` : url;
+};
+
+const OrgLogo = ({ org }) => {
+  // поддерживаем несколько возможных полей от API
+  const rawLogo =
+    pickFirst(org, ["logo", "logo_url", "logoUrl", "image", "avatar", "picture"]) ||
+    ""; // any fallback field
+  const src = resolveImageUrl(rawLogo);
+
+  if (!src) {
+    // fallback: круглая «плашка» с инициалом
+    const ch = (org?.title || "O").trim().charAt(0).toUpperCase();
+    return (
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+        <span className="text-white font-bold">{ch}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="w-12 h-12 rounded-xl overflow-hidden bg-white ring-1 ring-slate-200 flex items-center justify-center">
+      <img
+        src={src}
+        alt={org?.title || "Организация"}
+        className="w-full h-full object-contain"
+        loading="lazy"
+        onError={(e) => {
+          e.currentTarget.onerror = null;
+          e.currentTarget.style.display = "none";
+          // показываем fallback-инициал, если картинка не загрузилась
+          e.currentTarget.parentElement.innerHTML =
+            `<div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600">
+               <span class="text-white font-bold">${(org?.title || "O").trim().charAt(0).toUpperCase()}</span>
+             </div>`;
+        }}
+      />
+    </div>
+  );
+};
+
+const JournalCover = ({ journal }) => {
+ const raw =
+    pickFirst(journal, [
+      "logo", "logo_url", "logoUrl",     // ← главное
+      "cover", "cover_url", "coverUrl",  // ← на случай старых данных
+      "image", "image_url", "thumbnail"
+    ]) || "";
+  const src = resolveImageUrl(raw);
+  const title = journal?.title || "Журнал";
+
+  return (
+    <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
+      {src ? (
+        <img
+          src={src}
+          alt={`${title} — обложка`}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.style.display = "none";
+            e.currentTarget.parentElement.innerHTML =
+              `<div class="w-full h-full flex items-center justify-center">
+                 <span class="text-2xl font-bold text-indigo-600">${(title || "J")
+                   .trim()
+                   .charAt(0)
+                   .toUpperCase()}</span>
+               </div>`;
+          }}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <span className="text-2xl font-bold text-indigo-600">
+            {(title || "J").trim().charAt(0).toUpperCase()}
+          </span>
+        </div>
+      )}
+      {journal?.issn && (
+        <div className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-white">
+          ISSN: {journal.issn}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 /* === помощники для JWT (base64url) === */
 function decodeJwtPayload(token) {
   try {
     const part = token.split(".")[1];
     const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
     const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
+
     return JSON.parse(atob(padded));
   } catch {
     return null;
@@ -145,7 +251,7 @@ export default function ModeratorDashboard() {
           return;
         }
 
-        // грузим организации + журналы
+        // грузим организации  журналы
         const items = [];
         for (const m of memberships) {
           const orgId = m.organization ?? m.organization_id;
@@ -212,13 +318,14 @@ export default function ModeratorDashboard() {
             .filter(Boolean)
         : [];
 
-  const periodicityLabel = (p) =>
+   const frequencyLabel = (f) =>
     ({
+      daily: "Ежедневно",
+      weekly: "Еженедельно",
       monthly: "Ежемесячно",
       quarterly: "Ежеквартально",
-      biannual: "2 раза в год",
-      annual: "Ежегодно",
-    })[p] || "—";
+      annually: "Ежегодно",
+    })[f] || "—";
 
   const journalProgress = (j) => {
     const fields = [
@@ -230,8 +337,9 @@ export default function ModeratorDashboard() {
       "cover",
     ];
     let filled = fields.filter((k) => String(j?.[k] || "").trim()).length;
-    if (safeArray(j?.topics).length) filled++;
-    if (Array.isArray(j?.editorial) && j.editorial.length) filled++;
+    if (safeArray(j?.topics).length) filled += 1;
+    if (Array.isArray(j?.editorial) && j.editorial.length) filled += 1;
+
     const total = fields.length + 2;
     return Math.round((filled / total) * 100);
   };
@@ -327,9 +435,7 @@ export default function ModeratorDashboard() {
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-white" />
-                </div>
+                     <OrgLogo org={org} />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
                     {org.title || "Организация"}
@@ -365,7 +471,7 @@ export default function ModeratorDashboard() {
                 <CardContent className="p-5">
                   <p className="opacity-90">Средний рейтинг</p>
                   <p className="text-3xl font-bold flex items-center gap-2">
-                    {stats.avgRating || "—"} <Star className="w-6 w-6" />
+                    {stats.avgRating || "—"} <Star className="w-6 h-6" />
                   </p>
                 </CardContent>
               </Card>
@@ -418,26 +524,7 @@ export default function ModeratorDashboard() {
                           className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
                         >
                           <div className="flex items-stretch gap-4">
-                            <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
-                              {j.cover ? (
-                                <img
-                                  src={j.cover}
-                                  alt="cover"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <span className="text-2xl font-bold text-indigo-600">
-                                    {(j.title || "J")[0]}
-                                  </span>
-                                </div>
-                              )}
-                              {j.issn && (
-                                <div className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-white">
-                                  ISSN: {j.issn}
-                                </div>
-                              )}
-                            </div>
+                            <JournalCover journal={j} />
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
@@ -453,7 +540,7 @@ export default function ModeratorDashboard() {
 
                               <div className="text-sm text-gray-600 mt-0.5">
                                 Язык: {j.language?.toUpperCase() || "—"} •
-                                Периодичность: {periodicityLabel(j.periodicity)}{" "}
+                                Периодичность: {frequencyLabel(j.frequency)}{" "}
                                 • Создан:{" "}
                                 {j.created_at
                                   ? new Date(j.created_at).toLocaleDateString(
