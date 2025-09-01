@@ -17,7 +17,10 @@ export default function InitialScreeningPage() {
     const normalized = await Promise.all(
       list.map(async (a) => {
         if (a.status === ARTICLE_STATUS.SUBMITTED) {
-          return articlesStore.setStatus(a.id, ARTICLE_STATUS.INITIAL_SCREENING);
+          return articlesStore.setStatus(
+            a.id,
+            ARTICLE_STATUS.INITIAL_SCREENING
+          );
         }
         return a;
       })
@@ -25,11 +28,17 @@ export default function InitialScreeningPage() {
     setItems(normalized);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleAllow = async (id, checklist) => {
     // в реальном API: POST /articles/:id/screening { decision: 'allow', checklist }
-    await articlesStore.addNote(id, { type: "screening", checklist, decision: "allow" });
+    await articlesStore.addNote(id, {
+      type: "screening",
+      checklist,
+      decision: "allow",
+    });
     await articlesStore.setStatus(id, ARTICLE_STATUS.REVIEWER_ASSIGNMENT);
     await load();
     alert("Статья допущена к рецензированию (статус: Reviewer Assignment).");
@@ -37,17 +46,24 @@ export default function InitialScreeningPage() {
 
   const handleReturn = async (id, checklist) => {
     // в реальном API: POST /articles/:id/screening { decision: 'return', checklist, message }
-    await articlesStore.addNote(id, { type: "screening", checklist, decision: "return" });
+    await articlesStore.addNote(id, {
+      type: "screening",
+      checklist,
+      decision: "return",
+    });
     await articlesStore.setStatus(id, ARTICLE_STATUS.RETURNED_TO_AUTHOR, {
-      returnReason: checklist?.comment || "Вернуть на доработку (оформление/тематика/антиплагиат).",
+      returnReason:
+        checklist?.comment ||
+        "Вернуть на доработку (оформление/тематика/антиплагиат).",
     });
     await load();
     alert("Статья возвращена автору на доработку.");
   };
 
-  const filtered = items.filter(a =>
-    (a.title || "").toLowerCase().includes(q.toLowerCase()) ||
-    (a.journal || "").toLowerCase().includes(q.toLowerCase())
+  const filtered = items.filter(
+    (a) =>
+      (a.title || "").toLowerCase().includes(q.toLowerCase()) ||
+      (a.journal || "").toLowerCase().includes(q.toLowerCase())
   );
 
   return (
@@ -64,7 +80,9 @@ export default function InitialScreeningPage() {
             />
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
-          <Button variant="outline" onClick={load}>Обновить</Button>
+          <Button variant="outline" onClick={load}>
+            Обновить
+          </Button>
         </div>
       </div>
 

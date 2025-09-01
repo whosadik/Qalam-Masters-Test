@@ -4,21 +4,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import {
-  Building2 ,
-  Plus,
-  Edit3,
-  Eye,
-  FilePlus2,
-  Star,
-  Calendar,
-} from "lucide-react";
+import { Building2, Plus, Eye, FilePlus2, Star, Calendar } from "lucide-react";
 
 import { useAuth } from "@/auth/AuthContext";
-import { http, withParams, tokenStore } from "@/lib/apiClient";
+import { http, tokenStore, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
+import OrgMembersManager from "@/components/organizations/OrgMembersManager";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-// ── helpers: images/urls ─────────────────────────────────────
+/* ── helpers: images/urls ─────────────────────────────────── */
 const pickFirst = (obj, keys = []) => {
   for (const k of keys) {
     const v = obj?.[k];
@@ -30,24 +24,27 @@ const pickFirst = (obj, keys = []) => {
 const resolveImageUrl = (raw) => {
   if (!raw) return "";
   const url = String(raw).trim();
-  // абсолютная ссылка / data-uri — возвращаем как есть
   if (/^https?:\/\//i.test(url) || /^data:/i.test(url)) return url;
-  // если начинается с / — считаем, что это корректный абсолютный путь на текущем домене
   if (url.startsWith("/")) return url;
-  // иначе пробуем склеить с бекенд-оригином из env (или молча вернём как есть)
   const origin = import.meta.env.VITE_BACKEND_ORIGIN || "";
-  return origin ? `${origin.replace(/\/$/, "")}/${url.replace(/^\//, "")}` : url;
+  return origin
+    ? `${origin.replace(/\/$/, "")}/${url.replace(/^\//, "")}`
+    : url;
 };
 
 const OrgLogo = ({ org }) => {
-  // поддерживаем несколько возможных полей от API
   const rawLogo =
-    pickFirst(org, ["logo", "logo_url", "logoUrl", "image", "avatar", "picture"]) ||
-    ""; // any fallback field
+    pickFirst(org, [
+      "logo",
+      "logo_url",
+      "logoUrl",
+      "image",
+      "avatar",
+      "picture",
+    ]) || "";
   const src = resolveImageUrl(rawLogo);
 
   if (!src) {
-    // fallback: круглая «плашка» с инициалом
     const ch = (org?.title || "O").trim().charAt(0).toUpperCase();
     return (
       <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
@@ -65,9 +62,7 @@ const OrgLogo = ({ org }) => {
         onError={(e) => {
           e.currentTarget.onerror = null;
           e.currentTarget.style.display = "none";
-          // показываем fallback-инициал, если картинка не загрузилась
-          e.currentTarget.parentElement.innerHTML =
-            `<div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600">
+          e.currentTarget.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600">
                <span class="text-white font-bold">${(org?.title || "O").trim().charAt(0).toUpperCase()}</span>
              </div>`;
         }}
@@ -77,11 +72,17 @@ const OrgLogo = ({ org }) => {
 };
 
 const JournalCover = ({ journal }) => {
- const raw =
+  const raw =
     pickFirst(journal, [
-      "logo", "logo_url", "logoUrl",    
-      "cover", "cover_url", "coverUrl", 
-      "image", "image_url", "thumbnail"
+      "logo",
+      "logo_url",
+      "logoUrl",
+      "cover",
+      "cover_url",
+      "coverUrl",
+      "image",
+      "image_url",
+      "thumbnail",
     ]) || "";
   const src = resolveImageUrl(raw);
   const title = journal?.title || "Журнал";
@@ -97,12 +98,8 @@ const JournalCover = ({ journal }) => {
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.style.display = "none";
-            e.currentTarget.parentElement.innerHTML =
-              `<div class="w-full h-full flex items-center justify-center">
-                 <span class="text-2xl font-bold text-indigo-600">${(title || "J")
-                   .trim()
-                   .charAt(0)
-                   .toUpperCase()}</span>
+            e.currentTarget.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center">
+                 <span class="text-2xl font-bold text-indigo-600">${(title || "J").trim().charAt(0).toUpperCase()}</span>
                </div>`;
           }}
         />
@@ -122,14 +119,12 @@ const JournalCover = ({ journal }) => {
   );
 };
 
-
-/* === помощники для JWT (base64url) === */
+/* === JWT helpers === */
 function decodeJwtPayload(token) {
   try {
     const part = token.split(".")[1];
     const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
     const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
-
     return JSON.parse(atob(padded));
   } catch {
     return null;
@@ -144,6 +139,7 @@ function getMyIdFromJWT() {
   return raw != null ? Number(raw) : null;
 }
 
+/* === журнал: заполненность === */
 const isFilled = (v) =>
   v !== null && v !== undefined && String(v).trim().length > 0;
 
@@ -160,9 +156,8 @@ const OPTIONAL_JOURNAL_FIELDS = [
   "address",
   "issn",
   "target_audience",
-  "logo", // обложка
+  "logo",
 ];
-
 const FIELD_LABELS = {
   title: "Название",
   description: "Описание",
@@ -177,22 +172,16 @@ const FIELD_LABELS = {
   logo: "Обложка",
 };
 
-// 100% = все обязательные + все опциональные
 function journalCompletenessFromAPI(j) {
-  const reqFilled = REQUIRED_JOURNAL_FIELDS.filter((k) => isFilled(j?.[k])).length;
-  const optFilled = OPTIONAL_JOURNAL_FIELDS.filter((k) => isFilled(j?.[k])).length;
+  const reqFilled = REQUIRED_JOURNAL_FIELDS.filter((k) =>
+    isFilled(j?.[k])
+  ).length;
+  const optFilled = OPTIONAL_JOURNAL_FIELDS.filter((k) =>
+    isFilled(j?.[k])
+  ).length;
   const total = REQUIRED_JOURNAL_FIELDS.length + OPTIONAL_JOURNAL_FIELDS.length;
   const pct = Math.round(((reqFilled + optFilled) / total) * 100);
   return Math.max(0, Math.min(100, pct));
-}
-
-// (опционально) статус по проценту
-function journalStatus(pct) {
-  return pct >= 80
-    ? { label: "Готов к публикации", cls: "bg-emerald-100 text-emerald-800" }
-    : pct >= 40
-    ? { label: "Заполняется", cls: "bg-amber-100 text-amber-800" }
-    : { label: "Черновик", cls: "bg-slate-100 text-slate-700" };
 }
 
 function journalMissingFields(j) {
@@ -203,66 +192,131 @@ function journalMissingFields(j) {
   return missing;
 }
 
+/* === доступные редакционные роли === */
+const EDITORIAL_ROLES = new Set([
+  "chief_editor",
+  "editor",
+  "manager",
+  "proofreader",
+  "secretary",
+  // reviewer — не даём модераторский доступ
+]);
+
+/* === сетевые помощники === */
+// страницы по /journals/journals/ (только листинг — без /{id}/!)
+async function fetchAllJournals({ pageSize = 100, maxPages = 30 } = {}) {
+  const all = [];
+  let page = 1;
+  for (let i = 0; i < maxPages; i++) {
+    try {
+      const url = withParams(API.JOURNALS, { page, page_size: pageSize });
+      const { data } = await http.get(url);
+      const chunk = Array.isArray(data?.results)
+        ? data.results
+        : Array.isArray(data)
+          ? data
+          : [];
+      all.push(...chunk);
+      if (!data?.next || chunk.length === 0) break;
+      page += 1;
+    } catch (e) {
+      // если бэк даёт 500 — прекращаем листинг и возвращаем то, что собрали
+      console.warn("journals list failed on page", page, e);
+      break;
+    }
+  }
+  return all;
+}
+
+async function fetchAllOrgMemberships({ pageSize = 100, maxPages = 30 } = {}) {
+  const all = [];
+  let page = 1;
+  for (let i = 0; i < maxPages; i++) {
+    const { data } = await http.get(API.ORG_MEMBERSHIPS, {
+      params: { page, page_size: pageSize },
+    });
+    const chunk = Array.isArray(data?.results)
+      ? data.results
+      : Array.isArray(data)
+        ? data
+        : [];
+    all.push(...chunk);
+    if (!data?.next || chunk.length === 0) break;
+    page += 1;
+  }
+  return all;
+}
+
+async function fetchAllJournalMemberships({
+  pageSize = 100,
+  maxPages = 50,
+} = {}) {
+  const all = [];
+  let page = 1;
+  for (let i = 0; i < maxPages; i++) {
+    const { data } = await http.get(API.JOURNAL_MEMBERSHIPS, {
+      params: { page, page_size: pageSize },
+    });
+    const chunk = Array.isArray(data?.results)
+      ? data.results
+      : Array.isArray(data)
+        ? data
+        : [];
+    all.push(...chunk);
+    if (!data?.next || chunk.length === 0) break;
+    page += 1;
+  }
+  return all;
+}
 
 export default function ModeratorDashboard() {
   const navigate = useNavigate();
   const { user: me } = useAuth();
 
-  // вычисляем свой id из токена (а не из me)
   const myId = getMyIdFromJWT();
 
   // 1) гард доступа
-  const [allowed, setAllowed] = useState(null); // null = проверяем, true/false
+  const [allowed, setAllowed] = useState(null);
 
   // 2) данные страницы
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [orgs, setOrgs] = useState([]); // [{ org, journals }]
 
-  // ── A. ПРОВЕРКА ПРАВ ДОСТУПА ─────────────────────────────────
+  /* ── A. Проверка прав доступа ─────────────────────────────── */
   useEffect(() => {
     let mounted = true;
-
     (async () => {
-      // если не можем определить свой id — нет доступа
       if (!myId) {
         mounted && setAllowed(false);
         return;
       }
-
       try {
-        // mine=true → fallback ?user=
-        let resp;
-        try {
-          resp = await http.get(`${API.ORG_MEMBERSHIPS}?mine=true&page_size=1`);
-        } catch {
-          resp = await http.get(
-            `${API.ORG_MEMBERSHIPS}?user=${myId}&page_size=50`
-          );
-        }
+        const [orgMs, jmAll] = await Promise.all([
+          fetchAllOrgMemberships({ pageSize: 100 }),
+          fetchAllJournalMemberships({ pageSize: 200 }),
+        ]);
 
-        const rows = Array.isArray(resp?.data)
-          ? resp.data
-          : Array.isArray(resp?.data?.results)
-            ? resp.data.results
-            : [];
+        const isOrgAdmin = orgMs.some((m) => {
+          const uid = Number(m?.user?.id ?? m?.user_id ?? m?.user);
+          return uid === myId && String(m.role) === "admin";
+        });
 
-        const isAdmin = rows.some(
+        const hasEditorialRole = jmAll.some(
           (m) =>
-            ["admin", "owner", "moderator"].includes(String(m.role)) &&
-            Number(m.user) === myId
+            (m.user == null || Number(m.user) === myId) &&
+            EDITORIAL_ROLES.has(String(m.role))
         );
 
-        mounted && setAllowed(isAdmin);
+        mounted && setAllowed(isOrgAdmin || hasEditorialRole);
       } catch {
         mounted && setAllowed(false);
       }
     })();
-
     return () => {
       mounted = false;
     };
-  }, [myId]); // важно: завязываемся на myId, а не на me?.id
+  }, [myId]);
 
   // если доступа нет — уводим
   useEffect(() => {
@@ -271,7 +325,7 @@ export default function ModeratorDashboard() {
     }
   }, [allowed, navigate]);
 
-  // ── B. ЗАГРУЗКА ДАННЫХ (только при allowed === true) ─────────
+  /* ── B. Загрузка данных ───────────────────────────────────── */
   useEffect(() => {
     if (allowed !== true || !myId) return;
 
@@ -281,70 +335,79 @@ export default function ModeratorDashboard() {
       setError("");
 
       try {
-        // свои членства
-        let membResp;
-        try {
-          membResp = await http.get(
-            withParams(API.ORG_MEMBERSHIPS, { mine: "true", page_size: 200 })
-          );
-        } catch {
-          membResp = await http.get(
-            withParams(API.ORG_MEMBERSHIPS, { user: myId, page_size: 200 })
-          );
-        }
+        // мои орг.админки и все мои журнал-мембершипы
+        const [orgMs, jmAll] = await Promise.all([
+          fetchAllOrgMemberships({ pageSize: 100 }),
+          fetchAllJournalMemberships({ pageSize: 300 }),
+        ]);
 
-        const all = Array.isArray(membResp?.data)
-          ? membResp.data
-          : Array.isArray(membResp?.data?.results)
-            ? membResp.data.results
-            : [];
-
-        const memberships = all.filter(
-          (m) =>
-            Number(m.user) === myId &&
-            ["admin", "owner", "moderator"].includes(String(m.role))
+        const myOrgAdmins = orgMs.filter((m) => {
+          const uid = Number(m?.user?.id ?? m?.user_id ?? m?.user);
+          return uid === myId && String(m.role) === "admin";
+        });
+        const myEditorialJids = new Set(
+          jmAll
+            .filter(
+              (m) =>
+                (m.user == null || Number(m.user) === myId) &&
+                EDITORIAL_ROLES.has(String(m.role))
+            )
+            .map((m) => m.journal)
+            .filter(Boolean)
         );
 
-        if (memberships.length === 0) {
-          mounted && setOrgs([]);
-          mounted && setLoading(false);
-          return;
-        }
+        // тянем все журналы (листинг; если упадёт — будет пусто, но страница откроется)
+        const allJournals = await fetchAllJournals({ pageSize: 100 });
 
-        // грузим организации  журналы
-        const items = [];
-        for (const m of memberships) {
-          const orgId = m.organization ?? m.organization_id;
+        // карта журналов по id
+        const journalById = new Map(allJournals.map((j) => [Number(j.id), j]));
+
+        // сгруппируем по организациям
+        const byOrgId = new Map();
+
+        // A) организации, где я админ: показываем все журналы этой org
+        for (const m of myOrgAdmins) {
+          const orgId = Number(m.organization);
           if (!orgId) continue;
 
           try {
             const { data: orgDetail } = await http.get(API.ORG_ID(orgId));
-
-            let jList = [];
-            try {
-              const urlA = withParams(API.JOURNALS, { organization: orgId });
-              const { data: ja } = await http.get(urlA);
-              jList = Array.isArray(ja?.results)
-                ? ja.results
-                : Array.isArray(ja)
-                  ? ja
-                  : [];
-            } catch {
-              const urlB = withParams(API.JOURNALS, { organization_id: orgId });
-              const { data: jb } = await http.get(urlB);
-              jList = Array.isArray(jb?.results)
-                ? jb.results
-                : Array.isArray(jb)
-                  ? jb
-                  : [];
-            }
-
-            items.push({ org: orgDetail, journals: jList });
+            const jOfOrg = allJournals.filter(
+              (j) => Number(j.organization) === orgId
+            );
+            byOrgId.set(orgId, { org: orgDetail, journals: jOfOrg });
           } catch (err) {
-            console.error("Ошибка при загрузке организации", orgId, err);
+            console.warn("Не удалось загрузить организацию", orgId, err);
           }
         }
 
+        // B) журналы, где у меня редакционная роль (даже если я не админ org)
+        for (const jId of myEditorialJids) {
+          const jDetail = journalById.get(Number(jId));
+          if (!jDetail) continue; // если не попал в листинг или битый — пропускаем
+
+          const orgId = Number(jDetail.organization);
+          if (!orgId) continue;
+
+          if (!byOrgId.has(orgId)) {
+            // подтянем организацию (деталь) и добавим журнал
+            try {
+              const { data: orgDetail } = await http.get(API.ORG_ID(orgId));
+              byOrgId.set(orgId, { org: orgDetail, journals: [jDetail] });
+            } catch {
+              // если не удалось — пропустим
+            }
+          } else {
+            const entry = byOrgId.get(orgId);
+            if (
+              !entry.journals.some((x) => Number(x.id) === Number(jDetail.id))
+            ) {
+              entry.journals.push(jDetail);
+            }
+          }
+        }
+
+        const items = [...byOrgId.values()];
         mounted && setOrgs(items);
       } catch (e) {
         if (!mounted) return;
@@ -367,18 +430,8 @@ export default function ModeratorDashboard() {
     };
   }, [allowed, myId]);
 
-  // ── helpers ──────────────────────────────────────────────────
-  const safeArray = (v) =>
-    Array.isArray(v)
-      ? v
-      : typeof v === "string"
-        ? v
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [];
-
-   const frequencyLabel = (f) =>
+  /* ── UI helpers ───────────────────────────────────────────── */
+  const frequencyLabel = (f) =>
     ({
       daily: "Ежедневно",
       weekly: "Еженедельно",
@@ -386,8 +439,6 @@ export default function ModeratorDashboard() {
       quarterly: "Ежеквартально",
       annually: "Ежегодно",
     })[f] || "—";
-
-
 
   const journalStatus = (pct) =>
     pct >= 80
@@ -398,11 +449,9 @@ export default function ModeratorDashboard() {
 
   const handleCreateOrg = () => navigate("/moderator/organizations/new");
 
-  // ── render guards ────────────────────────────────────────────
+  /* ── render guards ────────────────────────────────────────── */
   if (allowed === null)
     return <div className="p-6 text-gray-500">Проверка прав…</div>;
-  // if allowed === false → редирект произойдёт в useEffect
-
   if (loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
 
   if (error) {
@@ -426,7 +475,8 @@ export default function ModeratorDashboard() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Модератор</h1>
             <p className="text-gray-600">
-              У вас нет организаций, где вы админ. Создайте свою.
+              У вас нет организаций или журналов с правами модерации. Создайте
+              свою организацию или попросите доступ.
             </p>
           </div>
         </div>
@@ -447,7 +497,7 @@ export default function ModeratorDashboard() {
     );
   }
 
-  // ── основной контент ─────────────────────────────────────────
+  /* ── основной контент ─────────────────────────────────────── */
   return (
     <div className="space-y-10">
       {orgs.map(({ org, journals }) => {
@@ -480,7 +530,7 @@ export default function ModeratorDashboard() {
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
-                     <OrgLogo org={org} />
+                <OrgLogo org={org} />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
                     {org.title || "Организация"}
@@ -496,7 +546,6 @@ export default function ModeratorDashboard() {
                     <Eye className="w-4 h-4" /> Профиль организации
                   </Button>
                 </Link>
-               
               </div>
             </div>
 
@@ -516,12 +565,14 @@ export default function ModeratorDashboard() {
                   </p>
                 </CardContent>
               </Card>
-             <Card className="border-0 shadow-sm bg-emerald-600 text-white">
-  <CardContent className="p-5">
-    <p className="opacity-90">Статус</p>
-    <p className="text-3xl font-bold">{org.is_active ? "Активна" : "Не активна"}</p>
-  </CardContent>
-</Card>
+              <Card className="border-0 shadow-sm bg-emerald-600 text-white">
+                <CardContent className="p-5">
+                  <p className="opacity-90">Статус</p>
+                  <p className="text-3xl font-bold">
+                    {org.is_active ? "Активна" : "Не активна"}
+                  </p>
+                </CardContent>
+              </Card>
               <Card className="border-0 shadow-sm bg-slate-700 text-white">
                 <CardContent className="p-5">
                   <p className="opacity-90">Обновлено</p>
@@ -531,131 +582,145 @@ export default function ModeratorDashboard() {
                 </CardContent>
               </Card>
             </div>
+            {/* Вкладки по организации */}
+            <Tabs defaultValue="journals" className="mt-2">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="journals">Журналы</TabsTrigger>
+                <TabsTrigger value="members">Участники</TabsTrigger>
+              </TabsList>
 
-            {/* Журналы */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Журналы</h2>
-              <Link to={`/moderator/organizations/${org.id}/add-journal`}>
-                <Button className="gap-2">
-                  <FilePlus2 className="w-4 h-4" /> Создать журнал
-                </Button>
-              </Link>
-            </div>
+              {/* Вкладка ЖУРНАЛЫ (то, что уже было) */}
+              <TabsContent value="journals" className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">Журналы</h2>
+                  <Link to={`/moderator/organizations/${org.id}/add-journal`}>
+                    <Button className="gap-2">
+                      <FilePlus2 className="w-4 h-4" /> Создать журнал
+                    </Button>
+                  </Link>
+                </div>
 
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-0">
-                {journals.length === 0 ? (
-                  <div className="p-6 text-gray-500">
-                    Пока нет журналов. Добавьте первый.
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-slate-100">
-                    {journals.map((j) => {
-                      const pct = journalCompletenessFromAPI(j);
-                      const st = journalStatus(pct);
-                      const topics = safeArray(j.topics).slice(0, 3);
-                      const more = Math.max(
-                        0,
-                        safeArray(j.topics).length - topics.length
-                      );
-
-                      return (
-                        <li
-                          key={j.id}
-                          className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
-                        >
-                          <div className="flex items-stretch gap-4">
-                            <JournalCover journal={j} />
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-semibold text-lg leading-tight truncate">
-                                  {j.title || "Без названия"}
-                                </h3>
-                                <span
-                                  className={`text-xs px-2 py-0.5 rounded shrink-0 ${st.cls}`}
-                                >
-                                  {st.label}
-                                </span>
-                              </div>
-
-                              <div className="text-sm text-gray-600 mt-0.5">
-                                Язык: {j.language?.toUpperCase() || "—"} •
-                                Периодичность: {frequencyLabel(j.frequency)}{" "}
-                                • Создан:{" "}
-                                {j.created_at
-                                  ? new Date(j.created_at).toLocaleDateString(
-                                      "ru-RU"
-                                    )
-                                  : "—"}
-                              </div>
-
-                              <div className="mt-3 max-w-xl">
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                  <span className="text-gray-600">
-                                    Заполненность
-                                  </span>
-                                  <span className="font-medium">{pct}%</span>
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-0">
+                    {journals.length === 0 ? (
+                      <div className="p-6 text-gray-500">
+                        Пока нет журналов. Добавьте первый.
+                      </div>
+                    ) : (
+                      <ul className="divide-y divide-slate-100">
+                        {journals.map((j) => {
+                          const pct = journalCompletenessFromAPI(j);
+                          const st = journalStatus(pct);
+                          return (
+                            <li
+                              key={j.id}
+                              className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
+                            >
+                              <div className="flex items-stretch gap-4">
+                                <JournalCover journal={j} />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <h3 className="font-semibold text-lg leading-tight truncate">
+                                      {j.title || "Без названия"}
+                                    </h3>
+                                    <span
+                                      className={`text-xs px-2 py-0.5 rounded shrink-0 ${st.cls}`}
+                                    >
+                                      {st.label}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-0.5">
+                                    Язык: {j.language?.toUpperCase() || "—"} •
+                                    Периодичность: {frequencyLabel(j.frequency)}{" "}
+                                    • Создан:{" "}
+                                    {j.created_at
+                                      ? new Date(
+                                          j.created_at
+                                        ).toLocaleDateString("ru-RU")
+                                      : "—"}
+                                  </div>
+                                  <div className="mt-3 max-w-xl">
+                                    <div className="flex items-center justify-between text-xs mb-1">
+                                      <span className="text-gray-600">
+                                        Заполненность
+                                      </span>
+                                      <span className="font-medium">
+                                        {pct}%
+                                      </span>
+                                    </div>
+                                    <Progress value={pct} />
+                                    {pct < 100 && (
+                                      <div className="mt-2 text-xs text-gray-500">
+                                        <p className="font-medium mb-1">
+                                          Советы для заполнения:
+                                        </p>
+                                        <ul className="list-disc pl-5 space-y-0.5">
+                                          {journalMissingFields(j)
+                                            .slice(0, 4)
+                                            .map((field) => (
+                                              <li key={field}>
+                                                Добавьте {field}
+                                              </li>
+                                            ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                                <Progress value={pct} />
-
-                                  {pct < 100 && (
-    <div className="mt-2 text-xs text-gray-500">
-      <p className="font-medium mb-1">Советы для заполнения:</p>
-      <ul className="list-disc pl-5 space-y-0.5">
-        {journalMissingFields(j).slice(0, 4).map((field) => (
-          <li key={field}>Добавьте {field}</li>
-        ))}
-      </ul>
-    </div>
-  )}
+                                <div className="flex flex-col gap-2 self-center shrink-0">
+                                  <Link to={`/moderator/journals/${j.id}`}>
+                                    <Button size="sm" className="w-36">
+                                      Открыть
+                                    </Button>
+                                  </Link>
+                                  <Link
+                                    to={`/moderator/journals/${j.id}/settings`}
+                                  >
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-36"
+                                    >
+                                      Настройки
+                                    </Button>
+                                  </Link>
+                                  <Link to={`/moderator/journals/${j.id}/team`}>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-36"
+                                    >
+                                      Команда журнала
+                                    </Button>
+                                  </Link>
+                                  <Link
+                                    to={`/moderator/journals/${j.id}/articles`}
+                                  >
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-36"
+                                    >
+                                      Список статей
+                                    </Button>
+                                  </Link>
+                                </div>
                               </div>
-                            </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                            <div className="flex flex-col gap-2 self-center shrink-0">
-                              <Link to={`/moderator/journals/${j.id}`}>
-                                <Button size="sm" className="w-36">
-                                  Открыть
-                                </Button>
-                              </Link>
-                              <Link to={`/moderator/journals/${j.id}/settings`}>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-36"
-                                >
-                                  Настройки
-                                </Button>
-                              </Link>
-                              <Link
-                                to={`/moderator/journals/${j.id}/reviewers`}
-                              >
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-36"
-                                >
-                                  Рецензенты
-                                </Button>
-                              </Link>
-                              <Link to={`/moderator/journals/${j.id}/workflow`}>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-36"
-                                >
-                                  Публикационный процесс
-                                </Button>
-                              </Link>
-                            </div>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+              {/* Вкладка УЧАСТНИКИ */}
+              <TabsContent value="members" className="space-y-4">
+                <h2 className="text-xl font-semibold">Участники организации</h2>
+                <OrgMembersManager orgId={org.id} />
+              </TabsContent>
+            </Tabs>
           </div>
         );
       })}

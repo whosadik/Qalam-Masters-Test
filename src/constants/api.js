@@ -1,39 +1,55 @@
 // ВАЖНО: все пути со слешем в конце, как в OpenAPI
-const RAW = import.meta.env.VITE_API_BASE_URL || "/api";
+
+// Может быть:
+// 1) Полный URL: https://api.qalam-masters.kz/api
+// 2) Относительный путь: /api
+const RAW = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/+$/, "");
 
 // Превращаем в абсолютный base (важно для new URL())
 export const BASE_URL = RAW.startsWith("http")
-  ? RAW.replace(/\/+$/, "")
-  : (window.location.origin + RAW).replace(/\/+$/, "");
+  ? RAW // уже полный URL без завершающих слешей
+  : window.location.origin + RAW; // например http://localhost:5173 + /api => http://localhost:5173/api
+
+// Хелпер на всякий случай (вдруг понадобится где-то снаружи)
+const withBase = (p) => `${BASE_URL}${p}`;
+
+// Полная карта эндпоинтов по твоей OpenAPI схеме
 export const API = {
   // ===== USERS / AUTH =====
-  TOKEN_OBTAIN: `${BASE_URL}/users/token/`, // POST {email, password} -> {access, refresh}
-  TOKEN_REFRESH: `${BASE_URL}/users/token/refresh/`, // POST {refresh} -> {access}
-  SIGNUP: `${BASE_URL}/users/signup/`, // POST
-  ME: `${BASE_URL}/users/me/`, // GET
-  USER_UPDATE: `${BASE_URL}/users/update/`, // PUT/PATCH
-  USER_DELETE: `${BASE_URL}/users/delete/`, // DELETE
+  TOKEN_OBTAIN: withBase(`/users/token/`), // POST {email, password} -> {access, refresh}
+  TOKEN_REFRESH: withBase(`/users/token/refresh/`), // POST {refresh} -> {access}
+  SIGNUP: withBase(`/users/signup/`), // POST
+  ME: withBase(`/users/me/`), // GET
+  USER_UPDATE: withBase(`/users/update/`), // PUT/PATCH
+  USER_DELETE: withBase(`/users/delete/`), // DELETE
 
   // ===== ARTICLES =====
-  ARTICLES: `${BASE_URL}/articles/articles/`, // GET(list, ?mine=&journal=&status=), POST(create)
-  ARTICLE_ID: (id) => `${BASE_URL}/articles/articles/${id}/`, // GET/PUT/PATCH/DELETE
-  ARTICLE_SCREEN: (id) => `${BASE_URL}/articles/articles/${id}/screening/`, // PATCH (screening)
+  ARTICLES: withBase(`/articles/articles/`), // GET(list: ?mine=&journal=&status=), POST(create)
+  ARTICLE_ID: (id) => withBase(`/articles/articles/${id}/`), // GET/PUT/PATCH/DELETE
+  ARTICLE_FILES: (id) => withBase(`/articles/articles/${id}/files/`), // GET/POST multipart
+  ARTICLE_FILE_ID: (id, fileId) =>
+    withBase(`/articles/articles/${id}/files/${fileId}/`), // DELETE
+  ARTICLE_SCREENING: (id) => withBase(`/articles/articles/${id}/screening/`), // PATCH
 
   // ===== JOURNALS =====
-  JOURNALS: `${BASE_URL}/journals/journals/`, // GET(list paginated + search/order/page/page_size), POST
-  JOURNAL_ID: (id) => `${BASE_URL}/journals/journals/${id}/`, // GET/PUT/PATCH/DELETE
-
-  JOURNAL_MEMBERSHIPS: `${BASE_URL}/journals/journal-memberships/`, // GET/POST
+  JOURNALS: withBase(`/journals/journals/`), // GET(list)/POST
+  JOURNAL_ID: (id) => withBase(`/journals/journals/${id}/`), // GET/PUT/PATCH/DELETE
+  JOURNAL_MEMBERSHIPS: withBase(`/journals/journal-memberships/`), // GET/POST
   JOURNAL_MEMBERSHIP_ID: (id) =>
-    `${BASE_URL}/journals/journal-memberships/${id}/`, // GET/PUT/PATCH/DELETE
+    withBase(`/journals/journal-memberships/${id}/`), // GET/PUT/PATCH/DELETE
 
   // ===== ORGANIZATIONS =====
-  ORGS: `${BASE_URL}/organizations/organizations/`, // GET(list)/POST
-  ORG_ID: (id) => `${BASE_URL}/organizations/organizations/${id}/`, // GET/PUT/PATCH/DELETE
+  ORGS: withBase(`/organizations/organizations/`), // GET(list)/POST
+  ORG_ID: (id) => withBase(`/organizations/organizations/${id}/`), // GET/PUT/PATCH/DELETE
+  ORG_MEMBERSHIPS: withBase(`/organizations/memberships/`), // GET/POST
+  ORG_MEMBERSHIP_ID: (id) => withBase(`/organizations/memberships/${id}/`), // GET/PUT/PATCH/DELETE
 
-  ORG_MEMBERSHIPS: `${BASE_URL}/organizations/memberships/`, // GET/POST
-  ORG_MEMBERSHIP_ID: (id) => `${BASE_URL}/organizations/memberships/${id}/`, // GET/PUT/PATCH/DELETE
+  // ===== REVIEWS =====
+  REVIEW_ASSIGNMENTS: withBase(`/reviews/assignments/`),
+  REVIEW_ASSIGNMENT_ID: (id) => withBase(`/reviews/assignments/${id}/`),
+  REVIEWS: withBase(`/reviews/reviews/`),
+  REVIEW_ID: (id) => withBase(`/reviews/reviews/${id}/`),
 
-  // ===== OPENAPI SCHEMA
-  SCHEMA: `${BASE_URL}/schema/`, // GET
+  // ===== OPENAPI SCHEMA =====
+  SCHEMA: withBase(`/schema/`), // GET
 };

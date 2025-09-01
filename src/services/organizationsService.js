@@ -12,29 +12,35 @@ const clean = (obj) =>
     )
   );
 
-//нормализация полей под API (сайт/телефон) + очистка + МАППИНГ ИМЁН
+// нормализация полей под OpenAPI (website/phone/…)
+// ВАЖНО: в OpenAPI поля называются postal_zip (string) и social_link (string, uri)
 const normalizeOrgPayload = (raw = {}) => {
-  const website =
-    raw.website && !/^https?:\/\//i.test(raw.website)
-      ? `https://${raw.website.trim()}`
-      : raw.website?.trim();
+  const website = raw.website?.trim()
+    ? /^https?:\/\//i.test(raw.website)
+      ? raw.website.trim()
+      : `https://${raw.website.trim()}`
+    : raw.website;
 
   const head_phone = raw.head_phone
     ? (() => {
-       const digits = String(raw.head_phone).replace(/\s+/g, "");
+        const digits = String(raw.head_phone).replace(/\s+/g, "");
         return /^\+/.test(digits) ? digits : `+${digits}`;
       })()
     : raw.head_phone;
-     // маппинг UI → API:
-        // - postal_zip (UI) -> postal_code (API)
-          // - social_link (UI, строка) -> social_links (API, массив)
-          const postal_code = raw.postal_zip?.trim();
-          const social_links =
-            typeof raw.social_link === "string" && raw.social_link.trim()
-              ? [raw.social_link.trim()]
-              : Array.isArray(raw.social_links)
-              ? raw.social_links
-              : [];
+
+  // ДЕРЖИМСЯ СХЕМЫ:
+  // - postal_zip (string) — оставляем как есть
+  // - social_link (string, uri) — одна строка (если прислали массив — возьмём первую непустую)
+  let social_link = raw.social_link;
+  if (!social_link && Array.isArray(raw.social_links)) {
+    const first = raw.social_links.find(
+      (x) => typeof x === "string" && x.trim()
+    );
+    if (first) social_link = first;
+  }
+  if (social_link && !/^https?:\/\//i.test(social_link)) {
+    social_link = `https://${String(social_link).trim()}`;
+  }
 
   return clean({
     title: raw.title?.trim(),
@@ -47,9 +53,9 @@ const normalizeOrgPayload = (raw = {}) => {
     website,
     country: raw.country?.trim(),
     city: raw.city?.trim(),
-   postal_code,
-   social_links,
-    // НИКОГДА не отправляем служебные поля типа is_verified, created_by и т.п. из клиентской формы
+    postal_zip: raw.postal_zip?.trim(), // имя поля как в OpenAPI
+    social_link, // одиночная строка, а не массив
+    // НЕ отправляем служебные поля: is_verified, created_by, rating, etc.
   });
 };
 
@@ -70,12 +76,24 @@ const extractDRFError = (err) => {
   }
 };
 
+// allowlist для query в списках (по OpenAPI: search, page, page_size, ordering)
+const normalizeListParams = (params = {}) => {
+  const out = {};
+  const { search, page, page_size, ordering } = params;
+  if (search) out.search = search;
+  if (page) out.page = page;
+  if (page_size) out.page_size = page_size;
+  if (ordering) out.ordering = ordering;
+  return out;
+};
+
 // --- organizations -------------------------------------------
 
 export async function listOrganizations(params = {}) {
-  // params: { search, page, page_size, ... }
-  const { data } = await http.get(API.ORGS, { params });
-  return data; // оставляем как есть (если пагинация — придёт {count, results, ...})
+  const query = normalizeListParams(params);
+  const { data } = await http.get(API.ORGS, { params: query });
+  // бэк отдаёт пагинацию {count, results, ...} — возвращаем как есть
+  return data;
 }
 
 export async function createOrganization(payloadRaw) {
@@ -113,8 +131,9 @@ export async function deleteOrganization(id) {
 // --- memberships ---------------------------------------------
 
 export async function listOrganizationMemberships(params = {}) {
-  const { data } = await http.get(API.ORG_MEMBERSHIPS, { params });
-  return data;
+  const query = normalizeListParams(params);
+  const { data } = await http.get(API.ORG_MEMBERSHIPS, { params: query });
+  return data; // пагинация
 }
 
 export async function createOrganizationMembership(payload) {
@@ -132,7 +151,11 @@ export async function getOrganizationMembership(id) {
   return data;
 }
 
-export async function updateOrganizationMembership(id, payload, method = "put") {
+export async function updateOrganizationMembership(
+  id,
+  payload,
+  method = "put"
+) {
   const fn = method === "put" ? http.put : http.patch;
   try {
     const { data } = await fn(API.ORG_MEMBERSHIP_ID(id), payload);

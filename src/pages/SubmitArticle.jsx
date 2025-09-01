@@ -47,7 +47,7 @@ import {
 import { cn } from "@/lib/utils";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
-import { createArticle } from "@/services/articlesService";
+import { createArticle, uploadArticleFile } from "@/services/articlesService";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Вспомогательные контролы
@@ -204,6 +204,7 @@ function JournalCombobox({ value, onChange, items }) {
 
 export default function SubmitArticle() {
   const navigate = useNavigate();
+  const [createdId, setCreatedId] = useState(null);
 
   // шаги (исправлено: 1..8 — разные экраны)
   const steps = [
@@ -308,9 +309,11 @@ export default function SubmitArticle() {
         const { data } = await http.get(API.JOURNALS);
         const items = (data?.results || []).map((j) => ({
           id: String(j.id),
-          title: j.title || j.name || "Без названия",
-          org: j.organization_name || j.publisher || "",
+          title: j.title || "Без названия",
+          org: j.organization_title || "",
         }));
+        setJournals(items);
+
         setJournals(items);
       } catch (e) {
         console.error("journals load failed", e);
@@ -336,90 +339,66 @@ export default function SubmitArticle() {
   const handleSubmit = async () => {
     if (!formData.selectedJournal) return alert("Выберите журнал");
     if (!formData.titleRu?.trim()) return alert("Укажите название статьи (RU)");
+    if (!formData.articleFile)
+      return alert("Прикрепите файл рукописи (PDF/DOC/DOCX)");
     if (!formData.dataConsent || !formData.textConsent) return;
 
     try {
       setSubmitting(true);
 
-      const hasAnyFile =
-        formData.articleFile ||
-        formData.expertConclusion ||
-        formData.originalityCertificate ||
-        formData.authorsConsent ||
-        formData.conflictOfInterest ||
-        formData.ethicsApproval;
-
-      if (hasAnyFile) {
-        const fd = new FormData();
-        // обязательное
-        fd.append("journal", String(formData.selectedJournal));
-        fd.append("title", formData.titleRu.trim());
-
-        // расширенные поля (подстрой под бек, если названия отличаются)
-        if (formData.titleEn) fd.append("title_en", formData.titleEn.trim());
-        if (formData.abstractRu)
-          fd.append("abstract_ru", formData.abstractRu.trim());
-        if (formData.abstractEn)
-          fd.append("abstract_en", formData.abstractEn.trim());
-        if (formData.keywordsRu)
-          fd.append("keywords_ru", formData.keywordsRu.trim());
-        if (formData.keywordsEn)
-          fd.append("keywords_en", formData.keywordsEn.trim());
-        if (formData.thematicDirection)
-          fd.append("theme", formData.thematicDirection);
-        if (formData.researchGoal) fd.append("goal", formData.researchGoal);
-        if (formData.researchTasks) fd.append("tasks", formData.researchTasks);
-        if (formData.researchMethods)
-          fd.append("methods", formData.researchMethods);
-
-        // авторские (если бек это хранит на статье)
-        if (formData.firstName) fd.append("author_name", formData.firstName);
-        if (formData.organization)
-          fd.append("author_org", formData.organization);
-        if (formData.email) fd.append("author_email", formData.email);
-
-        // файлы
-        if (formData.articleFile)
-          fd.append("article_file", formData.articleFile);
-        if (formData.expertConclusion)
-          fd.append("expert_conclusion", formData.expertConclusion);
-        if (formData.originalityCertificate)
-          fd.append("plagiarism_certificate", formData.originalityCertificate);
-        if (formData.authorsConsent)
-          fd.append("authors_consent", formData.authorsConsent);
-        if (formData.conflictOfInterest)
-          fd.append("conflict_of_interest", formData.conflictOfInterest);
-        if (formData.ethicsApproval)
-          fd.append("ethics_approval", formData.ethicsApproval);
-
-        const { data: created } = await http.post(API.ARTICLES, fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
-        setShowSuccessModal(true);
-        // небольшой таймаут, чтобы пользователь увидел подтверждение
-        setTimeout(
-          () => navigate(`/articles/${created.id}`, { replace: true }),
-          600
-        );
-        return;
-      }
-
-      // если файлов нет — JSON
+      // 1) Сначала создаём статью МИНИМАЛЬНЫМ JSON (по схеме Article)
       const created = await createArticle({
         journal: Number(formData.selectedJournal),
         title: formData.titleRu.trim(),
-        // при желании докинь поля, если бек их принимает в JSON
-        // title_en: formData.titleEn?.trim(),
-        // abstract_ru: formData.abstractRu?.trim(),
-        // ...
+        status: "draft", // ← явно создаём черновик
       });
 
+      // 2) Потом — загрузки файлов на /articles/{id}/files/
+      const uploads = [];
+
+      if (formData.articleFile) {
+        uploads.push(
+          uploadArticleFile(created.id, formData.articleFile, "manuscript")
+        );
+      }
+      if (formData.expertConclusion) {
+        uploads.push(
+          uploadArticleFile(created.id, formData.expertConclusion, "zgs")
+        );
+      }
+      if (formData.originalityCertificate) {
+        uploads.push(
+          uploadArticleFile(
+            created.id,
+            formData.originalityCertificate,
+            "antiplag_report"
+          )
+        );
+      }
+      if (formData.authorsConsent) {
+        uploads.push(
+          uploadArticleFile(created.id, formData.authorsConsent, "supplement")
+        );
+      }
+      if (formData.conflictOfInterest) {
+        uploads.push(
+          uploadArticleFile(
+            created.id,
+            formData.conflictOfInterest,
+            "supplement"
+          )
+        );
+      }
+      if (formData.ethicsApproval) {
+        uploads.push(
+          uploadArticleFile(created.id, formData.ethicsApproval, "supplement")
+        );
+      }
+
+      await Promise.all(uploads);
+
+      setCreatedId(created.id);
       setShowSuccessModal(true);
-      setTimeout(
-        () => navigate(`/articles/${created.id}`, { replace: true }),
-        600
-      );
     } catch (e) {
       console.error("submit failed", e);
       alert(
@@ -1112,19 +1091,30 @@ export default function SubmitArticle() {
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
-            <h2 className="text-2xl font-bold mb-4">🎉 Статья отправлена!</h2>
+            <h2 className="text-2xl font-bold mb-4">Черновик создан</h2>
             <p className="text-gray-700 mb-6">
-              Ваша статья успешно отправлена. Мы свяжемся с вами после
-              рецензирования.
+              Рукопись сохранена как черновик. Откройте статью и нажмите
+              “Отправить в редакцию”, когда будете готовы.
             </p>
-            <Link to="/author-dashboard">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                onClick={() => setShowSuccessModal(false)}
                 className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  if (createdId) navigate(`/articles/${createdId}`);
+                }}
               >
-                Вернуться в личный кабинет
+                Открыть статью
               </Button>
-            </Link>
+              <Link to="/author-dashboard">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSuccessModal(false)}
+                >
+                  Вернуться в личный кабинет
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       )}

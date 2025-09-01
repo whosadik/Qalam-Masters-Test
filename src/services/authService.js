@@ -7,7 +7,7 @@ import { API } from "@/constants/api";
  */
 export async function login({ email, password }) {
   const { data } = await http.post(API.TOKEN_OBTAIN, { email, password });
-  tokenStore.access  = data.access;
+  tokenStore.access = data.access;
   tokenStore.refresh = data.refresh;
   return data;
 }
@@ -15,7 +15,9 @@ export async function login({ email, password }) {
 export async function refresh() {
   const refreshToken = tokenStore.refresh;
   if (!refreshToken) throw new Error("No refresh token");
-  const { data } = await http.post(API.TOKEN_REFRESH, { refresh: refreshToken });
+  const { data } = await http.post(API.TOKEN_REFRESH, {
+    refresh: refreshToken,
+  });
   tokenStore.access = data.access;
   return data;
 }

@@ -1,7 +1,7 @@
 // src/lib/apiClient.js
 import axios from "axios";
-
 import { BASE_URL } from "@/constants/api";
+
 // ===== tokens in localStorage =====
 const ACCESS_KEY = "qm_access_token";
 const REFRESH_KEY = "qm_refresh_token";
@@ -28,7 +28,9 @@ export const tokenStore = {
   },
 };
 
+// ========= axios instance =========
 export const http = axios.create({
+  baseURL: BASE_URL, // ВАЖНО: теперь относительные пути пойдут через BASE_URL (например .../api)
   timeout: 20000,
   withCredentials: false,
 });
@@ -45,37 +47,45 @@ let isRefreshing = false;
 let subscribers = [];
 
 const subscribeTokenRefresh = (cb) => subscribers.push(cb);
-const notifySubscribers = (token) => {
+const notifySubscribers = (token, error = null) => {
   subscribers.forEach((cb) => {
     try {
-      cb(token);
+      cb(token, error);
     } catch {}
   });
   subscribers = [];
 };
 
-// для абсолютных URL (в обход baseURL)
-const abs = (path) => `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+// абсолютный URL от BASE_URL (без лишних /api)
+const abs = (path) => {
+  const base = BASE_URL.replace(/\/+$/, ""); // без завершающих слешей
+  const tail = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${tail}`; // например: https://host/api + /users/token/refresh/
+};
 
 http.interceptors.response.use(
   (res) => res,
   async (error) => {
-    // если совсем нет ответа (сеть/таймаут) — пробрасываем как есть
     const original = error?.config || {};
     const status = error?.response?.status;
+
+    // если сеть/таймаут без ответа — пробрасываем как есть
+    if (!error?.response) throw error;
 
     if (status === 401 && !original._retry && tokenStore.refresh) {
       original._retry = true;
 
       // уже идёт рефреш — подписываемся и повторим запрос после обновления
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          subscribeTokenRefresh((newToken) => {
-            if (newToken)
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((newToken, err) => {
+            if (err) return reject(err);
+            if (newToken) {
               original.headers = {
                 ...(original.headers || {}),
                 Authorization: `Bearer ${newToken}`,
               };
+            }
             resolve(http(original));
           });
         });
@@ -83,18 +93,20 @@ http.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        // вызов отдельным axios с абсолютным URL (исключаем интерсепторы)
+        // вызываем отдельным axios без интерсепторов
         const { data } = await axios.post(
-          abs("/api/users/token/refresh/"),
+          abs("/users/token/refresh/"), // ВАЖНО: без /api перед путём
           { refresh: tokenStore.refresh },
-          { timeout: 20000 }
+          { timeout: 20000, headers: { "Content-Type": "application/json" } }
         );
 
         const newAccess = data?.access;
+        if (!newAccess) throw new Error("No access token in refresh response");
+
         tokenStore.access = newAccess;
 
         // разбудим очередь
-        notifySubscribers(newAccess);
+        notifySubscribers(newAccess, null);
         isRefreshing = false;
 
         // повторяем оригинальный запрос
@@ -105,7 +117,7 @@ http.interceptors.response.use(
         return http(original);
       } catch (e) {
         isRefreshing = false;
-        notifySubscribers(null); // разбудили, но без токена
+        notifySubscribers(null, e); // разбудили, но с ошибкой
         tokenStore.clear();
         // опционально: редирект на /login
         // window.location.replace("/login");
@@ -118,26 +130,39 @@ http.interceptors.response.use(
   }
 );
 
-// helper для query-параметров
+// helper для query-параметров: возвращает путь ОТНОСИТЕЛЬНО baseURL
 export const withParams = (path, params = {}) => {
-  // строим с учётом baseURL, чтобы корректно собрать searchParams
-  const url = new URL(path, BASE_URL || window.location.origin);
+  // гарантируем завершающий / у базы для корректного резолва относительных путей
+  const base = new URL(BASE_URL.replace(/\/?$/, "/"));
+  const url = new URL(path, base);
+
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, v);
   });
-  // возвращаем только относительную часть, чтобы http.baseURL корректно применился
-  return url.pathname + (url.search ? `?${url.searchParams.toString()}` : "");
+
+  // превращаем абсолют в относительный к baseURL (без дублирования /api)
+  let relPath = url.pathname;
+  // base.pathname всегда с завершающим слешом (например "/api/")
+  if (relPath.startsWith(base.pathname)) {
+    relPath = "/" + relPath.slice(base.pathname.length); // "/api/articles/.." -> "/articles/.."
+  }
+  const search = url.search ? `?${url.searchParams.toString()}` : "";
+  return relPath + search;
 };
 
 // (опционально) утилита для WS адреса
 export const buildWsUrl = (wsPath = "/ws") => {
   try {
-    const u = new URL(BASE_URL || window.location.origin);
-    u.protocol = u.protocol === "https:" ? "wss:" : "ws:";
-    u.pathname = [u.pathname.replace(/\/+$/, ""), wsPath.replace(/^\/+/, "")]
+    const base = new URL(BASE_URL.replace(/\/?$/, "/"));
+    base.protocol = base.protocol === "https:" ? "wss:" : "ws:";
+    // аккуратное склеивание путей: "/api/" + "ws" => "/api/ws"
+    base.pathname = [
+      base.pathname.replace(/\/+$/, ""),
+      wsPath.replace(/^\/+/, ""),
+    ]
       .filter(Boolean)
       .join("/");
-    return u.toString();
+    return base.toString();
   } catch {
     return wsPath; // фолбэк
   }

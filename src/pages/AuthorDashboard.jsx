@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { updateArticleStatus } from "@/services/articlesService";
 import {
   FileText,
   Upload,
@@ -203,12 +203,15 @@ export default function AuthorDashboard() {
   const loadArticles = async () => {
     setLoading(true);
     try {
-      const data = await listArticles({
+      // A) только мои
+      const mine = await listArticles({
         mine: true,
         journal: journalFilter || undefined,
         status: statusFilter || undefined,
       });
-      setArticles(data);
+
+      // пока показываем «мои», как и задумано:
+      setArticles(mine);
     } catch (e) {
       console.error("articles load failed", e);
     } finally {
@@ -246,15 +249,12 @@ export default function AuthorDashboard() {
 
   const handleSaveArticle = async (updated) => {
     try {
-      const saved = await updateArticle(
-        updated.id,
-        {
-          title: updated.title,
-          journal: Number(updated.journal),
-          status: updated.status,
-        },
-        "patch"
-      );
+      // автору даём менять только title/journal
+      const payload = {
+        title: updated.title,
+        journal: Number(updated.journal),
+      };
+      const saved = await updateArticle(updated.id, payload, "patch");
 
       setArticles((prev) => prev.map((a) => (a.id === saved.id ? saved : a)));
     } catch (e) {
@@ -518,6 +518,11 @@ export default function AuthorDashboard() {
                       <Badge className={statusBadgeClass(article.status)}>
                         {STATUS_LABEL[article.status] || article.status}
                       </Badge>
+                      {article.status === "draft" && (
+                        <Badge variant="outline" className="ml-2">
+                          манускрипт загружен
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -560,15 +565,53 @@ export default function AuthorDashboard() {
                       </Button>
                     </Link>
 
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-2 bg-transparent"
-                      onClick={() => openEdit(article)}
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span>Редактировать</span>
-                    </Button>
+                    <Link to={`/articles/${article.id}/edit`}>
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-2 bg-transparent"
+                        size="sm"
+                      >
+                        Редактировать
+                      </Button>
+                    </Link>
+
+                    {article.status === "draft" && (
+                      <Button
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={async () => {
+                          try {
+                            // просим выбрать/подтвердить файл рукописи
+                            const hasManuscript = (article.files || []).some(
+                              (f) => f.type === "manuscript"
+                            );
+                            if (!hasManuscript) {
+                              alert(
+                                "Перед отправкой прикрепите файл рукописи в форме редактирования/отправки."
+                              );
+                              return;
+                            }
+                            const updated = await updateArticleStatus(
+                              article.id,
+                              "submitted"
+                            );
+                            setArticles((prev) =>
+                              prev.map((a) =>
+                                a.id === updated.id ? updated : a
+                              )
+                            );
+                          } catch (e) {
+                            console.error("submit from dashboard failed", e);
+                            alert(
+                              "Не удалось отправить статью. Попробуйте ещё раз."
+                            );
+                          }
+                        }}
+                      >
+                        <Upload className="h-4 w-4" />
+                        <span>Отправить в редакцию</span>
+                      </Button>
+                    )}
 
                     <Button
                       size="sm"

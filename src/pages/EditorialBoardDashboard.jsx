@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Shield, Users, FileText, Vote } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Users, FileText, Vote } from "lucide-react";
 
 export default function EditorialBoardDashboard() {
   return (
@@ -14,7 +14,9 @@ export default function EditorialBoardDashboard() {
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Редакционный совет</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Редакционный совет
+                </h1>
                 <p className="text-gray-600">Принятие решений о публикации</p>
               </div>
             </div>
@@ -84,12 +86,15 @@ export default function EditorialBoardDashboard() {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 mb-2">
-                        Инновационные подходы в области искусственного интеллекта
+                        Инновационные подходы в области искусственного
+                        интеллекта
                       </h3>
                       <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                         <span>Автор: Д-р Сидоров К.М.</span>
                         <span>Рецензии: 3/3</span>
-                        <Badge className="bg-green-100 text-green-800">Готово к голосованию</Badge>
+                        <Badge className="bg-green-100 text-green-800">
+                          Готово к голосованию
+                        </Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm">
                         <span className="text-green-600">За: 7</span>
@@ -111,5 +116,5 @@ export default function EditorialBoardDashboard() {
         </Card>
       </main>
     </div>
-  )
+  );
 }

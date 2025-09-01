@@ -61,26 +61,29 @@ export default function AddJournal() {
   }, [form]);
 
   const onDrop = useCallback((fileList) => {
-   const file = Array.from(fileList)[0];
-   if (!file) return;
-   // можно ограничить типы
-   if (!file.type.startsWith("image/")) {
-     setErr("Допустимы только изображения (PNG/JPEG/WebP).");
-     return;
-   }
-   setLogoFile(file);
-   setLogoPreview(URL.createObjectURL(file));
- }, []);
+    const file = Array.from(fileList)[0];
+    if (!file) return;
+    // можно ограничить типы
+    if (!file.type.startsWith("image/")) {
+      setErr("Допустимы только изображения (PNG/JPEG/WebP).");
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }, []);
 
- const onPickFile = (e) => {
-   onDrop(e.target.files);
- };
+  const onPickFile = (e) => {
+    onDrop(e.target.files);
+  };
 
   const onChange = (e) => {
     setErr("");
     setFieldErrors({});
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: name === "year" ? Number(value) || "" : value }));
+    setForm((f) => ({
+      ...f,
+      [name]: name === "year" ? Number(value) || "" : value,
+    }));
   };
 
   const onSubmit = async (e) => {
@@ -93,25 +96,26 @@ export default function AddJournal() {
 
     // Формируем полезную нагрузку по схеме OpenAPI
     // Если бэк принимает связь с организацией — добавим organization
-   const fd = new FormData();
-  fd.append("title", form.title.trim());
-  if (form.description) fd.append("description", form.description);
-  fd.append("theme", form.theme);
-  fd.append("frequency", form.frequency);
-  fd.append("language", form.language.trim());
-  fd.append("phone", form.phone.trim());
-  fd.append("email", form.email.trim());
-  if (form.address) fd.append("address", form.address);
-  fd.append("issn", form.issn.trim());
-  fd.append("year", String(Number(form.year) || new Date().getFullYear()));
-  if (form.target_audience) fd.append("target_audience", form.target_audience);
-  if (logoFile) fd.append("logo", logoFile); // ВАЖНО: имя поля из схемы
-  if (id) fd.append("organization", String(Number(id)));
+    const fd = new FormData();
+    fd.append("title", form.title.trim());
+    if (form.description) fd.append("description", form.description);
+    fd.append("theme", form.theme);
+    fd.append("frequency", form.frequency);
+    fd.append("language", form.language.trim());
+    fd.append("phone", form.phone.trim());
+    fd.append("email", form.email.trim());
+    if (form.address) fd.append("address", form.address);
+    fd.append("issn", form.issn.trim());
+    fd.append("year", String(Number(form.year) || new Date().getFullYear()));
+    if (form.target_audience)
+      fd.append("target_audience", form.target_audience);
+    if (logoFile) fd.append("logo", logoFile); // ВАЖНО: имя поля из схемы
+    if (id) fd.append("organization", String(Number(id)));
 
     try {
-     const { data } = await http.post(API.JOURNALS, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+      const { data } = await http.post(API.JOURNALS, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       // если у вас есть фильтр по организации, можно редиректить назад в орг-панель
       // иначе на настройки/страницу журнала:
       navigate(`/moderator/journals/${data?.id || ""}`, { replace: true });
@@ -134,14 +138,15 @@ export default function AddJournal() {
     }
   };
 
-
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Создать журнал</h1>
         <div className="text-sm text-gray-500">
           {id ? (
-            <>Организация: <span className="font-medium">#{id}</span></>
+            <>
+              Организация: <span className="font-medium">#{id}</span>
+            </>
           ) : (
             <span>Без привязки к организации</span>
           )}
@@ -168,7 +173,9 @@ export default function AddJournal() {
                   required
                 />
                 {fieldErrors.title && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.title)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.title)}
+                  </p>
                 )}
               </div>
 
@@ -181,11 +188,15 @@ export default function AddJournal() {
                   className="w-full border rounded-md p-2 h-10"
                 >
                   {THEMES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
                   ))}
                 </select>
                 {fieldErrors.theme && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.theme)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.theme)}
+                  </p>
                 )}
               </div>
 
@@ -198,11 +209,15 @@ export default function AddJournal() {
                   className="w-full border rounded-md p-2 h-10"
                 >
                   {FREQUENCIES.map((f) => (
-                    <option key={f.value} value={f.value}>{f.label}</option>
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
                   ))}
                 </select>
                 {fieldErrors.frequency && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.frequency)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.frequency)}
+                  </p>
                 )}
               </div>
 
@@ -216,7 +231,9 @@ export default function AddJournal() {
                   required
                 />
                 {fieldErrors.language && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.language)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.language)}
+                  </p>
                 )}
               </div>
 
@@ -230,7 +247,9 @@ export default function AddJournal() {
                   required
                 />
                 {fieldErrors.phone && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.phone)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.phone)}
+                  </p>
                 )}
               </div>
 
@@ -245,7 +264,9 @@ export default function AddJournal() {
                   required
                 />
                 {fieldErrors.email && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.email)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.email)}
+                  </p>
                 )}
               </div>
 
@@ -259,7 +280,9 @@ export default function AddJournal() {
                   rows={4}
                 />
                 {fieldErrors.description && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.description)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.description)}
+                  </p>
                 )}
               </div>
 
@@ -273,7 +296,9 @@ export default function AddJournal() {
                   required
                 />
                 {fieldErrors.issn && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.issn)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.issn)}
+                  </p>
                 )}
               </div>
 
@@ -289,7 +314,9 @@ export default function AddJournal() {
                   required
                 />
                 {fieldErrors.year && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.year)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.year)}
+                  </p>
                 )}
               </div>
 
@@ -302,7 +329,9 @@ export default function AddJournal() {
                   placeholder="Город, улица, дом…"
                 />
                 {fieldErrors.address && (
-                  <p className="text-xs text-red-600 mt-1">{String(fieldErrors.address)}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.address)}
+                  </p>
                 )}
               </div>
 
@@ -322,35 +351,42 @@ export default function AddJournal() {
               </div>
 
               <div className="md:col-span-2">
-   <Label className="mb-2 block">Обложка (drag & drop или выбрать файл)</Label>
-   <div
-     onDragOver={(e) => e.preventDefault()}
-     onDrop={(e) => {
-       e.preventDefault();
-       onDrop(e.dataTransfer.files);
-     }}
-     className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center text-sm text-gray-600 hover:bg-gray-50"
-   >
-     {logoPreview ? (
-       <img
-         src={logoPreview}
-         alt="Предпросмотр обложки"
-         className="w-full max-w-sm h-48 object-contain"
-       />
-     ) : (
-       <div className="text-center">
-         Перетащите файл сюда<br/>
-         <span className="text-xs text-gray-500">PNG, JPG, WEBP • до ~10 МБ</span>
-       </div>
-     )}
-     <div className="mt-3">
-       <Input type="file" accept="image/*" onChange={onPickFile} />
-     </div>
-   </div>
-   {fieldErrors.logo && (
-    <p className="text-xs text-red-600 mt-1">{String(fieldErrors.logo)}</p>
-   )}
- </div>
+                <Label className="mb-2 block">
+                  Обложка (drag & drop или выбрать файл)
+                </Label>
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    onDrop(e.dataTransfer.files);
+                  }}
+                  className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center text-sm text-gray-600 hover:bg-gray-50"
+                >
+                  {logoPreview ? (
+                    <img
+                      src={logoPreview}
+                      alt="Предпросмотр обложки"
+                      className="w-full max-w-sm h-48 object-contain"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      Перетащите файл сюда
+                      <br />
+                      <span className="text-xs text-gray-500">
+                        PNG, JPG, WEBP • до ~10 МБ
+                      </span>
+                    </div>
+                  )}
+                  <div className="mt-3">
+                    <Input type="file" accept="image/*" onChange={onPickFile} />
+                  </div>
+                </div>
+                {fieldErrors.logo && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {String(fieldErrors.logo)}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-3">

@@ -35,14 +35,26 @@ import JournalView from "@/pages/moderator/journals/JournalView";
 import JournalSettings from "@/pages/moderator/journals/JournalSettings";
 import Reviewers from "@/pages/moderator/journals/Reviewers";
 import EditorialBoard from "@/pages/moderator/journals/EditorialBoard";
-import ReviewerDashboard from "@/pages/moderator/journals/ReviewerDashboard";
 import EditorialWorkflow from "@/pages/moderator/journals/EditorialWorkflow";
 import EditorialCouncil from "@/pages/moderator/journals/EditorialCouncil";
 
 import ArticlePage from "@/pages/ArticlePage";
-import InitialScreeningPage from "@/pages/editorial/InitialScreeningPage";
-
+import JournalArticles from "./pages/moderator/JournalArticles";
 import RequireAuth from "@/auth/RequireAuth"; // <— важное
+import ArticleScreening from "./pages/moderator/ArticleScreening";
+import JournalTeam from "@/pages/moderator/JournalTeam";
+import ArticleAdmin from "./pages/moderator/ArticleAdmin";
+import RequireEditorialRole from "@/routes/RequireEditorialRole";
+import ArticleView from "@/pages/ArticleView";
+import EditArticlePage from "./pages/EditArticlePage";
+import RequireRole from "@/auth/RequireRole";
+import ManagerDashboard from "@/pages/manager/ManagerDashboard";
+import AppHomeSwitch from "@/routes/AppHomeSwitch";
+import Forbidden from "./pages/Forbidden";
+import SecretaryDashboard from "@/pages/secretary/SecretaryDashboard";
+import EditorDashboard from "./pages/editor/EditorDashboard";
+import ChiefEditorDashboard from "./pages/chief/ChiefEditorDashboard";
+import ReviewerDashboard from "./pages/reviewer/ReviewerDashboard";
 
 function PublicRoutes() {
   return (
@@ -54,9 +66,10 @@ function PublicRoutes() {
       <Route path="/requirements" element={<RequirementsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/403" element={<Forbidden />} />
 
       {/* если зашли на несуществующий публичный путь */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/app" replace />} />
     </Routes>
   );
 }
@@ -67,6 +80,7 @@ function PrivateRoutes() {
     <RequireAuth>
       <DashboardLayout>
         <Routes>
+          <Route path="/app" element={<AppHomeSwitch />} />
           <Route path="/author-dashboard" element={<AuthorDashboard />} />
           <Route path="/editorial-profile" element={<EditorialProfile />} />
           <Route
@@ -84,26 +98,93 @@ function PrivateRoutes() {
           <Route path="/submit-article" element={<SubmitArticle />} />
 
           <Route path="/moderator" element={<ModeratorDashboard />} />
-          <Route path="/moderator/organizations" element={<OrganizationList />} />
-          <Route path="/moderator/organizations/new" element={<OrganizationCreate />} />
-          <Route path="/moderator/organizations/:id" element={<OrganizationView />} />
-          <Route path="/moderator/organizations/:id/edit" element={<OrganizationEdit />} />
-          <Route path="/moderator/organizations/:id/add-journal" element={<AddJournal />} />
+          <Route
+            path="/moderator/organizations"
+            element={<OrganizationList />}
+          />
+          <Route
+            path="/moderator/organizations/new"
+            element={<OrganizationCreate />}
+          />
+          <Route
+            path="/moderator/organizations/:id"
+            element={<OrganizationView />}
+          />
+          <Route
+            path="/moderator/organizations/:id/edit"
+            element={<OrganizationEdit />}
+          />
+          <Route
+            path="/moderator/organizations/:id/add-journal"
+            element={<AddJournal />}
+          />
 
           <Route path="/moderator/journals/:jid" element={<JournalView />} />
-          <Route path="/moderator/journals/:jid/settings" element={<JournalSettings />} />
-          <Route path="/moderator/journals/:jid/reviewers" element={<Reviewers />} />
-          <Route path="/moderator/journals/:jid/editorial" element={<EditorialBoard />} />
-          <Route path="/moderator/journals/:jid/reviewer" element={<ReviewerDashboard />} />
-          <Route path="/moderator/journals/:jid/workflow" element={<EditorialWorkflow />} />
-          <Route path="/moderator/journals/:jid/council" element={<EditorialCouncil />} />
+          <Route
+            path="/moderator/journals/:jid/settings"
+            element={<JournalSettings />}
+          />
+          <Route
+            path="/moderator/journals/:jid/reviewers"
+            element={<Reviewers />}
+          />
+          <Route
+            path="/moderator/journals/:jid/editorial"
+            element={<EditorialBoard />}
+          />
+          <Route
+            path="/moderator/journals/:jid/reviewer"
+            element={<ReviewerDashboard />}
+          />
+          <Route
+            path="/moderator/journals/:jid/workflow"
+            element={<EditorialWorkflow />}
+          />
+          <Route
+            path="/moderator/journals/:jid/council"
+            element={<EditorialCouncil />}
+          />
 
           <Route path="/journals/:jid" element={<JournalView />} />
-          <Route path="/articles/:id" element={<ArticlePage />} />
-          <Route path="/editorial/screening" element={<InitialScreeningPage />} />
 
-          {/* несуществующие приватные пути — на дашборд */}
-          <Route path="*" element={<Navigate to="/author-dashboard" replace />} />
+          <Route
+            path="/moderator/journals/:jid/articles"
+            element={<JournalArticles />}
+          />
+          <Route
+            path="/moderator/articles/:aid/screening"
+            element={<ArticleScreening />}
+          />
+          <Route
+            path="/moderator/journals/:id/team"
+            element={<JournalTeam />}
+          />
+          <Route
+            path="/moderator/journals/:jid/articles/:aid"
+            element={
+              <RequireEditorialRole>
+                <ArticleAdmin />
+              </RequireEditorialRole>
+            }
+          />
+          <Route path="/articles/:id" element={<ArticleView />} />
+          <Route path="/articles/:id/edit" element={<EditArticlePage />} />
+          <Route
+            path="/manager"
+            element={
+              <RequireRole roles={["manager"]}>
+                <ManagerDashboard />
+              </RequireRole>
+            }
+          />
+
+          <Route path="/secretary" element={<SecretaryDashboard />} />
+          <Route path="/editorial" element={<EditorDashboard />} />
+          <Route path="/chief_editorial" element={<ChiefEditorDashboard />} />
+          <Route path="/reviewer-dashboard" element={<ReviewerDashboard />} />
+
+          {/* несуществующие приватные пути — на /app */}
+          <Route path="*" element={<Navigate to="/app" replace />} />
         </Routes>
       </DashboardLayout>
     </RequireAuth>
@@ -113,8 +194,8 @@ function PrivateRoutes() {
 function AppContent() {
   // Выбираем набор роутов по «публичности» текущего пути
   const location = useLocation();
-  const { booted } = useAuth();             
-  if (!booted) return <FullScreenSplash />;  
+  const { booted } = useAuth();
+  if (!booted) return <FullScreenSplash />;
 
   const publicPaths = new Set([
     "/",
@@ -125,6 +206,7 @@ function AppContent() {
     "/requirements",
     "/login",
     "/register",
+    "/403",
   ]);
 
   const isPublic = publicPaths.has(location.pathname);
