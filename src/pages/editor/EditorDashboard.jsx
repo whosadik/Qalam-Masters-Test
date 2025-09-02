@@ -3,7 +3,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -26,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { listArticles, updateArticleStatus } from "@/services/articlesService";
+import { listJournalMembers } from "@/services/journalMembershipsService";
 
 /* ---------- helpers ---------- */
 const STATUS_LABEL = {
@@ -43,6 +43,7 @@ const STATUS_LABEL = {
 
 const fmt = (iso) => (iso ? new Date(iso).toLocaleString("ru-RU") : "—");
 const isPendingAssignment = (as) => String(as?.status || "") === "assigned";
+const ASSIGNMENTS_URL = "/reviews/assignments/";
 
 async function fetchAssignmentsFor(articleIds = []) {
   const entries = await Promise.all(
@@ -58,8 +59,8 @@ async function fetchAssignmentsFor(articleIds = []) {
         const list = Array.isArray(data?.results)
           ? data.results
           : Array.isArray(data)
-          ? data
-          : [];
+            ? data
+            : [];
         return [id, list];
       } catch (e) {
         console.error("assignments load failed", id, e);
@@ -83,25 +84,91 @@ function statusAccent(status) {
 }
 
 /* ---------- назначение рецензента inline (UI обновлён) ---------- */
-function AssignReviewerInline({ articleId, onAssigned }) {
+function AssignReviewerInline({
+  articleId,
+  journalId,
+  organizationId,
+  assignmentsForArticle = [], // массив назначений по статье
+  journalTeam = [], // [{id,user,role,...}] команда журнала
+  orgMembers = [], // [{organization,user:{...},...}] участники организации
+  onAssigned,
+}) {
   const [open, setOpen] = useState(false);
   const [reviewerId, setReviewerId] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [blind, setBlind] = useState(true);
+  const [addingToTeam, setAddingToTeam] = useState(true); // по умолчанию — добавить в команду как reviewer
+  const [showAllOrg, setShowAllOrg] = useState(false); // по умолчанию — показывать только рецензентов журнала
   const [busy, setBusy] = useState(false);
 
+  // активные назначения (status = assigned)
+  const activeAssigned = useMemo(
+    () =>
+      (assignmentsForArticle || []).filter(
+        (x) => String(x.status) === "assigned"
+      ),
+    [assignmentsForArticle]
+  );
+  const activeReviewerIds = useMemo(
+    () => new Set(activeAssigned.map((a) => a.reviewer)),
+    [activeAssigned]
+  );
+
+  // userId -> User из orgMembers
+  const usersFromOrg = useMemo(() => {
+    const map = new Map();
+    for (const m of orgMembers) {
+      const u = m?.user ?? m; // поддержка обоих форматов
+      if (u?.id && !map.has(u.id)) map.set(u.id, u);
+    }
+    return map;
+  }, [orgMembers]);
+
+  // набор userId, у кого роль reviewer в журнале
+  const journalReviewerIds = useMemo(
+    () =>
+      new Set(
+        journalTeam.filter((m) => m.role === "reviewer").map((m) => m.user)
+      ),
+    [journalTeam]
+  );
+
+  // список кандидатов в комбобокс
+  const candidateUsers = useMemo(() => {
+    const all = Array.from(usersFromOrg.values());
+    return showAllOrg ? all : all.filter((u) => journalReviewerIds.has(u.id));
+  }, [usersFromOrg, showAllOrg, journalReviewerIds]);
+
+  // выбранный не рецензент журнала?
+  const selectedIsNotJournalReviewer = useMemo(
+    () => reviewerId && !journalReviewerIds.has(Number(reviewerId)),
+    [reviewerId, journalReviewerIds]
+  );
+
   async function submit() {
-    if (!reviewerId) return alert("Укажи ID пользователя-рецензента");
+    if (!reviewerId) return alert("Выберите пользователя-рецензента");
     setBusy(true);
     try {
-      const iso = dueAt ? new Date(dueAt).toISOString() : undefined;
+      // если выбрали не-участника команды как reviewer — добавим (если чекбокс включён)
+      if (selectedIsNotJournalReviewer && addingToTeam) {
+        const { addJournalMember } = await import(
+          "@/services/journalMembershipsService"
+        );
+        await addJournalMember({
+          journal: journalId,
+          user: Number(reviewerId),
+          role: "reviewer",
+        });
+      }
+
       const { createAssignment } = await import("@/services/reviewsService");
       await createAssignment({
         article: articleId,
         reviewer: Number(reviewerId),
-        due_at: iso,
+        due_at: dueAt ? new Date(dueAt).toISOString() : undefined,
         blind,
       });
+
       setOpen(false);
       setReviewerId("");
       setDueAt("");
@@ -128,15 +195,32 @@ function AssignReviewerInline({ articleId, onAssigned }) {
       </Button>
 
       {open && (
-        <div className="rounded-xl border border-dashed bg-slate-50/60 p-3">
+        <div className="rounded-xl border border-dashed bg-slate-50/60 p-3 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-            <input
-              type="number"
-              placeholder="Reviewer userId"
-              value={reviewerId}
-              onChange={(e) => setReviewerId(e.target.value)}
-              className="col-span-1 sm:col-span-2 h-9 rounded-md border px-2 text-sm"
-            />
+            <div className="col-span-1 sm:col-span-2">
+              <ReviewerCombobox
+                value={reviewerId}
+                onChange={setReviewerId}
+                options={candidateUsers}
+                disabledIds={activeReviewerIds}
+                placeholder={
+                  showAllOrg
+                    ? "Выберите из участников организации"
+                    : "Выберите из рецензентов журнала"
+                }
+              />
+              <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={showAllOrg}
+                    onChange={(e) => setShowAllOrg(e.target.checked)}
+                  />
+                  Показать всех из организации
+                </label>
+              </div>
+            </div>
+
             <input
               type="datetime-local"
               value={dueAt}
@@ -153,7 +237,22 @@ function AssignReviewerInline({ articleId, onAssigned }) {
             </label>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          {selectedIsNotJournalReviewer && (
+            <div className="text-xs text-gray-700">
+              Пользователь не является рецензентом журнала.{" "}
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={addingToTeam}
+                  onChange={(e) => setAddingToTeam(e.target.checked)}
+                />
+                Добавить его в команду журнала как <b>reviewer</b> перед
+                назначением
+              </label>
+            </div>
+          )}
+
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <Button
               onClick={submit}
               disabled={busy}
@@ -171,10 +270,117 @@ function AssignReviewerInline({ articleId, onAssigned }) {
   );
 }
 
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandList,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown } from "lucide-react";
+
+function labelUser(u) {
+  const f = (u?.first_name || "").trim();
+  const l = (u?.last_name || "").trim();
+  const name = f || l ? `${f} ${l}`.trim() : "Без имени";
+  return { name, email: u?.email || "—" };
+}
+
+function ReviewerCombobox({
+  value,
+  onChange,
+  options,
+  disabledIds = new Set(),
+  placeholder = "Выберите пользователя",
+}) {
+  const [open, setOpen] = useState(false);
+
+  // options — массив Users (не membership-ов)
+  const sorted = useMemo(() => {
+    return [...options].sort((a, b) => {
+      const A = (labelUser(a).name || labelUser(a).email).toLowerCase();
+      const B = (labelUser(b).name || labelUser(b).email).toLowerCase();
+      return A.localeCompare(B, "ru");
+    });
+  }, [options]);
+
+  const selected = sorted.find((u) => String(u.id) === String(value));
+  const selectedLabel = selected
+    ? `${labelUser(selected).name} • ${selected.email}`
+    : "";
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {selected ? selectedLabel : placeholder}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+      >
+        <Command>
+          <CommandInput placeholder="Поиск: имя, email…" />
+          <CommandEmpty>Ничего не найдено.</CommandEmpty>
+          <CommandList>
+            <CommandGroup>
+              {sorted.map((u) => {
+                const { name, email } = labelUser(u);
+                const isDisabled = disabledIds.has(u.id);
+                return (
+                  <CommandItem
+                    key={u.id}
+                    value={`${name} ${email}`}
+                    onSelect={() => {
+                      if (isDisabled) return;
+                      onChange(String(u.id));
+                      setOpen(false);
+                    }}
+                    className={`flex items-center justify-between ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-sm">{name}</span>
+                      <span className="text-xs text-gray-500">{email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {String(value) === String(u.id) && (
+                        <Check className="h-4 w-4 opacity-80" />
+                      )}
+                      {isDisabled && (
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">
+                          уже назначен
+                        </span>
+                      )}
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 async function hasAssignedForArticle(articleId) {
   try {
     const { data } = await http.get(
-      withParams("/api/reviews/assignments/", {
+      withParams("/reviews/assignments/", {
         article: articleId,
         status: "assigned",
         page_size: 1,
@@ -185,10 +391,10 @@ async function hasAssignedForArticle(articleId) {
       typeof data?.count === "number"
         ? data.count
         : Array.isArray(data?.results)
-        ? data.results.length
-        : Array.isArray(data)
-        ? data.length
-        : 0;
+          ? data.results.length
+          : Array.isArray(data)
+            ? data.length
+            : 0;
     return count > 0;
   } catch {
     return false;
@@ -215,13 +421,12 @@ export default function EditorDashboard() {
   const [miQuery, setMiQuery] = useState("");
   const [maQuery, setMaQuery] = useState("");
   const searchTimer = useRef(null);
-// рядом с остальными useState:
-const [urUnassigned, setUrUnassigned] = useState([]); // under_review БЕЗ assigned
-const [urAssigned, setUrAssigned]   = useState([]);   // under_review С assigned
-const [assignmentsMap, setAssignmentsMap] = useState({});
-
-
-
+  // рядом с остальными useState:
+  const [urUnassigned, setUrUnassigned] = useState([]); // under_review БЕЗ assigned
+  const [urAssigned, setUrAssigned] = useState([]); // under_review С assigned
+  const [assignmentsMap, setAssignmentsMap] = useState({});
+  const [orgMembersForJournal, setOrgMembersForJournal] = useState([]);
+  const [journalTeam, setJournalTeam] = useState([]);
 
   function onSearchChange(queue, value) {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -233,36 +438,52 @@ const [assignmentsMap, setAssignmentsMap] = useState({});
     }, 400);
   }
 
-async function loadArticlesForJournal(jid) {
-  if (!jid) return;
-  setLoading(true);
-  try {
-    const [u, mi, ma] = await Promise.all([
-      listArticles({ status: "under_review", journal: jid, ordering, page_size: pageSize, search: urQuery || undefined }),
-      listArticles({ status: "revision_minor", journal: jid, ordering, page_size: pageSize, search: miQuery || undefined }),
-      listArticles({ status: "revision_major", journal: jid, ordering, page_size: pageSize, search: maQuery || undefined }),
-    ]);
+  async function loadArticlesForJournal(jid) {
+    if (!jid) return;
+    setLoading(true);
+    try {
+      const [u, mi, ma] = await Promise.all([
+        listArticles({
+          status: "under_review",
+          journal: jid,
+          ordering,
+          page_size: pageSize,
+          search: urQuery || undefined,
+        }),
+        listArticles({
+          status: "revision_minor",
+          journal: jid,
+          ordering,
+          page_size: pageSize,
+          search: miQuery || undefined,
+        }),
+        listArticles({
+          status: "revision_major",
+          journal: jid,
+          ordering,
+          page_size: pageSize,
+          search: maQuery || undefined,
+        }),
+      ]);
 
-    const norm = (x) => (Array.isArray(x?.results) ? x.results : Array.isArray(x) ? x : []);
-    const ur = norm(u);
+      const norm = (x) =>
+        Array.isArray(x?.results) ? x.results : Array.isArray(x) ? x : [];
+      const ur = norm(u);
 
-    setRevMinor(norm(mi));
-    setRevMajor(norm(ma));
+      setRevMinor(norm(mi));
+      setRevMajor(norm(ma));
 
-    // грузим все назначения разом и делим under_review на назначенные/неназначенные
-    const amap = await fetchAssignmentsFor(ur.map((a) => a.id));
-    setAssignmentsMap(amap);
+      // грузим все назначения разом и делим under_review на назначенные/неназначенные
+      const amap = await fetchAssignmentsFor(ur.map((a) => a.id));
+      setAssignmentsMap(amap);
 
-    const hasActive = (id) => (amap[id] || []).some(isPendingAssignment);
-    setUrAssigned(ur.filter((a) => hasActive(a.id)));
-    setUrUnassigned(ur.filter((a) => !hasActive(a.id)));
-  } finally {
-    setLoading(false);
+      const hasActive = (id) => (amap[id] || []).some(isPendingAssignment);
+      setUrAssigned(ur.filter((a) => hasActive(a.id)));
+      setUrUnassigned(ur.filter((a) => !hasActive(a.id)));
+    } finally {
+      setLoading(false);
+    }
   }
-}
-
-
-
 
   // memberships where role === "editor"
   useEffect(() => {
@@ -278,8 +499,8 @@ async function loadArticlesForJournal(jid) {
         const rows = Array.isArray(data?.results)
           ? data.results
           : Array.isArray(data)
-          ? data
-          : [];
+            ? data
+            : [];
         const my = rows.filter((m) => String(m.role) === "editor" && m.journal);
         const jids = [
           ...new Set(my.map((m) => Number(m.journal)).filter(Boolean)),
@@ -323,7 +544,10 @@ async function loadArticlesForJournal(jid) {
   }, [journalId, ordering, pageSize]);
 
   // actions
-  async function requestRevision(id, kind /* "revision_minor" | "revision_major" */) {
+  async function requestRevision(
+    id,
+    kind /* "revision_minor" | "revision_major" */
+  ) {
     try {
       await updateArticleStatus(id, kind);
       await loadArticlesForJournal(journalId);
@@ -346,6 +570,53 @@ async function loadArticlesForJournal(jid) {
     () => journals.find((j) => Number(j.id) === Number(journalId)),
     [journals, journalId]
   );
+
+  useEffect(() => {
+    (async () => {
+      if (!journalId) return;
+      const j = journals.find((x) => Number(x.id) === Number(journalId));
+      if (!j?.organization) {
+        setOrgMembersForJournal([]);
+        setJournalTeam([]);
+        return;
+      }
+      try {
+        // команда журнала
+        const teamList = await listJournalMembers(journalId, {
+          page_size: 500,
+        });
+        setJournalTeam(
+          Array.isArray(teamList) ? teamList : teamList?.results || []
+        );
+
+        // участники организации
+        let orgUsers = [];
+        try {
+          const url = withParams("/api/organizations/memberships/users/", {
+            organization: j.organization,
+            page_size: 500,
+          });
+          const { data } = await http.get(url);
+          const rows = Array.isArray(data?.results)
+            ? data.results
+            : Array.isArray(data)
+              ? data
+              : [];
+          // если ручка отдаёт уже User — берём как есть; если membership — достаём .user
+          const orgUsers = rows.map((r) => r?.user ?? r).filter(Boolean);
+          setOrgMembersForJournal(orgUsers);
+        } catch (_) {
+          /* пойдём на фоллбэк ниже */
+        }
+
+        setOrgMembersForJournal(orgUsers);
+      } catch (e) {
+        console.error("load candidates failed", e);
+        setJournalTeam([]);
+        setOrgMembersForJournal([]);
+      }
+    })();
+  }, [journalId, journals]);
 
   // guards
   if (membershipsLoading) {
@@ -433,7 +704,10 @@ async function loadArticlesForJournal(jid) {
           aria-label="Очереди редактора"
         >
           <TabsList className="grid w-full grid-cols-4 gap-2 p-1 bg-white shadow-sm rounded-lg sticky top-0 z-10">
-            <TabsTrigger value="under_review" className="flex items-center gap-2 shrink-0">
+            <TabsTrigger
+              value="under_review"
+              className="flex items-center gap-2 shrink-0"
+            >
               <ClipboardList className="h-4 w-4" />
               <span className="hidden sm:inline">На рецензии</span>
               <span className="sm:hidden">Рецензии</span>
@@ -441,21 +715,30 @@ async function loadArticlesForJournal(jid) {
                 {urUnassigned.length}
               </span>
             </TabsTrigger>
-              <TabsTrigger value="assigned" className="flex items-center gap-2 shrink-0">
-    <UserPlus className="h-4 w-4" />
-    <span>Назначено</span>
-    <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-700">
-      {urAssigned.length}
-    </span>
-  </TabsTrigger>
-            <TabsTrigger value="minor" className="flex items-center gap-2 shrink-0">
+            <TabsTrigger
+              value="assigned"
+              className="flex items-center gap-2 shrink-0"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span>Назначено</span>
+              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-700">
+                {urAssigned.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="minor"
+              className="flex items-center gap-2 shrink-0"
+            >
               <FileEdit className="h-4 w-4" />
               <span>Небольшие правки</span>
               <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">
                 {revMinor.length}
               </span>
             </TabsTrigger>
-            <TabsTrigger value="major" className="flex items-center gap-2 shrink-0">
+            <TabsTrigger
+              value="major"
+              className="flex items-center gap-2 shrink-0"
+            >
               <Hammer className="h-4 w-4" />
               <span>Крупные правки</span>
               <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-rose-100 text-rose-700">
@@ -472,7 +755,9 @@ async function loadArticlesForJournal(jid) {
                 <CardTitle className="flex items-center justify-between">
                   <span>
                     На рецензии (Under review){" "}
-                    <span className="text-gray-400">({urUnassigned.length})</span>
+                    <span className="text-gray-400">
+                      ({urUnassigned.length})
+                    </span>
                   </span>
                   <div className="relative w-full max-w-[480px] ml-4">
                     <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -489,58 +774,72 @@ async function loadArticlesForJournal(jid) {
 
             {/* отдельные карточки статей */}
             {urUnassigned.length ? (
-  <div className="space-y-4">
-    {urUnassigned.map((a) => (
-      <Card
-        key={a.id}
-        className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-      >
-        <CardContent className="p-4 space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <div className="font-medium break-words">{a.title}</div>
-              <div className="text-xs text-gray-500">
-                Журнал #{a.journal} • Автор {a.author_email} • {fmt(a.created_at)}
+              <div className="space-y-4">
+                {urUnassigned.map((a) => (
+                  <Card
+                    key={a.id}
+                    className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <div className="font-medium break-words">
+                            {a.title}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Журнал #{a.journal} • Автор {a.author_email} •{" "}
+                            {fmt(a.created_at)}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
+                          <Link to={`/articles/${a.id}`}>
+                            <Button
+                              variant="outline"
+                              className="bg-transparent"
+                            >
+                              Открыть
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="outline"
+                            className="border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+                            onClick={() =>
+                              requestRevision(a.id, "revision_minor")
+                            }
+                          >
+                            Небольшие правки
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100"
+                            onClick={() =>
+                              requestRevision(a.id, "revision_major")
+                            }
+                          >
+                            Крупные правки
+                          </Button>
+                        </div>
+                      </div>
+
+                      <AssignReviewerInline
+                        articleId={a.id}
+                        journalId={journalId}
+                        organizationId={currentJournal?.organization}
+                        assignmentsForArticle={assignmentsMap[a.id] || []}
+                        journalTeam={journalTeam}
+                        orgMembers={orgMembersForJournal}
+                        onAssigned={() => loadArticlesForJournal(journalId)}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-              <Link to={`/articles/${a.id}`}>
-                <Button variant="outline" className="bg-transparent">
-                  Открыть
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                className="border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
-                onClick={() => requestRevision(a.id, "revision_minor")}
-              >
-                Небольшие правки
-              </Button>
-              <Button
-                variant="outline"
-                className="border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100"
-                onClick={() => requestRevision(a.id, "revision_major")}
-              >
-                Крупные правки
-              </Button>
-            </div>
-          </div>
-
-          <AssignReviewerInline
-            articleId={a.id}
-            onAssigned={() => loadArticlesForJournal(journalId)}
-          />
-        </CardContent>
-      </Card>
-    ))}
-  </div>
-) : (
-  <div className="p-6 text-gray-500">
-    Сейчас нет статей, требующих назначения рецензента.
-  </div>
-)}
-
+            ) : (
+              <div className="p-6 text-gray-500">
+                Сейчас нет статей, требующих назначения рецензента.
+              </div>
+            )}
           </TabsContent>
 
           {/* ===== TAB: REVISION MINOR ===== */}
@@ -586,7 +885,10 @@ async function loadArticlesForJournal(jid) {
                             Открыть
                           </Button>
                         </Link>
-                        <Button variant="outline" onClick={() => backToUnderReview(a.id)}>
+                        <Button
+                          variant="outline"
+                          onClick={() => backToUnderReview(a.id)}
+                        >
                           Вернуть на рецензию
                         </Button>
                       </div>
@@ -595,7 +897,9 @@ async function loadArticlesForJournal(jid) {
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-gray-500">Нет статей с Небольшими правками.</div>
+              <div className="p-6 text-gray-500">
+                Нет статей с Небольшими правками.
+              </div>
             )}
           </TabsContent>
 
@@ -642,7 +946,10 @@ async function loadArticlesForJournal(jid) {
                             Открыть
                           </Button>
                         </Link>
-                        <Button variant="outline" onClick={() => backToUnderReview(a.id)}>
+                        <Button
+                          variant="outline"
+                          onClick={() => backToUnderReview(a.id)}
+                        >
                           Вернуть на рецензию
                         </Button>
                       </div>
@@ -651,84 +958,105 @@ async function loadArticlesForJournal(jid) {
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-gray-500">Нет статей с Крупными правками.</div>
+              <div className="p-6 text-gray-500">
+                Нет статей с Крупными правками.
+              </div>
             )}
           </TabsContent>
-         <TabsContent value="assigned" className="space-y-4">
-  <Card className="border-0 shadow-sm">
-    <CardHeader>
-      <CardTitle className="flex items-center justify-between">
-        <span>
-          Назначено <span className="text-gray-400">({urAssigned.length})</span>
-        </span>
-        {/* можно реиспользовать urQuery для поиска */}
-        <div className="relative w-full max-w-[480px] ml-4">
-          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <Input
-            placeholder="Поиск по Under review…"
-            className="pl-9"
-            value={urQuery}
-            onChange={(e) => onSearchChange("ur", e.target.value)}
-          />
-        </div>
-      </CardTitle>
-    </CardHeader>
-  </Card>
-
-  {urAssigned.length ? (
-    <div className="space-y-4">
-      {urAssigned.map((a) => {
-        const assigns = assignmentsMap[a.id] || [];
-        const active = assigns.filter(isPendingAssignment);
-        return (
-          <Card
-            key={a.id}
-            className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-          >
-            <CardContent className="p-4 space-y-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <div className="font-medium break-words">{a.title}</div>
-                  <div className="text-xs text-gray-500">
-                    Журнал #{a.journal} • Автор {a.author_email} • {fmt(a.created_at)}
+          <TabsContent value="assigned" className="space-y-4">
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>
+                    Назначено{" "}
+                    <span className="text-gray-400">({urAssigned.length})</span>
+                  </span>
+                  {/* можно реиспользовать urQuery для поиска */}
+                  <div className="relative w-full max-w-[480px] ml-4">
+                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Поиск по Under review…"
+                      className="pl-9"
+                      value={urQuery}
+                      onChange={(e) => onSearchChange("ur", e.target.value)}
+                    />
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                  <Link to={`/articles/${a.id}`}>
-                    <Button variant="outline" className="bg-transparent">Открыть</Button>
-                  </Link>
-                </div>
-              </div>
+                </CardTitle>
+              </CardHeader>
+            </Card>
 
-              {/* мини-сводка назначений */}
-              {active.length ? (
-                <div className="text-sm text-gray-700">
-                  {active.map((as) => (
-                    <div
-                      key={as.id}
-                      className="flex items-center justify-between py-1 border-t border-slate-100 first:border-t-0"
+            {urAssigned.length ? (
+              <div className="space-y-4">
+                {urAssigned.map((a) => {
+                  const assigns = assignmentsMap[a.id] || [];
+                  const active = assigns.filter(isPendingAssignment);
+                  return (
+                    <Card
+                      key={a.id}
+                      className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
                     >
-                      <div>
-                        Назначение #{as.id} • статус: <b>{as.status}</b>
-                        {as.due_at && <> • срок до {new Date(as.due_at).toLocaleDateString()}</>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-xs text-gray-500">Активных назначений нет.</div>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  ) : (
-    <div className="p-6 text-gray-500">Нет статей с назначенными рецензентами.</div>
-  )}
-</TabsContent>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <div className="font-medium break-words">
+                              {a.title}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Журнал #{a.journal} • Автор {a.author_email} •{" "}
+                              {fmt(a.created_at)}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
+                            <Link to={`/articles/${a.id}`}>
+                              <Button
+                                variant="outline"
+                                className="bg-transparent"
+                              >
+                                Открыть
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
 
+                        {/* мини-сводка назначений */}
+                        {active.length ? (
+                          <div className="text-sm text-gray-700">
+                            {active.map((as) => (
+                              <div
+                                key={as.id}
+                                className="flex items-center justify-between py-1 border-t border-slate-100 first:border-t-0"
+                              >
+                                <div>
+                                  Назначение #{as.id} • статус:{" "}
+                                  <b>{as.status}</b>
+                                  {as.due_at && (
+                                    <>
+                                      {" "}
+                                      • срок до{" "}
+                                      {new Date(as.due_at).toLocaleDateString()}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500">
+                            Активных назначений нет.
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-6 text-gray-500">
+                Нет статей с назначенными рецензентами.
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       )}
     </div>

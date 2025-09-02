@@ -1,3 +1,5 @@
+// src/pages/moderator/JournalTeam.jsx
+"use client";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,18 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-
-import {
-  Loader2,
-  Users,
-  Plus,
-  Trash2,
-  Save,
-  ArrowLeft,
-  Shield,
-} from "lucide-react";
+import { Loader2, Users, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { API } from "@/constants/api";
-import { http, withParams } from "@/lib/apiClient";
+import { http } from "@/lib/apiClient";
 import {
   listJournalMembers,
   addJournalMember,
@@ -40,19 +33,46 @@ const ROLE_LABEL = {
 };
 const ALL_ROLES = Object.keys(ROLE_LABEL);
 
+const fioEmail = (u) => {
+  const f = (u?.first_name || "").trim();
+  const l = (u?.last_name || "").trim();
+  const name = f || l ? `${f} ${l}`.trim() : "Без имени";
+  return `${name} • ${u?.email || "—"}`;
+};
+
 export default function JournalTeam() {
   const { id } = useParams(); // journalId из маршрута
   const journalId = Number(id);
 
   const [loading, setLoading] = useState(true);
   const [journal, setJournal] = useState(null);
+
+  // члены ЖУРНАЛА
   const [members, setMembers] = useState([]);
   const [error, setError] = useState("");
 
+  // участники ОРГАНИЗАЦИИ (для выбора пользователя)
+  const [orgMembers, setOrgMembers] = useState([]); // элементы вида { id, organization, user: {id,email,first_name,last_name}, role, ... }
+
   // форма добавления
-  const [newUserId, setNewUserId] = useState("");
+  const [newUserId, setNewUserId] = useState(""); // выбираем из списка orgMembers
   const [newRole, setNewRole] = useState("manager");
   const [adding, setAdding] = useState(false);
+
+  // справочник по userId -> user (для удобного отображения в таблице)
+  const userById = useMemo(() => {
+    const map = new Map();
+    orgMembers.forEach((m) => {
+      if (m?.user?.id) map.set(m.user.id, m.user);
+    });
+    return map;
+  }, [orgMembers]);
+
+  // чтобы не добавлять повторно
+  const existingUserIds = useMemo(
+    () => new Set(members.map((m) => m.user)),
+    [members]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -60,12 +80,26 @@ export default function JournalTeam() {
       setLoading(true);
       setError("");
       try {
-        // журнал (карточка заголовка)
+        // 1) Журнал
         const { data: j } = await http.get(API.JOURNAL_ID(journalId));
-        const list = await listJournalMembers(journalId, { page_size: 500 });
+
+        // 2) Команда журнала
+        const team = await listJournalMembers(journalId, { page_size: 500 });
+
+        // 3) Участники организации журнала (для выпадающего списка пользователей)
+        const { data: orgList } = await http.get(API.ORG_MEMBERSHIPS, {
+          params: { organization: j.organization, page_size: 500 },
+        });
+        const orgRows = Array.isArray(orgList?.results)
+          ? orgList.results
+          : Array.isArray(orgList)
+            ? orgList
+            : [];
+
         if (!mounted) return;
         setJournal(j);
-        setMembers(list);
+        setMembers(team);
+        setOrgMembers(orgRows);
       } catch (e) {
         if (!mounted) return;
         const msg =
@@ -84,6 +118,10 @@ export default function JournalTeam() {
 
   const handleAdd = async () => {
     if (!newUserId || !newRole) return;
+    if (existingUserIds.has(Number(newUserId))) {
+      alert("Этот пользователь уже есть в команде журнала.");
+      return;
+    }
     setAdding(true);
     try {
       const created = await addJournalMember({
@@ -127,6 +165,7 @@ export default function JournalTeam() {
         <span>Загрузка…</span>
       </div>
     );
+
   if (error)
     return (
       <div className="p-6">
@@ -164,22 +203,41 @@ export default function JournalTeam() {
       {/* Добавление участника */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-col md:flex-row gap-3 md:items-end">
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* USER SELECT — список участников организации */}
             <div className="flex-1">
-              <label className="text-sm text-gray-600">ID пользователя</label>
-              <Input
-                value={newUserId}
-                onChange={(e) => setNewUserId(e.target.value)}
-                placeholder="Напр. 42"
-                type="number"
-                min={1}
-              />
+              <label className="text-sm text-gray-600">Пользователь</label>
+              <Select value={newUserId} onValueChange={setNewUserId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите пользователя из организации" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {orgMembers.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      В организации пока нет участников
+                    </div>
+                  ) : (
+                    orgMembers.map((m) => (
+                      <SelectItem
+                        key={m.user.id}
+                        value={String(m.user.id)}
+                        disabled={existingUserIds.has(m.user.id)}
+                      >
+                        {fioEmail(m.user)}{" "}
+                        {existingUserIds.has(m.user.id)
+                          ? " • уже в команде"
+                          : ""}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-gray-500 mt-1">
-                Пользователь должен быть участником организации этого журнала.
-                Сначала добавьте его в организацию, если нужно.
+                Список берётся из участников организации журнала.
               </p>
             </div>
 
+            {/* ROLE SELECT */}
             <div className="w-full md:w-64">
               <label className="text-sm text-gray-600">Роль</label>
               <Select value={newRole} onValueChange={setNewRole}>
@@ -199,15 +257,19 @@ export default function JournalTeam() {
             <Button
               onClick={handleAdd}
               disabled={!newUserId || !newRole || adding}
-              className="gap-2"
+              className="gap-2  md:self-center"
             >
-              <Plus className="w-4 h-4" /> Добавить
+              {adding ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
+              Добавить
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Таблица участников */}
       {/* Таблица участников */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-0 overflow-x-auto">
@@ -219,28 +281,59 @@ export default function JournalTeam() {
                 <tr>
                   <th className="px-4 py-2">ID</th>
                   <th className="px-4 py-2">Пользователь</th>
+                  <th className="px-4 py-2">Email</th>
                   <th className="px-4 py-2">Роль</th>
                   <th className="px-4 py-2">Присоединился</th>
                   <th className="px-4 py-2 text-right">Действия</th>
                 </tr>
               </thead>
               <tbody>
-                {members.map((m) => (
-                  <tr key={m.id} className="border-t">
-                    <td className="px-4 py-2 font-mono">{m.id}</td>
-                    <td className="px-4 py-2">user #{m.user}</td>
-                    <td className="px-4 py-2">{m.role}</td>
-                    <td className="px-4 py-2">{m.date_joined || "—"}</td>
-                    <td className="px-4 py-2 text-right">
-                      <Button size="sm" variant="outline" className="mr-2">
-                        Сохранить
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Удалить
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {members.map((m) => {
+                  const u = userById.get(m.user);
+                  const name = u
+                    ? `${u.first_name || ""} ${u.last_name || ""}`.trim() ||
+                      `user #${m.user}`
+                    : `user #${m.user}`;
+                  const email = u?.email || "—";
+                  return (
+                    <tr key={m.id} className="border-t">
+                      <td className="px-4 py-2 font-mono">{m.id}</td>
+                      <td className="px-4 py-2">{name}</td>
+                      <td className="px-4 py-2">{email}</td>
+                      <td className="px-4 py-2">
+                        <div className="w-56">
+                          <Select
+                            value={m.role}
+                            onValueChange={(val) => handleRoleChange(m, val)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ALL_ROLES.map((r) => (
+                                <SelectItem key={r} value={r}>
+                                  {ROLE_LABEL[r]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">{m.date_joined || "—"}</td>
+                      <td className="px-4 py-2 text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => handleRemove(m)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Удалить
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

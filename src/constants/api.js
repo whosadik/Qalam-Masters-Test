@@ -47,6 +47,16 @@ export const API = {
   REVIEWS: withBase(`/reviews/reviews/`),
   REVIEW_ID: (id) => withBase(`/reviews/reviews/${id}/`),
 
+  // ===== ISSUES (новые) =====
+  ISSUES: withBase(`/issuesissues/`), // GET(list)/POST(create)
+  ISSUE_ID: (id) => withBase(`/issuesissues/${id}/`), // GET/PATCH/DELETE
+  ISSUE_ARTICLES: (id) => withBase(`/issuesissues/${id}/articles/`), // GET/POST (добавить в выпуск)
+  ISSUE_ARTICLE_ID: (id, articleId) =>
+    withBase(`/issuesissues/${id}/articles/${articleId}/`), // DELETE
+  ISSUE_FILES: (id) => withBase(`/issuesissues/${id}/files/`), // GET/POST (аплоад PDF)
+  ISSUE_PUBLISH: (id) => withBase(`/issuesissues/${id}/publish/`), // POST
+  ISSUE_TOC: (id) => withBase(`/issuesissues/${id}/toc/`), // GET
+
   // ===== OPENAPI SCHEMA =====
   SCHEMA: withBase(`/schema/`), // GET
 };

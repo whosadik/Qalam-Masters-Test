@@ -57,6 +57,8 @@ import ChiefEditorDashboard from "./pages/chief/ChiefEditorDashboard";
 import ReviewerDashboard from "./pages/reviewer/ReviewerDashboard";
 import ProofreaderDashboard from "./pages/proofreader/ProofreaderDashboard";
 import IssuesList from "@/pages/journal/IssuesList";
+import IssueTocPage from "@/pages/journal/IssueTocPage"; // см. ниже
+
 function PublicRoutes() {
   return (
     <Routes>
@@ -183,9 +185,12 @@ function PrivateRoutes() {
           <Route path="/editorial" element={<EditorDashboard />} />
           <Route path="/chief_editorial" element={<ChiefEditorDashboard />} />
           <Route path="/reviewer-dashboard" element={<ReviewerDashboard />} />
-          <Route path="/proofreafer-dashboard" element={<ProofreaderDashboard />} />
+          <Route
+            path="/proofreafer-dashboard"
+            element={<ProofreaderDashboard />}
+          />
           <Route path="/journals/:jid/issues" element={<IssuesList />} />
-
+          <Route path="/journals/:jid/issues/:iid" element={<IssueTocPage />} />
 
           {/* несуществующие приватные пути — на /app */}
           <Route path="*" element={<Navigate to="/app" replace />} />

@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, RefreshCcw, Trash2, Save } from "lucide-react";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
@@ -15,12 +21,14 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 
 // если в API нет готового хелпера на деталь
 const ORG_MEMBERSHIP_ID = (id) =>
-  typeof API.ORG_MEMBERSHIP_ID === "function" ? API.ORG_MEMBERSHIP_ID(id) : `${API.ORG_MEMBERSHIPS}${id}/`;
+  typeof API.ORG_MEMBERSHIP_ID === "function"
+    ? API.ORG_MEMBERSHIP_ID(id)
+    : `${API.ORG_MEMBERSHIPS}${id}/`;
 
 const fullName = (u) => {
   const f = (u?.first_name || "").trim();
   const l = (u?.last_name || "").trim();
-  return (f || l) ? `${f} ${l}`.trim() : "—";
+  return f || l ? `${f} ${l}`.trim() : "—";
 };
 
 const userEmail = (m) => m?.user?.email || "—";
@@ -31,11 +39,14 @@ async function fetchOrgMembers(orgId, { pageSize = 100, maxPages = 30 } = {}) {
   let page = 1;
   for (let i = 0; i < maxPages; i++) {
     const { data } = await http.get(API.ORG_MEMBERSHIPS, {
-      params: { page, page_size: pageSize },
+      params: { organization: orgId, page, page_size: pageSize }, // <-- ключевое изменение
     });
-    const chunk = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
-    // фильтруем по организации на фронте (в схеме нет явного фильтра)
-    all.push(...chunk.filter((m) => Number(m.organization) === Number(orgId)));
+    const chunk = Array.isArray(data?.results)
+      ? data.results
+      : Array.isArray(data)
+        ? data
+        : [];
+    all.push(...chunk);
     if (!data?.next || chunk.length === 0) break;
     page += 1;
   }
@@ -98,7 +109,8 @@ export default function OrgMembersManager({ orgId }) {
     const query = q.trim().toLowerCase();
     if (!query) return members;
     return members.filter((m) => {
-      const fio = `${m?.user?.first_name || ""} ${m?.user?.last_name || ""}`.toLowerCase();
+      const fio =
+        `${m?.user?.first_name || ""} ${m?.user?.last_name || ""}`.toLowerCase();
       const mail = (m?.user?.email || "").toLowerCase();
       const r = String(m?.role || "").toLowerCase();
       return fio.includes(query) || mail.includes(query) || r.includes(query);
@@ -160,7 +172,9 @@ export default function OrgMembersManager({ orgId }) {
         <div className="flex items-center justify-between gap-3">
           <CardTitle>Участники организации</CardTitle>
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-            <RefreshCcw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCcw
+              className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+            />
             Обновить
           </Button>
         </div>
@@ -169,7 +183,9 @@ export default function OrgMembersManager({ orgId }) {
       <CardContent className="space-y-6">
         {/* Добавление по email */}
         <div className="rounded-lg border p-4">
-          <div className="text-sm font-medium mb-3">Добавить участника по email</div>
+          <div className="text-sm font-medium mb-3">
+            Добавить участника по email
+          </div>
           <div className="flex flex-col md:flex-row gap-2 md:items-center">
             <input
               type="email"
@@ -198,8 +214,9 @@ export default function OrgMembersManager({ orgId }) {
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Введите email существующего пользователя. Если у него ещё нет аккаунта, бэкенд может
-            отклонить запрос (или создать приглашение — зависит от реализации).
+            Введите email существующего пользователя. Если у него ещё нет
+            аккаунта, бэкенд может отклонить запрос (или создать приглашение —
+            зависит от реализации).
           </p>
         </div>
 
@@ -241,7 +258,10 @@ export default function OrgMembersManager({ orgId }) {
               </thead>
               <tbody>
                 {filtered.map((m) => (
-                  <tr key={m.id} className="border-b last:border-b-0 hover:bg-slate-50/60">
+                  <tr
+                    key={m.id}
+                    className="border-b last:border-b-0 hover:bg-slate-50/60"
+                  >
                     <td className="py-2 pr-3">{fullName(m.user)}</td>
                     <td className="py-2 pr-3">{userEmail(m)}</td>
                     <td className="py-2 pr-3">
@@ -250,7 +270,9 @@ export default function OrgMembersManager({ orgId }) {
                           value={String(m.role)}
                           onValueChange={(v) =>
                             setMembers((prev) =>
-                              prev.map((x) => (x.id === m.id ? { ...x, role: v } : x))
+                              prev.map((x) =>
+                                x.id === m.id ? { ...x, role: v } : x
+                              )
                             )
                           }
                         >
@@ -275,7 +297,9 @@ export default function OrgMembersManager({ orgId }) {
                           onChange={(e) =>
                             setMembers((prev) =>
                               prev.map((x) =>
-                                x.id === m.id ? { ...x, is_active: e.target.checked } : x
+                                x.id === m.id
+                                  ? { ...x, is_active: e.target.checked }
+                                  : x
                               )
                             )
                           }

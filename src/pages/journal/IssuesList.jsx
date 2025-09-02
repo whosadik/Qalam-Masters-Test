@@ -1,117 +1,203 @@
 // src/pages/journal/IssuesList.jsx
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { http, withParams } from "@/lib/apiClient";
-import { API } from "@/constants/api";
-import { listIssues, getIssuePdfUrl, createIssueArticle, prettyIssueTitle } from "@/services/issuesService";
+import { API, BASE_URL } from "@/constants/api";
+import { listIssues /*, createIssue*/ } from "@/services/issuesService";
+
+// аккуратный формат дат
+const fmtDate = (iso) =>
+  iso ? new Date(iso).toLocaleDateString("ru-RU") : "—";
 
 export default function IssuesList() {
   const { jid } = useParams();
   const navigate = useNavigate();
 
   const [issues, setIssues] = useState([]);
-  const [pdfMap, setPdfMap] = useState({}); // {issueId: url|null}
   const [memberships, setMemberships] = useState([]);
+  const [journal, setJournal] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const amProofreader = useMemo(() => {
-    return memberships.some((m) => String(m.role) === "proofreader" && Number(m.journal) === Number(jid));
-  }, [memberships, jid]);
+  // роль корректуры в ЭТОМ журнале (только чтобы скрывать/показывать служебные кнопки)
+  const amProofreader = useMemo(
+    () =>
+      memberships.some(
+        (m) =>
+          String(m.role) === "proofreader" && Number(m.journal) === Number(jid)
+      ),
+    [memberships, jid]
+  );
+
+  const apiOrigin = (() => {
+    try {
+      return new URL(BASE_URL).origin;
+    } catch {
+      return window.location.origin;
+    }
+  })();
+
+  function mediaUrl(u) {
+    if (!u) return null;
+    if (/^https?:\/\//i.test(u)) return u; // уже абсолютный
+    return `${apiOrigin}${u.startsWith("/") ? u : `/${u}`}`;
+  }
+
+  // публикуем только опубликованные И для proofreader на этой странице тоже только опубликованные
+  const visibleIssues = useMemo(
+    () =>
+      Array.isArray(issues)
+        ? issues.filter((i) => i.status === "published")
+        : [],
+    [issues]
+  );
+
+  // вычисляем адрес ToC (чтобы не улетать на дашборд автора)
+  const tocHref = (iid) => `/journals/${jid}/issues/${iid}`;
+
+  const coverUrl = useMemo(() => {
+    const raw =
+      journal?.logo ||
+      journal?.cover ||
+      journal?.cover_url ||
+      journal?.cover_image ||
+      journal?.image ||
+      journal?.avatar ||
+      null;
+    return mediaUrl(raw);
+  }, [journal]);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        // мои роли (чтобы показать кнопки управления)
-        const { data: mem } = await http.get(withParams(API.JOURNAL_MEMBERSHIPS, { mine: true, page_size: 300 }));
-        const rows = Array.isArray(mem?.results) ? mem.results : Array.isArray(mem) ? mem : [];
+        // 1) мои роли — чтобы скрыть служебные кнопки (но на этой странице мы их всё равно прячем)
+        const { data: mem } = await http.get(
+          withParams(API.JOURNAL_MEMBERSHIPS, { mine: true, page_size: 300 })
+        );
+        const rows = Array.isArray(mem?.results)
+          ? mem.results
+          : Array.isArray(mem)
+            ? mem
+            : [];
         setMemberships(rows);
 
-        // выпуски
-        const list = await listIssues(jid);
-        setIssues(list);
+        // 2) данные журнала (для обложки и заголовка)
+        try {
+          const { data: j } = await http.get(API.JOURNAL_ID(jid));
+          setJournal(j || null);
+        } catch {
+          setJournal(null);
+        }
 
-        // подгрузим PDF’ы
-        const entries = await Promise.all(
-          list.map(async (i) => [i.id, await getIssuePdfUrl(i.id)])
+        // 3) выпуски журнала
+        const list = await listIssues(jid);
+        // сортируем опубликованные по published_at (свежие выше)
+        list.sort(
+          (a, b) =>
+            new Date(b.published_at || b.created_at) -
+            new Date(a.published_at || a.created_at)
         );
-        setPdfMap(Object.fromEntries(entries));
+        setIssues(list);
       } finally {
         setLoading(false);
       }
     })();
   }, [jid]);
 
-  async function onCreateIssue() {
-    const label = window.prompt("Название выпуска (например: Май 2025):");
-    if (!label) return;
-    try {
-      const created = await createIssueArticle(jid, label);
-      navigate(`/proofreader/issues/${created.id}`);
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось создать выпуск");
-    }
+  // Если очень нужно, можно оставить создание выпуска для корректуры прямо отсюда.
+  // Ты писал, что публичная страница — только просмотр, поэтому кнопку убираем полностью.
+  // Если захочешь вернуть: раскомментируй createIssue в импорте и этот хэндлер.
+  // async function onCreateIssue() {
+  //   const label = window.prompt("Название выпуска (например: Август 2025):");
+  //   if (!label) return;
+  //   try {
+  //     const created = await createIssue(jid, label);
+  //     navigate(`/proofreader/issues/${created.id}`);
+  //   } catch (e) {
+  //     console.error(e?.response?.data || e);
+  //     alert(e?.response?.data?.detail || "Не удалось создать выпуск");
+  //   }
+  // }
+
+  if (loading) {
+    return <div className="p-6 text-gray-500">Загрузка выпусков…</div>;
   }
 
-  if (loading) return <div className="p-6 text-gray-500">Загрузка выпусков…</div>;
-  if (!issues.length)
+  if (!visibleIssues.length) {
     return (
       <div className="p-6 space-y-4">
-        <div className="text-gray-600">Выпусков пока нет.</div>
-        {amProofreader && (
-          <Button onClick={onCreateIssue} className="bg-indigo-600 hover:bg-indigo-700">Создать выпуск</Button>
-        )}
+        <h1 className="text-2xl font-bold">
+          Выпуски {journal?.title ? `«${journal.title}»` : ""}
+        </h1>
+        <div className="text-gray-600">Опубликованных выпусков пока нет.</div>
       </div>
     );
+  }
 
   return (
     <div className="space-y-4 p-4 lg:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Выпуски</h1>
-        {amProofreader && (
-          <Button onClick={onCreateIssue} className="bg-indigo-600 hover:bg-indigo-700">Создать выпуск</Button>
-        )}
+        <h1 className="text-2xl font-bold">
+          Выпуски {journal?.title ? `«${journal.title}»` : ""}
+        </h1>
+        {/* Кнопки для корректора на этой странице скрываем умышленно,
+            управление — через ProofreaderDashboard */}
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {issues.map((i) => {
-          const pdf = pdfMap[i.id];
-          return (
-            <Card key={i.id} className="border border-slate-200 rounded-2xl shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="truncate">{prettyIssueTitle(i.title)}</span>
-                  <span className="text-xs text-gray-500">{i.status}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="text-xs text-gray-500">Создан: {new Date(i.created_at).toLocaleDateString()}</div>
-                <div className="flex gap-2 flex-wrap">
-                  {pdf ? (
-                    <a href={pdf} target="_blank" rel="noreferrer">
-                      <Button variant="outline" className="bg-transparent">Скачать PDF</Button>
-                    </a>
-                  ) : (
-                    <Button variant="outline" className="bg-transparent" disabled>PDF не загружен</Button>
-                  )}
-                  <Link to={`/issues/${i.id}`}>
-                    <Button variant="ghost">Оглавление</Button>
-                  </Link>
-                  {amProofreader && (
-                    <Link to={`/proofreader/issues/${i.id}`}>
-                      <Button variant="ghost">Управлять</Button>
-                    </Link>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {visibleIssues.map((i) => (
+          <Card
+            key={i.id}
+            className="border border-slate-200 rounded-2xl shadow-sm overflow-hidden"
+          >
+            {/* Обложка журнала */}
+            <div className="aspect-[16/9] bg-slate-100">
+              {coverUrl ? (
+                <img
+                  src={coverUrl}
+                  alt={journal?.title || "Обложка журнала"}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-slate-100 to-slate-200" />
+              )}
+            </div>
+
+            <CardHeader>
+              <CardTitle className="truncate">{i.label}</CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              <div className="text-xs text-gray-500 space-y-1">
+                <div>Опубликован: {fmtDate(i.published_at)}</div>
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                {i.pdf ? (
+                  <a href={i.pdf} target="_blank" rel="noreferrer">
+                    <Button variant="outline" className="bg-transparent">
+                      Скачать PDF
+                    </Button>
+                  </a>
+                ) : (
+                  <Button variant="outline" className="bg-transparent" disabled>
+                    PDF не загружен
+                  </Button>
+                )}
+
+                {/* Оглавление — доступно всем, т.к. показываем только published */}
+                <Link to={tocHref(i.id)}>
+                  <Button variant="ghost">Оглавление</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
