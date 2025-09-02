@@ -55,7 +55,8 @@ import SecretaryDashboard from "@/pages/secretary/SecretaryDashboard";
 import EditorDashboard from "./pages/editor/EditorDashboard";
 import ChiefEditorDashboard from "./pages/chief/ChiefEditorDashboard";
 import ReviewerDashboard from "./pages/reviewer/ReviewerDashboard";
-
+import ProofreaderDashboard from "./pages/proofreader/ProofreaderDashboard";
+import IssuesList from "@/pages/journal/IssuesList";
 function PublicRoutes() {
   return (
     <Routes>
@@ -182,6 +183,9 @@ function PrivateRoutes() {
           <Route path="/editorial" element={<EditorDashboard />} />
           <Route path="/chief_editorial" element={<ChiefEditorDashboard />} />
           <Route path="/reviewer-dashboard" element={<ReviewerDashboard />} />
+          <Route path="/proofreafer-dashboard" element={<ProofreaderDashboard />} />
+          <Route path="/journals/:jid/issues" element={<IssuesList />} />
+
 
           {/* несуществующие приватные пути — на /app */}
           <Route path="*" element={<Navigate to="/app" replace />} />

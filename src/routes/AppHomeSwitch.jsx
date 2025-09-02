@@ -58,6 +58,10 @@ export default function AppHomeSwitch() {
       nav("/reviewer-dashboard", { replace: true });
       return;
     }
+        if (hasProofreader) {
+      nav("/proofreafer-dashboard", { replace: true });
+      return;
+    }
     nav("/author-dashboard", { replace: true });
   }, [
     booted,

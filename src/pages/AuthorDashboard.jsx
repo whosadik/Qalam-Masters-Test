@@ -5,6 +5,14 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -42,6 +50,7 @@ import {
   Star,
   History,
   Mail,
+  Loader2,
 } from "lucide-react";
 
 import EditArticleSheet from "@/components/articles/EditArticleSheet";
@@ -55,19 +64,31 @@ const STATUS_LABEL = {
   submitted: "Отправлена",
   screening: "Скрининг",
   under_review: "На рецензии",
+  revision_minor: "Нужны правки (minor)",
+  revision_major: "Нужны правки (major)",
   accepted: "Принята",
   rejected: "Отклонена",
+  in_production: "В производстве",
+  published: "Опубликована",
 };
 function statusBadgeClass(status) {
   switch (status) {
     case "accepted":
       return "bg-green-100 text-green-800 hover:bg-green-100";
+    case "published":
+      return "bg-emerald-100 text-emerald-800 hover:bg-emerald-100";
+    case "in_production":
+      return "bg-violet-100 text-violet-800 hover:bg-violet-100";
+    case "revision_minor":
+      return "bg-amber-100 text-amber-800 hover:bg-amber-100";
+    case "revision_major":
+      return "bg-rose-100 text-rose-800 hover:bg-rose-100";
     case "under_review":
       return "bg-blue-100 text-blue-800 hover:bg-blue-100";
     case "screening":
       return "bg-indigo-100 text-indigo-800 hover:bg-indigo-100";
     case "submitted":
-      return "bg-amber-100 text-amber-800 hover:bg-amber-100";
+      return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
     case "rejected":
       return "bg-red-100 text-red-800 hover:bg-red-100";
     default:
@@ -75,25 +96,6 @@ function statusBadgeClass(status) {
   }
 }
 
-const demoReviews = [
-  {
-    id: 1,
-    articleTitle:
-      "Применение машинного обучения в прогнозировании изменения климата",
-    reviewer: "Иван Петров",
-    date: "12.02.2024",
-    comment:
-      "Хорошее исследование, но требуется уточнить методы прогнозирования и добавить больше данных.",
-  },
-  {
-    id: 2,
-    articleTitle: "Квантовые вычисления в криптографии",
-    reviewer: "Анна Смирнова",
-    date: "10.02.2024",
-    comment:
-      "Рекомендую доработать раздел с практическими примерами, чтобы укрепить выводы.",
-  },
-];
 const demoArchive = [
   {
     id: 1,
@@ -112,32 +114,16 @@ const demoArchive = [
     version: "v2.2",
   },
 ];
-const demoNotifications = [
-  {
-    id: 1,
-    type: "review",
-    title: "Новая рецензия получена",
-    message: "Рецензент оставил отзыв на вашу статью о машинном обучении",
-    time: "2 часа назад",
-    read: false,
-  },
-  {
-    id: 2,
-    type: "status",
-    title: "Статус статьи изменен",
-    message: "Ваша статья о квантовых вычислениях требует правок",
-    time: "1 день назад",
-    read: false,
-  },
-  {
-    id: 3,
-    type: "message",
-    title: "Сообщение от редактора",
-    message: "Редактор журнала оставил комментарий к вашей статье",
-    time: "3 дня назад",
-    read: true,
-  },
-];
+
+
+
+ // Лейблы рекомендаций рецензента
+ const RECOMMENDATION_LABEL = {
+   accept: "Принять",
+   minor: "Нужны правки (minor)",
+   major: "Нужны правки (major)",
+   reject: "Отклонить",
+ };
 function notificationIcon(type) {
   switch (type) {
     case "review":
@@ -156,6 +142,13 @@ export default function AuthorDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [articles, setArticles] = useState([]);
+  const [submittingId, setSubmittingId] = useState(null);
+const [submitModal, setSubmitModal] = useState({
+  open: false,
+  title: "",
+  desc: "",
+  articleId: null,
+});
   const [statusFilter, setStatusFilter] = useState("");
   const [journalFilter, setJournalFilter] = useState("");
   const [journals, setJournals] = useState([]);
@@ -164,6 +157,11 @@ export default function AuthorDashboard() {
   const [editingArticle, setEditingArticle] = useState(null);
 
   const [journalQuery, setJournalQuery] = useState("");
+  const [filesByArticle, setFilesByArticle] = useState({});
+const [assignmentsByArticle, setAssignmentsByArticle] = useState({});
+const [loadingActivity, setLoadingActivity] = useState(false);
+const [activityOpen, setActivityOpen] = useState(false);
+
 
   const [messages, setMessages] = useState([
     {
@@ -186,8 +184,116 @@ export default function AuthorDashboard() {
     },
   ]);
   const [newMessage, setNewMessage] = useState("");
+  const TYPE_LABEL = {
+  manuscript: "Рукопись",
+  supplement: "Приложение",
+  zgs: "Справка ЗГС",
+  antiplag_report: "Отчёт антиплагиата",
+  response_to_review: "Ответ рецензенту",
+  production_pdf: "Верстка (PDF)",
+};
 
-  const [notifications] = useState(demoNotifications);
+// расширяем иконки
+function notificationIcon(type) {
+  switch (type) {
+    case "review":
+      return <MessageSquare className="h-4 w-4 text-blue-500" />;
+    case "status":
+      return <AlertCircle className="h-4 w-4 text-orange-500" />;
+    case "file":
+      return <Upload className="h-4 w-4 text-indigo-500" />;
+    case "assignment":
+      return <Shield className="h-4 w-4 text-purple-500" />;
+    case "message":
+      return <Mail className="h-4 w-4 text-green-500" />;
+    default:
+      return <Bell className="h-4 w-4 text-gray-500" />;
+  }
+}
+
+
+
+  const totalRevisions = articles.filter(
+  (a) => a.status === "revision_minor" || a.status === "revision_major"
+).length;
+const needsRevision = (s) => s === "revision_minor" || s === "revision_major";
+
+const revisionArticles = useMemo(
+   () => articles.filter((a) => needsRevision(a.status)),
+   [articles]
+
+  );
+
+   const [reviewsByArticle, setReviewsByArticle] = useState({});
+ const [loadingReviews, setLoadingReviews] = useState(false);
+const activityEvents = useMemo(() => {
+  const events = [];
+  const byId = Object.fromEntries(articles.map((a) => [a.id, a]));
+
+
+  // РЕЦЕНЗИИ (как было)
+  Object.entries(reviewsByArticle || {}).forEach(([articleId, revs]) => {
+    const art = byId[Number(articleId)];
+    (revs || []).forEach((r) => {
+      events.push({
+        id: `rev-${r.id}`,
+        type: "review",
+        title: "Новая рецензия",
+        message: `${RECOMMENDATION_LABEL[r.recommendation] || r.recommendation} • «${art?.title || "Статья"}»`,
+        time: r.created_at,
+      });
+    });
+  });
+
+  // СТАТУСЫ СТАТЕЙ (по created_at самой статьи — истории статусов в API нет)
+  articles.forEach((a) => {
+    events.push({
+      id: `status-${a.id}`,
+      type: "status",
+      title: "Статус статьи",
+      message: `«${a.title}»: ${STATUS_LABEL[a.status] || a.status}`,
+      time: a.created_at,
+    });
+  });
+
+  // ФАЙЛЫ (из /files)
+  Object.entries(filesByArticle || {}).forEach(([articleId, files]) => {
+    const art = byId[Number(articleId)];
+    (files || []).forEach((f) => {
+      events.push({
+        id: `file-${articleId}-${f.id}`,
+        type: "file",
+        title: "Новый файл",
+        message: `${TYPE_LABEL[f.type] || f.type} • «${art?.title || "Статья"}»`,
+        time: f.uploaded_at,
+      });
+    });
+  });
+
+  // НАЗНАЧЕНИЯ РЕЦЕНЗЕНТОВ
+  Object.entries(assignmentsByArticle || {}).forEach(([articleId, assigns]) => {
+    const art = byId[Number(articleId)];
+    (assigns || []).forEach((as) => {
+      const statusMap = {
+        assigned: "Назначен рецензент",
+        accepted: "Рецензент принял назначение",
+        declined: "Рецензент отклонил назначение",
+        cancelled: "Назначение отменено",
+        completed: "Рецензирование завершено",
+      };
+      events.push({
+        id: `assign-${as.id}`,
+        type: "assignment",
+        title: statusMap[as.status] || "Назначение рецензента",
+        message: `«${art?.title || "Статья"}»${as.due_at ? ` • срок до ${new Date(as.due_at).toLocaleDateString()}` : ""}`,
+        time: as.created_at,
+      });
+    });
+  });
+
+  events.sort((a, b) => new Date(b.time) - new Date(a.time));
+  return events;
+}, [articles, reviewsByArticle, filesByArticle, assignmentsByArticle]);
 
   useEffect(() => {
     (async () => {
@@ -228,6 +334,66 @@ export default function AuthorDashboard() {
       (j.title || "").toLowerCase().includes(journalQuery.toLowerCase())
     );
   }, [journals, journalQuery]);
+  useEffect(() => {
+  if (!articles.length) {
+    setFilesByArticle({});
+    setAssignmentsByArticle({});
+    return;
+  }
+
+  let aborted = false;
+  (async () => {
+    setLoadingActivity(true);
+    try {
+      // 1) последние файлы по каждой статье
+      const filesEntries = await Promise.all(
+        articles.map(async (a) => {
+          try {
+            const { data } = await http.get(
+              withParams(`/api/articles/articles/${a.id}/files/`, {
+                ordering: "-uploaded_at",
+                page_size: 3,
+              })
+            );
+            return [a.id, data?.results || []];
+          } catch {
+            return [a.id, []];
+          }
+        })
+      );
+
+      // 2) последние назначения рецензентов по каждой статье
+      const assignEntries = await Promise.all(
+        articles.map(async (a) => {
+          try {
+            const { data } = await http.get(
+              withParams("/api/reviews/assignments/", {
+                article: a.id,
+                ordering: "-created_at",
+                page_size: 3,
+              })
+            );
+            return [a.id, data?.results || []];
+          } catch {
+            return [a.id, []];
+          }
+        })
+      );
+
+      if (!aborted) {
+        setFilesByArticle(Object.fromEntries(filesEntries));
+        setAssignmentsByArticle(Object.fromEntries(assignEntries));
+      }
+    } finally {
+      if (!aborted) setLoadingActivity(false);
+    }
+  })();
+
+  return () => {
+    aborted = true;
+  };
+}, [articles]);
+
 
   useEffect(() => {
     const handler = setTimeout(async () => {
@@ -263,6 +429,26 @@ export default function AuthorDashboard() {
     }
   };
 
+  const submitWithModal = async (article) => {
+  setSubmittingId(article.id);
+  try {
+    const updated = await updateArticleStatus(article.id, "submitted");
+    setArticles((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+    setSubmitModal({
+      open: true,
+      title: "Отправлено!",
+      desc: `Статья «${article.title}» успешно отправлена в редакцию.`,
+      articleId: updated.id,
+    });
+  } catch (e) {
+    console.error("submit failed", e);
+    alert("Не удалось отправить. Попробуйте ещё раз.");
+  } finally {
+    setSubmittingId(null);
+  }
+};
+
+
   const sendMessage = () => {
     if (!newMessage.trim()) return;
     const newMsg = {
@@ -286,11 +472,70 @@ export default function AuthorDashboard() {
     }, 800);
   };
 
+  useEffect(() => {
+   const load = async () => {
+     if (revisionArticles.length === 0) {
+       setReviewsByArticle({});
+       return;
+     }
+     setLoadingReviews(true);
+     try {
+       const entries = await Promise.all(
+         revisionArticles.map(async (a) => {
+           // 1) Берём назначения рецензентов по статье
+           const { data: assignData } = await http.get(
+             withParams("/api/reviews/assignments/", {
+               article: a.id,
+               ordering: "-created_at",
+             })
+           );
+           const assignments = assignData?.results || [];
+
+           // 2) По каждому назначению берём отзывы
+           const reviews = (
+             await Promise.all(
+               assignments.map(async (as) => {
+                 const { data: revData } = await http.get(
+                   withParams("/api/reviews/reviews/", {
+                     assignment: as.id,
+                     ordering: "-created_at",
+                   })
+                 );
+                 const list = revData?.results || [];
+                 // приклеим само назначение — бывает полезно (due_at, blind, status)
+                 return list.map((r) => ({ ...r, _assignment: as }));
+               })
+             )
+           ).flat();
+
+           return [a.id, reviews];
+         })
+       );
+       setReviewsByArticle(Object.fromEntries(entries));
+     } catch (e) {
+       console.error("reviews load failed", e);
+     } finally {
+       setLoadingReviews(false);
+     }
+   };
+   load();
+ }, [revisionArticles]);
+
   const total = articles.length;
   const totalAccepted = articles.filter((a) => a.status === "accepted").length;
+    const eventsCount = activityEvents.length;
+
   const totalReview = articles.filter(
     (a) => a.status === "under_review"
   ).length;
+
+   const totalPublished = articles.filter(
+    (a) => a.status === "published"
+  ).length;
+   const totalInProduction = articles.filter((a) => a.status === "in_production").length;
+
+
+
 
   return (
     <div className="space-y-6 p-3 sm:p-4 lg:p-6">
@@ -310,21 +555,7 @@ export default function AuthorDashboard() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative order-2 sm:order-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="relative bg-transparent w-full sm:w-auto"
-            >
-              <Bell className="h-4 w-4 mr-2" />
-              <span className="hidden xs:inline">Уведомления</span>
-              {notifications.filter((n) => !n.read).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {notifications.filter((n) => !n.read).length}
-                </span>
-              )}
-            </Button>
-          </div>
+          
           <Link to="/submit-article">
             <Button className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full sm:w-auto">
               <PlusCircle className="h-4 w-4 mr-2" />
@@ -347,6 +578,20 @@ export default function AuthorDashboard() {
             </div>
           </CardContent>
         </Card>
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+          <CardContent className="p-5 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-100 text-sm">На рецензии</p>
+                <p className="text-2xl sm:text-3xl font-bold">{totalReview}</p>
+              </div>
+              <Clock className="h-7 w-7 sm:h-8 sm:w-8 text-orange-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+
+
 
         <Card className="border-0 shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
           <CardContent className="p-5 sm:p-6">
@@ -362,33 +607,24 @@ export default function AuthorDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardContent className="p-5 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100 text-sm">На рецензии</p>
-                <p className="text-2xl sm:text-3xl font-bold">{totalReview}</p>
-              </div>
-              <Clock className="h-7 w-7 sm:h-8 sm:w-8 text-orange-200" />
-            </div>
-          </CardContent>
-        </Card>
+
+
 
         <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm">Средний рейтинг</p>
-                <p className="text-2xl sm:text-3xl font-bold">—</p>
+                <p className="text-purple-100 text-sm">Опубликовано</p>
+                <p className="text-2xl sm:text-3xl font-bold">{totalPublished}</p>
               </div>
-              <Star className="h-7 w-7 sm:h-8 sm:w-8 text-purple-200" />
+              <Archive className="h-7 w-7 sm:h-8 sm:w-8 text-purple-200" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="articles" className="space-y-6">
-        <TabsList className="flex w-full overflow-x-auto gap-2 p-1 bg-white shadow-sm rounded-lg md:grid md:grid-cols-6 md:gap-0">
+        <TabsList className="flex w-full overflow-x-auto gap-2 p-1 bg-white shadow-sm rounded-lg md:grid md:grid-cols-4 md:gap-0">
           <TabsTrigger
             value="articles"
             className="flex items-center gap-2 shrink-0"
@@ -398,6 +634,18 @@ export default function AuthorDashboard() {
             <span className="sm:hidden">Статьи</span>
           </TabsTrigger>
           <TabsTrigger
+   value="reviews"
+   className="flex items-center gap-2 shrink-0"
+ >
+   <MessageSquare className="h-4 w-4" />
+   <span>Рецензии</span>
+   {totalRevisions > 0 && (
+     <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+       {totalRevisions}
+     </span>
+   )}
+ </TabsTrigger>
+          <TabsTrigger
             value="journals"
             className="flex items-center gap-2 shrink-0"
           >
@@ -405,28 +653,21 @@ export default function AuthorDashboard() {
             <span className="hidden sm:inline">Поиск журналов</span>
             <span className="sm:hidden">Журналы</span>
           </TabsTrigger>
-          <TabsTrigger
-            value="reviews"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <MessageSquare className="h-4 w-4" />
-            <span>Рецензии</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="messages"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <Mail className="h-4 w-4" />
-            <span className="hidden sm:inline">Переписка</span>
-            <span className="sm:hidden">Почта</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="archive"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <Archive className="h-4 w-4" />
-            <span>Архив</span>
-          </TabsTrigger>
+         
+ <TabsTrigger
+  value="activity"
+  className="flex items-center gap-2 shrink-0"
+>
+  <Bell className="h-4 w-4" />
+  <span>События</span>
+  {eventsCount > 0 && (
+    <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
+      {eventsCount > 99 ? "99+" : eventsCount}
+    </span>
+  )}
+</TabsTrigger>
+
+          
         </TabsList>
 
         {/* ====== Мои статьи (БОЕВЫЕ ДАННЫЕ) ====== */}
@@ -494,148 +735,121 @@ export default function AuthorDashboard() {
               </Card>
             )}
 
-            {articles.map((article) => (
-              <Card
-                key={article.id}
-                className="w-full max-w-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="space-y-2 flex-1 min-w-0">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <CardTitle className="text-lg sm:text-xl text-gray-900 truncate">
-                          {article.title}
-                        </CardTitle>
-                      </div>
-                      <CardDescription className="text-gray-600 truncate">
-                        <span className="font-medium">
-                          {article.journal_title ||
-                            `Журнал #${article.journal}`}
-                        </span>
-                      </CardDescription>
-                    </div>
-                    <div className="md:ml-4">
-                      <Badge className={statusBadgeClass(article.status)}>
-                        {STATUS_LABEL[article.status] || article.status}
-                      </Badge>
-                      {article.status === "draft" && (
-                        <Badge variant="outline" className="ml-2">
-                          манускрипт загружен
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
+          {articles.map((article) => {
+  // безопасно «распаковываем» файлы: в списке статей их может и не быть
+  const files = Array.isArray(article.files) ? article.files : [];
+  const hasManuscript = files.some((f) => f.type === "manuscript");
+  const hasResponse   = files.some((f) => f.type === "response_to_review");
+  const isRevision =
+    article.status === "revision_minor" || article.status === "revision_major";
 
-                <CardContent className="space-y-6">
-                  {/* Немного метаданных (из того, что даёт API) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <p className="text-gray-500">Создана</p>
-                        <p className="font-medium">
-                          {article.created_at
-                            ? new Date(article.created_at).toLocaleString()
-                            : "—"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Shield className="h-4 w-4 text-indigo-500" />
-                      <div>
-                        <p className="text-gray-500">Автор</p>
-                        <p className="font-medium">
-                          {article.author_email || "—"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+  return (
+    <Card
+      key={article.id}
+      className="w-full max-w-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+    >
+      <CardHeader className="pb-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2 flex-1 min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <CardTitle className="text-lg sm:text-xl text-gray-900 truncate">
+                {article.title}
+              </CardTitle>
+            </div>
+            <CardDescription className="text-gray-600 truncate">
+              <span className="font-medium">
+                {article.journal_title || `Журнал #${article.journal}`}
+              </span>
+            </CardDescription>
+          </div>
+          <div className="md:ml-4">
+            <Badge className={statusBadgeClass(article.status)}>
+              {STATUS_LABEL[article.status] || article.status}
+            </Badge>
+            {article.status === "draft" && (
+              <Badge variant="outline" className="ml-2">
+                манускрипт загружен
+              </Badge>
+            )}
+          </div>
+        </div>
+      </CardHeader>
 
-                  {/* Действия */}
-                  <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 border-t border-gray-100">
-                    <Link to={`/articles/${article.id}`}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex items-center gap-2 bg-transparent"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>Открыть</span>
-                      </Button>
-                    </Link>
+      <CardContent className="space-y-6">
+        {/* Метаданные */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Calendar className="h-4 w-4 text-gray-400" />
+            <div>
+              <p className="text-gray-500">Создана</p>
+              <p className="font-medium">
+                {article.created_at
+                  ? new Date(article.created_at).toLocaleString()
+                  : "—"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <Shield className="h-4 w-4 text-indigo-500" />
+            <div>
+              <p className="text-gray-500">Автор</p>
+              <p className="font-medium">{article.author_email || "—"}</p>
+            </div>
+          </div>
+        </div>
 
-                    <Link to={`/articles/${article.id}/edit`}>
-                      <Button
-                        variant="outline"
-                        className="flex items-center gap-2 bg-transparent"
-                        size="sm"
-                      >
-                        Редактировать
-                      </Button>
-                    </Link>
+        {/* Действия */}
+        <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 border-t border-gray-100">
+          <Link to={`/articles/${article.id}`}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2 bg-transparent"
+            >
+              <Eye className="h-4 w-4" />
+              <span>Открыть</span>
+            </Button>
+          </Link>
 
-                    {article.status === "draft" && (
-                      <Button
-                        size="sm"
-                        className="flex items-center gap-2"
-                        onClick={async () => {
-                          try {
-                            // просим выбрать/подтвердить файл рукописи
-                            const hasManuscript = (article.files || []).some(
-                              (f) => f.type === "manuscript"
-                            );
-                            if (!hasManuscript) {
-                              alert(
-                                "Перед отправкой прикрепите файл рукописи в форме редактирования/отправки."
-                              );
-                              return;
-                            }
-                            const updated = await updateArticleStatus(
-                              article.id,
-                              "submitted"
-                            );
-                            setArticles((prev) =>
-                              prev.map((a) =>
-                                a.id === updated.id ? updated : a
-                              )
-                            );
-                          } catch (e) {
-                            console.error("submit from dashboard failed", e);
-                            alert(
-                              "Не удалось отправить статью. Попробуйте ещё раз."
-                            );
-                          }
-                        }}
-                      >
-                        <Upload className="h-4 w-4" />
-                        <span>Отправить в редакцию</span>
-                      </Button>
-                    )}
+          <Link to={`/articles/${article.id}/edit`}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2 bg-transparent"
+            >
+              Редактировать
+            </Button>
+          </Link>
 
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-2 bg-transparent"
-                      disabled
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>Скачать</span>
-                    </Button>
+          
 
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center gap-2 bg-transparent"
-                      disabled
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      <span>Обсуждение</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                                         
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-2 bg-transparent"
+            disabled
+          >
+            <Download className="h-4 w-4" />
+            <span>Скачать</span>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-2 bg-transparent"
+            disabled
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Обсуждение</span>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+})}
+
           </div>
         </TabsContent>
 
@@ -735,204 +949,272 @@ export default function AuthorDashboard() {
           </Card>
         </TabsContent>
 
-        {/* ====== Рецензии (МОК) ====== */}
+        {/* ====== Рецензии ====== */}
         <TabsContent value="reviews" className="space-y-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Мои рецензии
-          </h2>
-          <div className="grid gap-4 sm:gap-6">
-            {demoReviews.map((review) => (
-              <Card
-                key={review.id}
-                className="border shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {review.articleTitle}
+  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+    Рецензии / Требуются правки
+  </h2>
+
+  {revisionArticles.length === 0 ? (
+    <Card className="border-dashed">
+      <CardContent className="p-6 text-gray-500">
+        Пока нет статей, возвращённых на доработку.
+      </CardContent>
+    </Card>
+  ) : loadingReviews ? (
+    <Card>
+      <CardContent className="p-6 text-gray-500">Загрузка отзывов…</CardContent>
+    </Card>
+  ) : (
+    <div className="grid gap-4 sm:gap-6">
+      {revisionArticles.map((article) => {
+        const reviews = reviewsByArticle[article.id] || [];
+        const files = Array.isArray(article.files) ? article.files : [];
+        const hasManuscript = files.some((f) => f.type === "manuscript");
+        const hasResponse = files.some((f) => f.type === "response_to_review");
+
+        return (
+          <Card
+            key={article.id}
+            className="border shadow-sm hover:shadow-md transition-all duration-200"
+          >
+            <CardHeader>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <CardTitle className="text-lg truncate">
+                    {article.title}
                   </CardTitle>
-                  <CardDescription>
-                    Рецензент: {review.reviewer} • Дата: {review.date}
+                  <CardDescription className="truncate">
+                    {article.journal_title || `Журнал #${article.journal}`} •{" "}
+                    <Badge className={statusBadgeClass(article.status)}>
+                      {STATUS_LABEL[article.status] || article.status}
+                    </Badge>
                   </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-gray-700">{review.comment}</p>
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                    <Button size="sm" variant="outline" disabled>
-                      <Eye className="h-4 w-4 mr-1" /> Посмотреть
-                    </Button>
-                    <Button size="sm" variant="outline" disabled>
-                      <MessageSquare className="h-4 w-4 mr-1" /> Ответить
-                    </Button>
-                    <Button size="sm" variant="outline" disabled>
-                      <CheckCircle className="h-4 w-4 mr-1" /> Принять правки
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* ====== Переписка (МОК) ====== */}
-        <TabsContent value="messages" className="space-y-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Переписка с редактором
-          </h2>
-
-          <div className="border rounded-lg shadow-sm flex flex-col h-[400px] bg-white">
-            <div className="flex-1 p-4 overflow-y-auto space-y-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.from === "me" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[70%] p-3 rounded-lg ${
-                      msg.from === "me"
-                        ? "bg-blue-500 text-white rounded-br-none"
-                        : "bg-gray-200 text-gray-900 rounded-bl-none"
-                    }`}
-                  >
-                    <p className="text-sm">{msg.text}</p>
-                    <span className="block text-xs opacity-70 mt-1">
-                      {msg.time}
-                    </span>
-                  </div>
                 </div>
-              ))}
-            </div>
+                <Link to={`/articles/${article.id}`}>
+                  <Button size="sm" variant="outline">
+                    <Eye className="h-4 w-4 mr-1" /> Открыть
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
 
-            <div className="border-t p-3 flex gap-2">
-              <Input
-                placeholder="Введите сообщение..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              />
-              <Button onClick={sendMessage} disabled={!newMessage.trim()}>
-                <Mail className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* ====== Архив (МОК) ====== */}
-        <TabsContent value="archive" className="space-y-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Архив публикаций
-          </h2>
-
-          <div className="grid gap-4 sm:gap-6">
-            {demoArchive.map((item) => (
-              <Card
-                key={item.id}
-                className="border shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                <CardHeader>
-                  <CardTitle className="text-lg">{item.title}</CardTitle>
-                  <CardDescription>
-                    {item.journal} • {item.category}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  <div className="text-sm text-gray-500">
-                    <p>
-                      Дата публикации:{" "}
-                      <span className="font-medium">{item.date}</span>
-                    </p>
-                    <p>
-                      Версия:{" "}
-                      <span className="font-medium">{item.version}</span>
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                    <Button size="sm" variant="outline" disabled>
-                      <Eye className="h-4 w-4 mr-1" /> Просмотр
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const blob = new Blob(
-                          [`Архивная версия статьи: ${item.title}`],
-                          { type: "text/plain;charset=utf-8" }
-                        );
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = `${item.title} (архив).txt`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                      }}
+            <CardContent className="space-y-4">
+              {/* Список реальных отзывов */}
+              {reviews.length === 0 ? (
+                <div className="text-sm text-gray-500">
+                  Отзывов пока нет. Загляните позже.
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  {reviews.map((rev) => (
+                    <li
+                      key={rev.id}
+                      className="p-3 rounded-lg bg-gray-50 border border-gray-100"
                     >
-                      <Download className="h-4 w-4 mr-1" /> Скачать
-                    </Button>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-sm">
+                          <span className="font-medium">
+                            Рекомендация:{" "}
+                            {RECOMMENDATION_LABEL[rev.recommendation] ||
+                              rev.recommendation}
+                          </span>
+                          {rev._assignment?.due_at && (
+                            <span className="ml-2 text-gray-500">
+                              (срок:{" "}
+                              {new Date(
+                                rev._assignment.due_at
+                              ).toLocaleDateString()}
+                              )
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(rev.created_at).toLocaleString()}
+                        </div>
+                      </div>
 
-                    <Button size="sm" variant="outline" disabled>
-                      <History className="h-4 w-4 mr-1" /> Восстановить
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+                      {rev.body && (
+                        <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
+                          {rev.body}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Кнопки для загрузки и повторной отправки правок */}
+              <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                <Link to={`/articles/${article.id}/edit?tab=files`}>
+                  <Button size="sm" variant="outline" className="bg-transparent">
+                    Загрузить правки
+                  </Button>
+                </Link>
+
+                <Button
+                  size="sm"
+                  disabled={submittingId === article.id}
+  onClick={async () => {
+    if (!hasManuscript) {
+      alert("Загрузите обновлённую рукопись (manuscript) в «Файлы».");
+      return;
+    }
+    if (!hasResponse) {
+      alert("Загрузите ответ рецензенту (response_to_review) в «Файлы».");
+      return;
+    }
+    await submitWithModal(article);
+  }}
+                >
+                 {submittingId === article.id ? (
+    <>
+      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+      Отправка…
+    </>
+  ) : (
+    "Отправить исправления"
+  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  )}
+</TabsContent>
+
+<TabsContent value="activity" className="space-y-6">
+  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+    Лента событий
+  </h2>
+
+  {loadingActivity ? (
+    <Card>
+      <CardContent className="p-6 text-gray-500 flex items-center gap-2">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Загрузка событий…
+      </CardContent>
+    </Card>
+  ) : activityEvents.length === 0 ? (
+    <Card className="border-dashed">
+      <CardContent className="p-6 text-gray-500">
+        Пока нет новых событий.
+      </CardContent>
+    </Card>
+  ) : (
+    <Card className="border-0 shadow-sm">
+      <CardContent className="p-0">
+        <ul className="divide-y divide-gray-100">
+          {activityEvents.map((n) => (
+            <li key={n.id} className="p-4 flex items-start gap-3">
+              {notificationIcon(n.type)}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900">{n.title}</p>
+                <p className="text-sm text-gray-600">{n.message}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {n.time ? new Date(n.time).toLocaleString() : "—"}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  )}
+</TabsContent>
+
+
+
+
+     
+
+       
       </Tabs>
 
-      {/* Edit Sheet (боевое сохранение) */}
-      <EditArticleSheet
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        article={editingArticle}
-        onSave={handleSaveArticle}
-      />
+      {/* Модалка «успешно отправлено» */}
+<Dialog
+  open={submitModal.open}
+  onOpenChange={(open) => setSubmitModal((s) => ({ ...s, open }))}
+>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>{submitModal.title || "Успех"}</DialogTitle>
+      <DialogDescription>
+        {submitModal.desc || "Действие выполнено успешно."}
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setSubmitModal({ open: false, title: "", desc: "", articleId: null })}>
+        Ок
+      </Button>
+      {submitModal.articleId && (
+        <Button
+          onClick={() => {
+            const id = submitModal.articleId;
+            setSubmitModal({ open: false, title: "", desc: "", articleId: null });
+            navigate(`/articles/${id}`);
+          }}
+        >
+          Открыть статью
+        </Button>
+      )}
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
-      {/* Уведомления (моки) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            <span className="text-base sm:text-lg">Последние уведомления</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 sm:space-y-4">
-            {notifications.slice(0, 3).map((n) => (
-              <div
-                key={n.id}
-                className={`flex items-start gap-3 p-3 rounded-lg ${
-                  !n.read ? "bg-blue-50 border border-blue-200" : "bg-gray-50"
-                }`}
-              >
-                {notificationIcon(n.type)}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">
-                    {n.title}
-                  </p>
-                  <p className="text-sm text-gray-600">{n.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">{n.time}</p>
-                </div>
-                {!n.read && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                )}
-              </div>
-            ))}
+
+   {editOpen && editingArticle && (
+  <EditArticleSheet
+    open
+    onOpenChange={(o) => {
+      setEditOpen(o);
+      if (!o) setEditingArticle(null);
+    }}
+    article={editingArticle}
+    onSave={handleSaveArticle}
+  />
+)}
+
+
+{/* Модалка со всем списком событий */}
+<Dialog open={activityOpen} onOpenChange={setActivityOpen}>
+  <DialogContent className="max-w-2xl">
+    <DialogHeader>
+      <DialogTitle>Все события</DialogTitle>
+      <DialogDescription>
+        Лента последних действий по вашим статьям.
+      </DialogDescription>
+    </DialogHeader>
+
+    <div className="max-h-[60vh] overflow-auto space-y-3">
+      {activityEvents.map((n) => (
+        <div
+          key={n.id}
+          className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
+        >
+          {notificationIcon(n.type)}
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-gray-900">{n.title}</p>
+            <p className="text-sm text-gray-600">{n.message}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {n.time ? new Date(n.time).toLocaleString() : "—"}
+            </p>
           </div>
-          <div className="text-center mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full sm:w-auto"
-              disabled
-            >
-              Показать все уведомления
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      ))}
+    </div>
+
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setActivityOpen(false)}>
+        Закрыть
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+
     </div>
   );
 }

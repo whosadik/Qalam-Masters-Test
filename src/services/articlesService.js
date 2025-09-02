@@ -153,6 +153,16 @@ export async function listArticleFiles(id, params = {}) {
   return [];
 }
 
+export async function uploadProductionPdf(articleId, file) {
+  const form = new FormData();
+  form.append("type", "production_pdf");
+  form.append("file", file);
+  const { data } = await http.post(API.ARTICLE_FILES(articleId), form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
 /** Загрузка файла к статье */
 export async function uploadArticleFile(id, file, type, { signal } = {}) {
   const fd = new FormData();

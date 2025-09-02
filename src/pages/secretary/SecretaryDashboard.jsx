@@ -1,5 +1,6 @@
 // src/pages/secretary/SecretaryDashboard.jsx
 "use client";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  FileText,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Select,
@@ -22,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import {
@@ -61,9 +65,7 @@ function ArticleFiles({ articleId }) {
   async function load() {
     setLoading(true);
     try {
-      const data = await listArticleFiles(articleId, {
-        ordering: "-uploaded_at",
-      });
+      const data = await listArticleFiles(articleId, { ordering: "-uploaded_at" });
       setFiles(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("files load failed", e?.response?.data || e);
@@ -108,12 +110,7 @@ function ArticleFiles({ articleId }) {
     <div className="rounded-lg border p-3 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="font-medium">Файлы статьи</div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={load}
-          title="Обновить файлы"
-        >
+        <Button variant="ghost" size="icon" onClick={load} title="Обновить файлы">
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
@@ -126,12 +123,8 @@ function ArticleFiles({ articleId }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="zgs">ZGS clearance</SelectItem>
-            <SelectItem value="antiplag_report">
-              Antiplagiarism report
-            </SelectItem>
+            <SelectItem value="antiplag_report">Antiplagiarism report</SelectItem>
             <SelectItem value="supplement">Supplement</SelectItem>
-            {/* manuscript обычно грузит автор; при необходимости раскройте: */}
-            {/* <SelectItem value="manuscript">Manuscript</SelectItem> */}
           </SelectContent>
         </Select>
         <Input type="file" ref={fileRef} className="flex-1" />
@@ -158,35 +151,20 @@ function ArticleFiles({ articleId }) {
           </div>
         ) : files.length ? (
           files.map((f) => (
-            <div
-              key={f.id}
-              className="flex items-center justify-between rounded-md border px-3 py-2"
-            >
+            <div key={f.id} className="flex items-center justify-between rounded-md border px-3 py-2">
               <div className="min-w-0">
                 <div className="text-sm font-medium truncate">
                   {f.type} • {f.file?.split("/").pop() || "file"}
                 </div>
-                <div className="text-xs text-gray-500">
-                  Загружено: {fmt(f.uploaded_at)}
-                </div>
+                <div className="text-xs text-gray-500">Загружено: {fmt(f.uploaded_at)}</div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {f.file ? (
-                  <a
-                    href={f.file}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm underline"
-                  >
+                  <a href={f.file} target="_blank" rel="noreferrer" className="text-sm underline">
                     Открыть
                   </a>
                 ) : null}
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => onDelete(f.id)}
-                  title="Удалить"
-                >
+                <Button size="icon" variant="outline" onClick={() => onDelete(f.id)} title="Удалить">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -227,9 +205,7 @@ function InlineScreeningForm({ articleId, onDone }) {
       onDone?.();
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(
-        e?.response?.data?.detail || "Не удалось сохранить результаты скрининга"
-      );
+      alert(e?.response?.data?.detail || "Не удалось сохранить результаты скрининга");
     } finally {
       setBusy(false);
     }
@@ -242,46 +218,26 @@ function InlineScreeningForm({ articleId, onDone }) {
         onClick={() => setOpen((v) => !v)}
       >
         <span className="font-medium">Скрининг</span>
-        {open ? (
-          <ChevronUp className="h-4 w-4" />
-        ) : (
-          <ChevronDown className="h-4 w-4" />
-        )}
+        {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
 
       {open && (
         <div className="p-3 space-y-3 border-t">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={scopeOk}
-                onChange={(e) => setScopeOk(e.target.checked)}
-              />
+              <input type="checkbox" checked={scopeOk} onChange={(e) => setScopeOk(e.target.checked)} />
               Соответствует тематике (scope_ok)
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={formatOk}
-                onChange={(e) => setFormatOk(e.target.checked)}
-              />
+              <input type="checkbox" checked={formatOk} onChange={(e) => setFormatOk(e.target.checked)} />
               Оформление корректно (format_ok)
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={zgsOk}
-                onChange={(e) => setZgsOk(e.target.checked)}
-              />
+              <input type="checkbox" checked={zgsOk} onChange={(e) => setZgsOk(e.target.checked)} />
               Допуск ЗГС получен (zgs_ok)
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={antiplagOk}
-                onChange={(e) => setAntiplagOk(e.target.checked)}
-              />
+              <input type="checkbox" checked={antiplagOk} onChange={(e) => setAntiplagOk(e.target.checked)} />
               Антиплагиат пройден (antiplag_ok)
             </label>
           </div>
@@ -320,7 +276,7 @@ function InlineScreeningForm({ articleId, onDone }) {
 }
 
 /* ============================================================
-   Main dashboard
+   Main dashboard (Tabs-based)
 ============================================================ */
 export default function SecretaryDashboard() {
   const [loading, setLoading] = useState(true);
@@ -361,12 +317,8 @@ export default function SecretaryDashboard() {
           search: screeningQuery || undefined,
         }),
       ]);
-      setSubmitted(
-        Array.isArray(s?.results) ? s.results : Array.isArray(s) ? s : []
-      );
-      setScreening(
-        Array.isArray(sc?.results) ? sc.results : Array.isArray(sc) ? sc : []
-      );
+      setSubmitted(Array.isArray(s?.results) ? s.results : Array.isArray(s) ? s : []);
+      setScreening(Array.isArray(sc?.results) ? sc.results : Array.isArray(sc) ? sc : []);
     } finally {
       setLoading(false);
     }
@@ -378,46 +330,29 @@ export default function SecretaryDashboard() {
     (async () => {
       setMembershipsLoading(true);
       try {
-        const jmUrl = withParams(API.JOURNAL_MEMBERSHIPS, {
-          mine: true,
-          page_size: 300,
-        });
+        const jmUrl = withParams(API.JOURNAL_MEMBERSHIPS, { mine: true, page_size: 300 });
         const { data: jmData } = await http.get(jmUrl);
         const rows = Array.isArray(jmData?.results)
           ? jmData.results
           : Array.isArray(jmData)
-            ? jmData
-            : [];
-        const secretRows = rows.filter(
-          (m) => String(m.role) === "secretary" && m.journal
-        );
-        const uniqueJids = [
-          ...new Set(secretRows.map((m) => Number(m.journal)).filter(Boolean)),
-        ];
+          ? jmData
+          : [];
+        const secretRows = rows.filter((m) => String(m.role) === "secretary" && m.journal);
+        const uniqueJids = [...new Set(secretRows.map((m) => Number(m.journal)).filter(Boolean))];
 
         const fetched = [];
         for (const jid of uniqueJids) {
           try {
             const { data: j } = await http.get(API.JOURNAL_ID(jid));
-            fetched.push({
-              id: Number(j.id),
-              title: j.title || `Журнал #${jid}`,
-              organization: j.organization,
-            });
+            fetched.push({ id: Number(j.id), title: j.title || `Журнал #${jid}`, organization: j.organization });
           } catch {
-            fetched.push({
-              id: Number(jid),
-              title: `Журнал #${jid}`,
-              organization: null,
-            });
+            fetched.push({ id: Number(jid), title: `Журнал #${jid}`, organization: null });
           }
         }
 
         if (!mounted) return;
         setJournals(fetched);
-        setJournalId(
-          (prev) => prev ?? (fetched.length === 1 ? fetched[0].id : null)
-        );
+        setJournalId((prev) => prev ?? (fetched.length === 1 ? fetched[0].id : null));
       } finally {
         if (mounted) setMembershipsLoading(false);
       }
@@ -479,11 +414,7 @@ export default function SecretaryDashboard() {
     );
   }
   if (!journals.length) {
-    return (
-      <div className="p-6">
-        Нет прав секретаря — доступных журналов не найдено.
-      </div>
-    );
+    return <div className="p-6">Нет прав секретаря — доступных журналов не найдено.</div>;
   }
 
   return (
@@ -494,10 +425,7 @@ export default function SecretaryDashboard() {
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-600">Журнал:</span>
-          <Select
-            value={journalId ? String(journalId) : undefined}
-            onValueChange={(v) => setJournalId(Number(v))}
-          >
+          <Select value={journalId ? String(journalId) : undefined} onValueChange={(v) => setJournalId(Number(v))}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Выберите журнал" />
             </SelectTrigger>
@@ -522,10 +450,7 @@ export default function SecretaryDashboard() {
             </SelectContent>
           </Select>
 
-          <Select
-            value={String(pageSize)}
-            onValueChange={(v) => setPageSize(Number(v))}
-          >
+          <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
             <SelectTrigger className="w-28">
               <SelectValue placeholder="Порог" />
             </SelectTrigger>
@@ -538,10 +463,7 @@ export default function SecretaryDashboard() {
             </SelectContent>
           </Select>
 
-          <Button
-            variant="outline"
-            onClick={() => journalId && loadArticlesForJournal(journalId)}
-          >
+          <Button variant="outline" onClick={() => journalId && loadArticlesForJournal(journalId)}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Обновить
           </Button>
@@ -559,156 +481,150 @@ export default function SecretaryDashboard() {
           <Loader2 className="h-4 w-4 animate-spin" /> Загрузка статей…
         </div>
       ) : (
-        <>
-          {/* Submitted */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>
-                  Новые подачи (Submitted){" "}
-                  <span className="text-gray-400">({submitted.length})</span>
-                </span>
-                <div className="relative w-full max-w-[380px] ml-4">
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    placeholder="Поиск в Submitted…"
-                    className="pl-9"
-                    value={submittedQuery}
-                    onChange={(e) =>
-                      onSearchChange("submitted", e.target.value)
-                    }
-                  />
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              {submitted.length ? (
-                <div className="grid gap-4">
-                  {submitted.map((a) => (
-                    <Card
-                      key={a.id}
-                      className="shadow-sm border border-slate-200 rounded-2xl"
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className="font-semibold truncate">
-                              {a.title}
+        <Tabs defaultValue="submitted" className="space-y-6" aria-label="Очереди статей">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="submitted" className="flex items-center gap-2 shrink-0">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Submitted</span>
+              <span className="sm:hidden">Подано</span>
+              <span className="ml-1 inline-flex items-center justify-start px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+                {submitted.length}
+              </span>
+            </TabsTrigger>
+
+            <TabsTrigger value="screening" className="flex items-center gap-2 shrink-0">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Скрининг</span>
+              <span className="ml-1 inline-flex items-center justify-start px-1.5 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-700">
+                {screening.length}
+              </span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ============ TAB: SUBMITTED ============ */}
+          <TabsContent value="submitted" className="space-y-4">
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>
+                    Новые подачи{" "}
+                    <span className="text-gray-400">({submitted.length})</span>
+                  </span>
+                  <div className="relative w-full max-w-[480px] ml-4">
+                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Поиск в Submitted…"
+                      className="pl-9"
+                      value={submittedQuery}
+                      onChange={(e) => onSearchChange("submitted", e.target.value)}
+                    />
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {submitted.length ? (
+                  <div className="grid gap-4 sm:grid-cols-1">
+                    {submitted.map((a) => (
+                      <Card key={a.id} className="shadow-sm border border-slate-200 rounded-2xl">
+                        <CardContent className="p-4">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <div className="font-semibold break-words">{a.title}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                Журнал #{a.journal} • Автор {a.author_email} • {fmt(a.created_at)}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              Журнал #{a.journal} • Автор {a.author_email} •{" "}
-                              {fmt(a.created_at)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                            <Link to={`/articles/${a.id}`}>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
+                              <Link to={`/articles/${a.id}`}>
+                                <Button variant="outline" className="bg-transparent">
+                                  Открыть
+                                </Button>
+                              </Link>
+                              <Button onClick={() => moveToScreening(a.id)} className="bg-blue-600 hover:bg-blue-700">
+                                На скрининг
+                              </Button>
                               <Button
                                 variant="outline"
-                                className="bg-transparent"
+                                onClick={() => returnToDraft(a.id)}
+                                title="Вернуть автору как черновик"
                               >
-                                Открыть
+                                В черновик
                               </Button>
-                            </Link>
-                            <Button
-                              onClick={() => moveToScreening(a.id)}
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              На скрининг
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => returnToDraft(a.id)}
-                              title="Вернуть автору как черновик"
-                            >
-                              В черновик
-                            </Button>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="mt-4">
+                          <div className="mt-4">
+                            <ArticleFiles articleId={a.id} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 text-gray-500">Заявок нет.</div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ============ TAB: SCREENING ============ */}
+          <TabsContent value="screening" className="space-y-4">
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>
+                    Скрининг{" "}
+                    <span className="text-gray-400">({screening.length})</span>
+                  </span>
+                  <div className="relative w-full max-w-[480px] ml-4">
+                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Поиск в Screening…"
+                      className="pl-9"
+                      value={screeningQuery}
+                      onChange={(e) => onSearchChange("screening", e.target.value)}
+                    />
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {screening.length ? (
+                  <div className="grid gap-4 sm:grid-cols-1">
+                    {screening.map((a) => (
+                      <Card key={a.id} className="shadow-sm border border-slate-200 rounded-2xl">
+                        <CardContent className="p-4 space-y-4">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <div className="font-semibold break-words">{a.title}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                Журнал #{a.journal} • {fmt(a.created_at)}
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
+                              <Link to={`/articles/${a.id}`}>
+                                <Button variant="outline" className="bg-transparent">
+                                  Открыть
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+
+                          <InlineScreeningForm articleId={a.id} onDone={() => loadArticlesForJournal(journalId)} />
+
                           <ArticleFiles articleId={a.id} />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-6 text-gray-500">Заявок нет.</div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Screening */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>
-                  Скрининг (Screening){" "}
-                  <span className="text-gray-400">({screening.length})</span>
-                </span>
-                <div className="relative w-full max-w-[380px] ml-4">
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    placeholder="Поиск в Screening…"
-                    className="pl-9"
-                    value={screeningQuery}
-                    onChange={(e) =>
-                      onSearchChange("screening", e.target.value)
-                    }
-                  />
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              {screening.length ? (
-                <div className="grid gap-4">
-                  {screening.map((a) => (
-                    <Card
-                      key={a.id}
-                      className="shadow-sm border border-slate-200 rounded-2xl"
-                    >
-                      <CardContent className="p-4 space-y-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className="font-semibold truncate">
-                              {a.title}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Журнал #{a.journal} • {fmt(a.created_at)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                            <Link to={`/articles/${a.id}`}>
-                              <Button
-                                variant="outline"
-                                className="bg-transparent"
-                              >
-                                Открыть
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-
-                        <InlineScreeningForm
-                          articleId={a.id}
-                          onDone={() => loadArticlesForJournal(journalId)}
-                        />
-
-                        <ArticleFiles articleId={a.id} />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-6 text-gray-500">
-                  Сейчас нет статей на скрининге.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 text-gray-500">Сейчас нет статей на скрининге.</div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, FileDown } from "lucide-react";
-import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { useAuth } from "@/auth/AuthContext";
-
+import { http } from "@/lib/apiClient";
 
 const SAMPLE = {
   id: 0,
@@ -44,7 +43,7 @@ const SAMPLE = {
 };
 
 export default function JournalView() {
-  const { jid } = useParams(); // Роут: /journals/:jid (НЕ модераторский)
+  const { jid } = useParams();
   const navigate = useNavigate();
 
   const [journal, setJournal] = useState(null);
@@ -52,7 +51,7 @@ export default function JournalView() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [forbidden, setForbidden] = useState(false);
-  const {isModerator} = useAuth();
+  const { isModerator } = useAuth();
 
   const normalize = (raw) => ({
     id: raw?.id ?? SAMPLE.id,
@@ -95,8 +94,7 @@ export default function JournalView() {
       setErr("");
       setForbidden(false);
       try {
-        // ВАЖНО: API.JOURNALS должен быть `/api/journals/journals/`
-        // тогда получится `/api/journals/journals/{id}/`
+        // API.JOURNALS должен быть вида "/api/journals/journals/"
         const { data } = await http.get(`${API.JOURNALS}${jid}/`);
         if (!ignore) setJournal(normalize(data));
       } catch (e) {
@@ -116,7 +114,7 @@ export default function JournalView() {
         if (!ignore) setLoading(false);
       }
 
-      // опционально: организация из localStorage
+      // организация (если клали в localStorage)
       try {
         const o = JSON.parse(localStorage.getItem("myOrg") || "null");
         if (!ignore) setOrg(o);
@@ -133,14 +131,12 @@ export default function JournalView() {
 
   if (loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
 
-  // Экран «Нет доступа»
   if (forbidden) {
     return (
       <div className="max-w-xl mx-auto p-6 text-center space-y-4">
         <div className="text-2xl font-semibold">Доступ запрещён (403)</div>
         <p className="text-gray-600">
-          Просмотр этого журнала доступен только авторизованным пользователям с
-          соответствующими правами.
+          Просмотр этого журнала доступен только авторизованным пользователям с соответствующими правами.
         </p>
         <div className="flex gap-2 justify-center">
           <Link to={`/login?next=/journals/${encodeURIComponent(jid)}`}>
@@ -166,21 +162,22 @@ export default function JournalView() {
         </div>
       )}
 
-      <div className="mb-6 flex flex-col md:flex-row md:items-center  gap-4">
-      <h1 className="text-3xl md:text-4xl font-bold text-center">
-        {journal.name}
-      </h1>
-            {org.is_verified ? (
-  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
-    Верифицирована{org.verification_date ? ` • ${new Date(org.verification_date).toLocaleDateString('ru-RU')}` : ""}
-  </span>
-) : (
-  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-    Не верифицирована
-  </span>
-)}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-center">
+          {journal.name}
+        </h1>
+        {org && (
+          org.is_verified ? (
+            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
+              Верифицирована{org.verification_date ? ` • ${new Date(org.verification_date).toLocaleDateString('ru-RU')}` : ""}
+            </span>
+          ) : (
+            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+              Не верифицирована
+            </span>
+          )
+        )}
       </div>
-      
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Левый сайдбар */}
@@ -209,6 +206,12 @@ export default function JournalView() {
                 className="block"
               >
                 <Button className="w-full">Подать статью в журнал</Button>
+              </Link>
+
+              <Link to={`/journals/${journal.id}/issues`} className="block">
+                <Button variant="outline" className="w-full bg-transparent">
+                  Выпуски / Архив
+                </Button>
               </Link>
 
               <div className="text-sm text-gray-700 space-y-1">
@@ -257,7 +260,6 @@ export default function JournalView() {
                   ))}
                 </div>
               )}
-              
 
               <div className="flex gap-2">
                 <Button variant="outline" onClick={onPrint} className="w-full">
@@ -265,15 +267,15 @@ export default function JournalView() {
                   Печать/PDF
                 </Button>
                 {!isModerator && (
-                <Link to="/author-dashboard">
-                  <Button variant="outline">Личный кабинет</Button>
-                </Link>
-              )}
-              {isModerator && (
-                <Link to="/moderator">
-                  <Button variant="outline">Кабинет модератора</Button>
-                </Link>
-              )}
+                  <Link to="/author-dashboard">
+                    <Button variant="outline">Личный кабинет</Button>
+                  </Link>
+                )}
+                {isModerator && (
+                  <Link to="/moderator">
+                    <Button variant="outline">Кабинет модератора</Button>
+                  </Link>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -282,7 +284,6 @@ export default function JournalView() {
         {/* Правая колонка */}
         <main className="md:col-span-7 xl:col-span-7">
           <Card className="border shadow-sm rounded-2xl">
-            
             <CardContent className="p-6 space-y-6">
               <section className="space-y-2">
                 <h2 className="text-xl font-semibold">Описание журнала</h2>
@@ -313,19 +314,12 @@ export default function JournalView() {
 
               <Separator />
 
-            
-        
-
               <section className="space-y-2">
                 <h2 className="text-xl font-semibold">Периодичность выхода</h2>
                 <p className="text-gray-800">
                   {journal.periodicity || SAMPLE.periodicity}
                 </p>
               </section>
-
-              <Separator />
-
-             
             </CardContent>
           </Card>
         </main>

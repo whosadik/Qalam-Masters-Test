@@ -1,9 +1,9 @@
+// src/components/ui/card.jsx
 import * as React from "react";
 import { cn } from "../../lib/utils";
 
 /**
- * Card
- * — базовые стили + мягкий адаптив (чуть больше радиус/тень на sm+)
+ * Аккуратная карточка с мягкой адаптивной подачей
  */
 const Card = React.forwardRef(function Card({ className, ...props }, ref) {
   return (
@@ -20,10 +20,6 @@ const Card = React.forwardRef(function Card({ className, ...props }, ref) {
 });
 Card.displayName = "Card";
 
-/**
- * CardHeader
- * — мобильные отступы p-4, больше на sm
- */
 const CardHeader = React.forwardRef(function CardHeader(
   { className, ...props },
   ref
@@ -38,10 +34,6 @@ const CardHeader = React.forwardRef(function CardHeader(
 });
 CardHeader.displayName = "CardHeader";
 
-/**
- * CardTitle
- * — семантический <h3> и адаптивные размеры шрифта
- */
 const CardTitle = React.forwardRef(function CardTitle(
   { className, ...props },
   ref
@@ -59,10 +51,6 @@ const CardTitle = React.forwardRef(function CardTitle(
 });
 CardTitle.displayName = "CardTitle";
 
-/**
- * CardDescription
- * — семантический <p> и адаптивная типографика
- */
 const CardDescription = React.forwardRef(function CardDescription(
   { className, ...props },
   ref
@@ -79,9 +67,8 @@ CardDescription.displayName = "CardDescription";
 
 /**
  * CardContent
- * — БОЛЬШОЕ ИЗМЕНЕНИЕ: больше нет жёсткого pt-0.
- *   Если нужно убрать верхний отступ — передай проп `noTopPadding`.
- *   Пример: <CardContent noTopPadding>...</CardContent>
+ * - по умолчанию равномерные отступы
+ * - если нужен контент без верхнего отступа, передай noTopPadding
  */
 const CardContent = React.forwardRef(function CardContent(
   { className, noTopPadding, ...props },
@@ -97,10 +84,6 @@ const CardContent = React.forwardRef(function CardContent(
 });
 CardContent.displayName = "CardContent";
 
-/**
- * CardFooter
- * — адаптивные отступы без принудительного pt-0
- */
 const CardFooter = React.forwardRef(function CardFooter(
   { className, ...props },
   ref

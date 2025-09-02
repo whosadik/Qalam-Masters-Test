@@ -1,6 +1,3 @@
-// ВАЖНО: все пути со слешем в конце, как в OpenAPI
-
-// Может быть:
 // 1) Полный URL: https://api.qalam-masters.kz/api
 // 2) Относительный путь: /api
 const RAW = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/+$/, "");

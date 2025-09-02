@@ -51,6 +51,8 @@ export default function EditArticlePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [article, setArticle] = useState(null);
+  if (!open) return null;      
+  if (!article) return null;  
 
   // метаданные (те, что реально есть на вашей Article-схеме)
   const [meta, setMeta] = useState({
@@ -204,17 +206,6 @@ export default function EditArticlePage() {
                 />
               </div>
 
-              {/* если добавишь на бэке — раскомментируй:
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Аннотация</label>
-                <Textarea
-                  value={meta.abstract || ""}
-                  onChange={(e) => setMeta((m) => ({ ...m, abstract: e.target.value }))}
-                  placeholder="Краткая аннотация"
-                  className="min-h-[120px]"
-                />
-              </div>
-              */}
 
               <Separator />
               <div className="flex gap-2">
