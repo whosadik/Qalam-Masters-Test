@@ -76,20 +76,16 @@ const extractDRFError = (err) => {
   }
 };
 
-// allowlist для query в списках (по OpenAPI: search, page, page_size, ordering)
 const normalizeListParams = (params = {}) => {
-  const out = {};
-  const { search, page, page_size, ordering, organization } = params;
-  if (search) out.search = search;
-  if (page) out.page = page;
-  if (page_size) out.page_size = page_size;
-  if (ordering) out.ordering = ordering;
-  // важное: поддержка фильтра по организации, если бэк его умеет
-  if (organization !== undefined && organization !== null) {
-    out.organization = Number(organization);
-  }
-  return out;
-};
+   const out = {};
+   const { search, page, page_size, ordering, organization } = params;
+   if (search) out.search = String(search).trim();
+   if (Number.isFinite(Number(page))) out.page = Number(page);
+   if (Number.isFinite(Number(page_size))) out.page_size = Number(page_size);
+   if (ordering) out.ordering = String(ordering);
+   if (Number.isFinite(Number(organization))) out.organization = Number(organization);
+   return out;
+ };
 
 // --- organizations -------------------------------------------
 
@@ -106,7 +102,7 @@ export async function createOrganization(payloadRaw) {
     const { data } = await http.post(API.ORGS, payload);
     return data; // { id, title, ... }
   } catch (err) {
-    err.displayMessage = extractDRFError(err);
+    err.displayMessage = `[${err?.response?.status || 'ERR'}] ${extractDRFError(err)}`;
     throw err;
   }
 }
@@ -123,7 +119,7 @@ export async function updateOrganization(id, payloadRaw, method = "patch") {
     const { data } = await fn(API.ORG_ID(id), payload);
     return data;
   } catch (err) {
-    err.displayMessage = extractDRFError(err);
+    err.displayMessage = `[${err?.response?.status || 'ERR'}] ${extractDRFError(err)}`;
     throw err;
   }
 }
@@ -145,13 +141,15 @@ export async function createOrganizationMembership(payload) {
     const { data } = await http.post(API.ORG_MEMBERSHIPS, payload);
     return data;
   } catch (err) {
-    err.displayMessage = extractDRFError(err);
+    err.displayMessage = `[${err?.response?.status || 'ERR'}] ${extractDRFError(err)}`;
     throw err;
   }
 }
 
 export async function getOrganizationMembership(id) {
-  const { data } = await http.get(API.ORG_MEMBERSHIP_ID(id));
+  const mid = Number(id);
+  if (!Number.isFinite(mid)) throw new Error("Invalid membership id");
+  const { data } = await http.get(API.ORG_MEMBERSHIP_ID(mid));
   return data;
 }
 
@@ -165,7 +163,7 @@ export async function updateOrganizationMembership(
     const { data } = await fn(API.ORG_MEMBERSHIP_ID(id), payload);
     return data;
   } catch (err) {
-    err.displayMessage = extractDRFError(err);
+    err.displayMessage = `[${err?.response?.status || 'ERR'}] ${extractDRFError(err)}`;
     throw err;
   }
 }
