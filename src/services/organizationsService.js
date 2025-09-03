@@ -79,11 +79,15 @@ const extractDRFError = (err) => {
 // allowlist для query в списках (по OpenAPI: search, page, page_size, ordering)
 const normalizeListParams = (params = {}) => {
   const out = {};
-  const { search, page, page_size, ordering } = params;
+  const { search, page, page_size, ordering, organization } = params;
   if (search) out.search = search;
   if (page) out.page = page;
   if (page_size) out.page_size = page_size;
   if (ordering) out.ordering = ordering;
+  // важное: поддержка фильтра по организации, если бэк его умеет
+  if (organization !== undefined && organization !== null) {
+    out.organization = Number(organization);
+  }
   return out;
 };
 

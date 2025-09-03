@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, RefreshCcw, Trash2, Save } from "lucide-react";
-import { http, withParams } from "@/lib/apiClient";
+import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 
 /* ── local helpers ───────────────────────────────────────────── */
@@ -25,21 +25,34 @@ const ORG_MEMBERSHIP_ID = (id) =>
     ? API.ORG_MEMBERSHIP_ID(id)
     : `${API.ORG_MEMBERSHIPS}${id}/`;
 
+const getOrgIdFromMembership = (m) =>
+  Number(
+    m?.organization?.id ??
+    m?.organization ??
+    m?.org_id ??
+    m?.organization_id
+  );
+
+// безопасно достаем ID membership (PK для DELETE/PATCH)
+const getMembershipId = (m) =>
+  Number(m?.id ?? m?.membership_id ?? m?.pk);
+
 const fullName = (u) => {
   const f = (u?.first_name || "").trim();
   const l = (u?.last_name || "").trim();
   return f || l ? `${f} ${l}`.trim() : "—";
 };
 
-const userEmail = (m) => m?.user?.email || "—";
+const userEmail = (m) => m?.user?.email || m?.user_email || m?.email || "—";
 
 /* ── network ─────────────────────────────────────────────────── */
 async function fetchOrgMembers(orgId, { pageSize = 100, maxPages = 30 } = {}) {
   const all = [];
   let page = 1;
   for (let i = 0; i < maxPages; i++) {
-    const { data } = await http.get(API.ORG_MEMBERSHIPS, {
-      params: { page, page_size: pageSize }, // <- БЕЗ organization
+ const { data } = await http.get(API.ORG_MEMBERSHIPS, {
+      // если сервер не поддерживает organization — он просто проигнорит; мы отфильтруем ниже
+      params: { organization: orgId, page, page_size: pageSize },
     });
     const chunk = Array.isArray(data?.results) ? data.results
                 : Array.isArray(data) ? data : [];
@@ -48,7 +61,7 @@ async function fetchOrgMembers(orgId, { pageSize = 100, maxPages = 30 } = {}) {
     page += 1;
   }
   // фильтруем локально по нужной организации
-  return all.filter(m => Number(m.organization) === Number(orgId));
+ return all.filter((m) => getOrgIdFromMembership(m) === Number(orgId));
 }
 
 
@@ -56,10 +69,10 @@ async function addMemberByEmail(orgId, email, role) {
   return http.post(API.ORG_MEMBERSHIPS, { organization: orgId, email, role });
 }
 async function patchMember(id, payload) {
-  return http.patch(ORG_MEMBERSHIP_ID(id), payload);
+ return http.patch(ORG_MEMBERSHIP_ID(id), payload);
 }
 async function removeMember(id) {
-  return http.delete(ORG_MEMBERSHIP_ID(id));
+return http.delete(ORG_MEMBERSHIP_ID(id));
 }
 
 /* ── component ───────────────────────────────────────────────── */
@@ -139,19 +152,18 @@ export default function OrgMembersManager({ orgId }) {
       setBusyAdd(false);
     }
   }
-
-  async function handleSaveRow(m) {
-    setSavingId(m.id);
-    try {
-      await patchMember(m.id, { role: m.role, is_active: m.is_active });
-      await load();
-    } catch (e) {
-      alert(e?.response?.data?.detail || "Не удалось сохранить изменения");
-    } finally {
-      setSavingId(null);
-    }
+async function handleSaveRow(m) {
+  const mid = getMembershipId(m);
+  setSavingId(mid);
+  try {
+    await patchMember(mid, { role: m.role, is_active: m.is_active });
+    await load();
+  } catch (e) {
+    alert(e?.response?.data?.detail || "Не удалось сохранить изменения");
+  } finally {
+    setSavingId(null);
   }
-
+}
   async function handleRemove(id) {
     if (!confirm("Удалить участника из организации?")) return;
     setRemovingId(id);
@@ -159,7 +171,14 @@ export default function OrgMembersManager({ orgId }) {
       await removeMember(id);
       await load();
     } catch (e) {
-      alert(e?.response?.data?.detail || "Не удалось удалить участника");
+       const s = e?.response?.status;
+    alert(
+      s === 404
+        ? "Участник не найден или у вас нет прав на удаление."
+        : s === 403
+        ? "Недостаточно прав для удаления участника."
+        : e?.response?.data?.detail || "Не удалось удалить участника"
+    );
     } finally {
       setRemovingId(null);
     }
@@ -256,11 +275,9 @@ export default function OrgMembersManager({ orgId }) {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((m) => (
-                  <tr
-                    key={m.id}
-                    className="border-b last:border-b-0 hover:bg-slate-50/60"
-                  >
+               {filtered.map((m) => {
+   const mid = getMembershipId(m);
+    return (<tr key={mid} className="border-b last:border-b-0 hover:bg-slate-50/60">
                     <td className="py-2 pr-3">{fullName(m.user)}</td>
                     <td className="py-2 pr-3">{userEmail(m)}</td>
                     <td className="py-2 pr-3">
@@ -270,7 +287,7 @@ export default function OrgMembersManager({ orgId }) {
                           onValueChange={(v) =>
                             setMembers((prev) =>
                               prev.map((x) =>
-                                x.id === m.id ? { ...x, role: v } : x
+                                getMembershipId(x) === mid ? { ...x, role: v } : x
                               )
                             )
                           }
@@ -296,9 +313,9 @@ export default function OrgMembersManager({ orgId }) {
                           onChange={(e) =>
                             setMembers((prev) =>
                               prev.map((x) =>
-                                x.id === m.id
-                                  ? { ...x, is_active: e.target.checked }
-                                  : x
+                                getMembershipId(x) === mid
+               ? { ...x, is_active: e.target.checked }
+               : x
                               )
                             )
                           }
@@ -310,25 +327,16 @@ export default function OrgMembersManager({ orgId }) {
                     </td>
                     <td className="py-2 pr-3">
                       <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleSaveRow(m)}
-                          disabled={savingId === m.id}
-                        >
-                          {savingId === m.id ? (
+                         <Button size="sm" onClick={() => handleSaveRow(m)}  disabled={savingId === mid}>
+                        {savingId === mid ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           ) : (
                             <Save className="w-4 h-4 mr-2" />
                           )}
                           Сохранить
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemove(m.id)}
-                          disabled={removingId === m.id}
-                        >
-                          {removingId === m.id ? (
+                        <Button size="sm" variant="outline" onClick={() => handleRemove(mid)} disabled={removingId === mid}>
+                          {removingId === mid ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           ) : (
                             <Trash2 className="w-4 h-4 mr-2" />
@@ -338,7 +346,7 @@ export default function OrgMembersManager({ orgId }) {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
