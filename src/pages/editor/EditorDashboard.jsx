@@ -26,7 +26,21 @@ import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { listArticles, updateArticleStatus } from "@/services/articlesService";
 import { listJournalMembers } from "@/services/journalMembershipsService";
-
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandList,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown } from "lucide-react";
 /* ---------- helpers ---------- */
 const STATUS_LABEL = {
   draft: "Черновик",
@@ -270,21 +284,7 @@ function AssignReviewerInline({
   );
 }
 
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandInput,
-  CommandEmpty,
-  CommandList,
-  CommandGroup,
-  CommandItem,
-} from "@/components/ui/command";
-import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+
 
 function labelUser(u) {
   const f = (u?.first_name || "").trim();
@@ -572,51 +572,44 @@ export default function EditorDashboard() {
   );
 
   useEffect(() => {
-    (async () => {
-      if (!journalId) return;
-      const j = journals.find((x) => Number(x.id) === Number(journalId));
-      if (!j?.organization) {
-        setOrgMembersForJournal([]);
-        setJournalTeam([]);
-        return;
-      }
+  (async () => {
+    if (!journalId) return;
+    const j = journals.find((x) => Number(x.id) === Number(journalId));
+    if (!j?.organization) {
+      setOrgMembersForJournal([]);
+      setJournalTeam([]);
+      return;
+    }
+    try {
+      // 1) Команда журнала (журнальные роли: editor/reviewer/…)
+      const teamList = await listJournalMembers(journalId, { page_size: 500 });
+      setJournalTeam(Array.isArray(teamList) ? teamList : teamList?.results || []);
+
+      // 2) Участники организации (берём user: UserMini)
+      let users = [];
       try {
-        // команда журнала
-        const teamList = await listJournalMembers(journalId, {
-          page_size: 500,
+        // ВАЖНО: используем /organizations/memberships/ с фильтром organization
+        const url = withParams("/organizations/memberships/", {
+          organization: j.organization,
+          page_size: 1000,
         });
-        setJournalTeam(
-          Array.isArray(teamList) ? teamList : teamList?.results || []
-        );
-
-        // участники организации
-        let orgUsers = [];
-        try {
-          const url = withParams("/api/organizations/memberships/users/", {
-            organization: j.organization,
-            page_size: 500,
-          });
-          const { data } = await http.get(url);
-          const rows = Array.isArray(data?.results)
-            ? data.results
-            : Array.isArray(data)
-              ? data
-              : [];
-          // если ручка отдаёт уже User — берём как есть; если membership — достаём .user
-          const orgUsers = rows.map((r) => r?.user ?? r).filter(Boolean);
-          setOrgMembersForJournal(orgUsers);
-        } catch (_) {
-          /* пойдём на фоллбэк ниже */
-        }
-
-        setOrgMembersForJournal(orgUsers);
+        const { data } = await http.get(url);
+        const rows = Array.isArray(data?.results) ? data.results
+                   : Array.isArray(data)        ? data
+                   : [];
+        users = rows.map((r) => r?.user ?? r).filter(Boolean); // UserMini[]
       } catch (e) {
-        console.error("load candidates failed", e);
-        setJournalTeam([]);
-        setOrgMembersForJournal([]);
+        console.error("org members load failed", e?.response?.data || e);
       }
-    })();
-  }, [journalId, journals]);
+      setOrgMembersForJournal(users);
+    } catch (e) {
+      console.error("load candidates failed", e);
+      setJournalTeam([]);
+      setOrgMembersForJournal([]);
+    }
+  })();
+}, [journalId, journals]);
+
 
   // guards
   if (membershipsLoading) {
