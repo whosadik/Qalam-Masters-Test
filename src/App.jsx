@@ -24,6 +24,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import RequirementsPage from "./pages/RequirementsPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Login/RegisterPage";
+import PublicationTerms from "./pages/PublicationTerms";
 
 import OrganizationList from "@/pages/moderator/organizations/OrganizationList";
 import OrganizationCreate from "@/pages/moderator/organizations/OrganizationCreate";
@@ -70,6 +71,7 @@ function PublicRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/403" element={<Forbidden />} />
+      <Route path="/publication-terms" element={<PublicationTerms />} />
 
       {/* если зашли на несуществующий публичный путь */}
       <Route path="*" element={<Navigate to="/app" replace />} />

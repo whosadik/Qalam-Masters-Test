@@ -28,6 +28,21 @@ export async function listJournalMembers(
   }
 }
 
+
+export async function listMyJournalMemberships({ page_size = 300, page = 1 } = {}) {
+  try {
+    const url = withParams(API.JOURNAL_MEMBERSHIPS, {
+      mine: true,       // <- бэк уже поддерживает (ты это используешь в EditorDashboard)
+      page_size,
+      page,
+    });
+    const { data } = await http.get(url);
+    return Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error("Ошибка загрузки моих ролей в журналах:", e?.response?.data || e);
+    return [];
+  }
+}
 // === Добавить участника ===
 export async function addJournalMember({ user, journal, role }) {
   const { data } = await http.post(API.JOURNAL_MEMBERSHIPS, {
@@ -50,3 +65,4 @@ export async function updateJournalMemberRole(id, role) {
 export async function removeJournalMember(id) {
   await http.delete(API.JOURNAL_MEMBERSHIP_ID(id));
 }
+

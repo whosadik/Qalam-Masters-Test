@@ -122,7 +122,16 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Входим..." : "Войти"}
             </Button>
-          </form>
+
+<div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-500">или</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+          <div className="text-center text-sm text-gray-600">
+           Нет аккаунта? {" "}
+            <Link to="/register" className="text-blue-600 hover:underline">Зарегистрироваться</Link>
+          </div>          </form>
         </CardContent>
       </Card>
     </div>

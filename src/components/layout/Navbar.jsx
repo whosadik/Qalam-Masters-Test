@@ -9,6 +9,10 @@ import ProfileMenu from "@/components/ProfileMenu";
 import { User as UserIcon, Compass } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import DashboardNavigatorModal, { useCommandK } from "@/components/DashboardNavigatorModal";
+import { http, withParams } from "@/lib/apiClient";
+import { API } from "@/constants/api";
+import { listMyJournalMemberships } from "@/services/journalMembershipsService";
+
 
 
 export default function Navbar() {
@@ -23,6 +27,27 @@ export default function Navbar() {
 
   // локальный user для показа, если контекст ещё пуст
    const displayUser = user || null;
+
+   const [roleSet, setRoleSet] = useState(() => new Set());
+ useEffect(() => {
+   if (!ready || !isAuthenticated) {
+     setRoleSet(new Set());
+     return;
+   }
+   (async () => {
+     const memberships = await listMyJournalMemberships({ page_size: 500 });
+     // m.role — строка: "reviewer" | "editor" | "chief_editor" | "secretary" | "proofreader" | ...
+     const next = new Set(memberships.map((m) => String(m.role)));
+     setRoleSet(next);
+   })();
+ }, [ready, isAuthenticated]);
+
+  const isReviewer = roleSet.has("reviewer");
+ const isEditor = roleSet.has("editor");
+ const isChief = roleSet.has("chief_editor");
+ const isSecretary = roleSet.has("secretary");
+ const isProofreader = roleSet.has("proofreader");
+
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && setOpen(false);
@@ -101,6 +126,21 @@ export default function Navbar() {
       ? `${displayUser?.first_name || ""} ${displayUser?.last_name || ""}`.trim()
       : (displayUser?.name || "Профиль");
 
+      const primaryDashPath =
+   isChief ? "/editor-chief-dashboard" :
+   isEditor ? "/editorial-board-dashboard" :
+   isSecretary ? "/secretary-dashboard" :
+   isProofreader ? "/proofreader-dashboard" :
+   isReviewer ? "/reviewer-dashboard" :
+   (isModerator ? "/moderator" : "/author-dashboard");
+ const primaryDashLabel =
+   isChief ? "Гл. редактор" :
+   isEditor ? "Редколлегия" :
+   isSecretary ? "Секретарь" :
+   isProofreader ? "Корректор" :
+   isReviewer ? "Рецензент" :
+   (isModerator ? "Модер." : "ЛК");
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -151,16 +191,49 @@ export default function Navbar() {
                {!ready && (
                 <div className="h-9 w-[140px] rounded-md bg-gray-100 animate-pulse" />
               )}
-              {ready && !isModerator && (
-                <Link to="/author-dashboard">
-                  <Button variant="outline">Личный кабинет</Button>
-                </Link>
-              )}
-              {ready && isModerator && (
-                <Link to="/moderator">
-                  <Button variant="outline">Кабинет модератора</Button>
-                </Link>
-              )}
+               {ready && (
+                   <>
+                     {/* показываем кнопки для КАЖДОЙ роли, если она есть */}
+                     {isChief && (
+                       <Link to="/editor-chief-dashboard">
+                         <Button variant="outline">Главный редактор</Button>
+                       </Link>
+                     )}
+                     {isEditor && (
+                       <Link to="/editorial-board-dashboard">
+                         <Button variant="outline">Редколлегия</Button>
+                       </Link>
+                     )}
+                     {isSecretary && (
+                       <Link to="/secretary-dashboard">
+                         <Button variant="outline">Секретарь</Button>
+                       </Link>
+                     )}
+                     {isProofreader && (
+                       <Link to="/proofreader-dashboard">
+                         <Button variant="outline">Корректор</Button>
+                       </Link>
+                     )}
+                     {isReviewer && (
+                       <Link to="/reviewer-dashboard">
+                         <Button variant="outline">Рецензент</Button>
+                       </Link>
+                     )}
+                     {/* если специальных ролей нет — показать авторский кабинет */}
+                     {!isChief && !isEditor && !isSecretary && !isProofreader && !isReviewer && !isModerator && (
+                       <Link to="/author-dashboard">
+                         <Button variant="outline">Личный кабинет</Button>
+                       </Link>
+                     )}
+                     {/* модератор отдельной кнопкой */}
+                     {isModerator && (
+                       <Link to="/moderator">
+                         <Button variant="outline">Кабинет модератора</Button>
+                       </Link>
+                     )}
+                   </>
+                 )}
+
                 
                   <ProfileMenu
                     name={displayName}
@@ -199,15 +272,13 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                   {!ready ? (
-                <div className="h-8 w-[64px] rounded bg-gray-100 animate-pulse" />
-              ) : (
-                <Link to={isModerator ? "/moderator" : "/author-dashboard"}>
-                  <Button variant="outline" size="sm">
-                    {isModerator ? "Модер." : "ЛК"}
-                  </Button>
-                </Link>
-              )}
+                    {!ready ? (
+                   <div className="h-8 w-[64px] rounded bg-gray-100 animate-pulse" />
+                 ) : (
+                   <Link to={primaryDashPath}>
+                     <Button variant="outline" size="sm">{primaryDashLabel}</Button>
+                   </Link>
+                 )}
 
                   {/* <NotificationsButton ... /> */}
 

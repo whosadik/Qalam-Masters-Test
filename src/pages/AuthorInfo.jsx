@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "../components/layout/Navbar";
+import { Link } from "react-router-dom";
 
 export default function AuthorInfo() {
   const requirements = [
@@ -174,9 +175,11 @@ export default function AuthorInfo() {
           </Card>
 
           <div className="text-center mt-12">
+            <Link to="/author-dashboard">
             <Button size="lg" className="text-lg px-8 py-6">
               Подать статью в журнал
             </Button>
+            </Link>
           </div>
         </div>
       </section>
