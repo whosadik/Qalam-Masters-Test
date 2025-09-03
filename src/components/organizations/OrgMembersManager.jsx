@@ -39,19 +39,18 @@ async function fetchOrgMembers(orgId, { pageSize = 100, maxPages = 30 } = {}) {
   let page = 1;
   for (let i = 0; i < maxPages; i++) {
     const { data } = await http.get(API.ORG_MEMBERSHIPS, {
-      params: { organization: orgId, page, page_size: pageSize }, // <-- ключевое изменение
+      params: { page, page_size: pageSize }, // <- БЕЗ organization
     });
-    const chunk = Array.isArray(data?.results)
-      ? data.results
-      : Array.isArray(data)
-        ? data
-        : [];
+    const chunk = Array.isArray(data?.results) ? data.results
+                : Array.isArray(data) ? data : [];
     all.push(...chunk);
     if (!data?.next || chunk.length === 0) break;
     page += 1;
   }
-  return all;
+  // фильтруем локально по нужной организации
+  return all.filter(m => Number(m.organization) === Number(orgId));
 }
+
 
 async function addMemberByEmail(orgId, email, role) {
   return http.post(API.ORG_MEMBERSHIPS, { organization: orgId, email, role });
