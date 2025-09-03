@@ -1,15 +1,22 @@
-// 1) Полный URL: https://api.qalam-masters.kz/api
-// 2) Относительный путь: /api
-const RAW = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/+$/, "");
+const PROD_API = "https://api.qalam-masters.kz/api";
 
-// Превращаем в абсолютный base (важно для new URL())
-export const BASE_URL = RAW.startsWith("http")
-  ? RAW // уже полный URL без завершающих слешей
-  : window.location.origin + RAW; // например http://localhost:5173 + /api => http://localhost:5173/api
+// распознаём продовый фронт (app.* и pages.dev превью)
+const isProdHost =
+  typeof window !== "undefined" &&
+  (/^app\.qalam-masters\.kz$/.test(window.location.hostname) ||
+   /\.qalam-masters-front\.pages\.dev$/.test(window.location.hostname));
 
-// Хелпер на всякий случай (вдруг понадобится где-то снаружи)
+// читаем из ENV (если задано при билде)
+const RAW_ENV = (import.meta.env?.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
+
+// если ENV пуст — на прод-хосте берём PROD_API, локально — "/api"
+const RAW = RAW_ENV || (isProdHost ? PROD_API : "/api");
+
+// превращаем в абсолютный URL при необходимости
+export const BASE_URL = RAW.startsWith("http") ? RAW : `${window.location.origin}${RAW}`;
+
+// Хелпер (как у тебя было)
 const withBase = (p) => `${BASE_URL}${p}`;
-
 // Полная карта эндпоинтов по твоей OpenAPI схеме
 export const API = {
   // ===== USERS / AUTH =====
