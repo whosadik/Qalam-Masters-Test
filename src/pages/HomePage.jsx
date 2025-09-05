@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Sardar from "../../public/sardar.png";
-import FloatingDashboardLauncher from "@/components/FloatingDashboardLauncher";
 import { useAuth } from "@/auth/AuthContext";
 
 /**
@@ -225,8 +224,7 @@ export default function HomePage() {
             <p>&copy; 2024 Научный журнал "Qalam Masters". Все права защищены.</p>
           </div>
 
-          <FloatingDashboardLauncher />
-        </div>
+        
       </footer>
     </div>
   );
