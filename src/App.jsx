@@ -24,6 +24,8 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import RequirementsPage from "./pages/RequirementsPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Login/RegisterPage";
+import VerifyEmailNotice from "./pages/Login/VerifyEmailNotice";
+import VerifyResult from "./pages/Login/VerifyResult";
 import PublicationTerms from "./pages/PublicationTerms";
 
 import OrganizationList from "@/pages/moderator/organizations/OrganizationList";
@@ -70,6 +72,8 @@ function PublicRoutes() {
       <Route path="/requirements" element={<RequirementsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login/verify-email" element={<VerifyEmailNotice />} />
+      <Route path="/login/verify-result" element={<VerifyResult />} />
       <Route path="/403" element={<Forbidden />} />
       <Route path="/publication-terms" element={<PublicationTerms />} />
 
@@ -217,6 +221,8 @@ function AppContent() {
     "/requirements",
     "/login",
     "/register",
+    "/login/verify-email",
+    "/login/verify-result",
     "/403",
   ]);
 
