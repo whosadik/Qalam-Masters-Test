@@ -59,8 +59,8 @@ import ReviewerDashboard from "./pages/reviewer/ReviewerDashboard";
 import ProofreaderDashboard from "./pages/proofreader/ProofreaderDashboard";
 import IssuesList from "@/pages/journal/IssuesList";
 import IssueTocPage from "@/pages/journal/IssueTocPage"; 
-import VerifyEmailNotice from "./pages/Login/VerifyEmailNotice";
-import VerifyResult from "./pages/Login/VerifyResult";
+import VerifyEmailNotice from "@/pages/Login/VerifyEmailNotice";
+import VerifyResult from "@/pages/Login/VerifyResult";
 
 function PublicRoutes() {
   return (
@@ -72,7 +72,7 @@ function PublicRoutes() {
       <Route path="/requirements" element={<RequirementsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login/verify-email" element={<VerifyEmailNotice />} />
+      <Route path="/login/verify-email" element={<VerifyEmailNotice />} />
       <Route path="/login/verify-result" element={<VerifyResult />} />
       <Route path="/403" element={<Forbidden />} />
       <Route path="/publication-terms" element={<PublicationTerms />} />
@@ -211,6 +211,9 @@ function AppContent() {
   const location = useLocation();
   const { booted } = useAuth();
   if (!booted) return <FullScreenSplash />;
+   const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+ const stripBase = (p) => (base && p.startsWith(base) ? p.slice(base.length) || "/" : p);
+ const pathname = stripBase(location.pathname);
 
   const publicPaths = new Set([
     "/",
@@ -226,7 +229,7 @@ function AppContent() {
     "/403",
   ]);
 
-  const isPublic = publicPaths.has(location.pathname);
+   const isPublic = publicPaths.has(pathname);
   return isPublic ? <PublicRoutes /> : <PrivateRoutes />;
 }
 
