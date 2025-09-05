@@ -223,8 +223,7 @@ export default function HomePage() {
           <div className="mt-12 border-t border-gray-800 pt-8 text-center text-gray-400 text-xs sm:text-sm">
             <p>&copy; 2024 Научный журнал "Qalam Masters". Все права защищены.</p>
           </div>
-
-        
+        </div>
       </footer>
     </div>
   );
