@@ -27,6 +27,10 @@ export async function signup(payload) {
   return data;
 }
 
+export async function resendVerificationEmail(email) {
+  await http.post(API.RESEND_VERIFICATION, { email });
+}
+
 /**
  * Текущий пользователь (профиль)
  */
