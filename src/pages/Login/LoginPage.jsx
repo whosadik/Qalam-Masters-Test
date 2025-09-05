@@ -36,28 +36,24 @@ export default function LoginPage() {
       // ВСЁ: дальше умный роутер сам разрулит роли
       navigate("/app", { replace: true });
     } catch (err) {
-       const code = err?.response?.data?.code || err?.response?.data?.detail;
+      const status = err?.response?.status;
+      const data = err?.response?.data || {};
+      const code = data.code || data.detail;
 
-      // Если бэкенд вернул спец-код (как в моих правках DRF)
-      if (code === "email_not_verified") {
+      // редиректим ТОЛЬКО если бэк явно сказал, что почта не подтверждена
+      if (status === 401 && code === "email_not_verified") {
         navigate("/login/verify-email", { state: { email: formData.email.trim() } });
         return;
       }
 
-      // Фолбэк (на случай старого текста ошибки)
+      // во всех остальных случаях просто показываем ошибку логина
       const detail =
-          err?.response?.data?.detail ||
-          err?.response?.data?.non_field_errors?.[0] ||
-          err?.response?.data?.error ||
+          data.detail ||
+          data.non_field_errors?.[0] ||
+          data.error ||
           err?.message;
 
-      if (typeof detail === "string" &&
-          detail.toLowerCase().includes("no active account")) {
-        navigate("/login/verify-email", { state: { email: formData.email.trim() } });
-        return;
-      }
-
-      setError(String(detail || "Неверный email или пароль."));
+      setError(detail || "Неверный email или пароль.");
     } finally {
       setLoading(false);
     }
