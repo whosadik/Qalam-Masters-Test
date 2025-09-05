@@ -75,25 +75,16 @@ export default function RegisterPage() {
         last_name,
       });
 
-      setOkMsg("Аккаунт создан, выполняем вход…");
-
-      // 2) авторизация через контекст (он сам сохранит токены и подтянет /me)
-      await login({
-        email: formData.email.trim(),
-        password: formData.password,
-      });
-
-      // 3) редирект в рабочую зону
-      navigate("/author-dashboard", { replace: true });
+      navigate("/login/verify-email", { state: { email: formData.email.trim() }, replace: true });
     } catch (err) {
       const msg =
-        err?.response?.data?.detail ||
-        err?.response?.data?.non_field_errors?.[0] ||
-        err?.response?.data?.email?.[0] ||
-        err?.response?.data?.password?.[0] ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Не удалось создать аккаунт. Попробуйте снова.";
+         err?.response?.data?.detail ||
+          err?.response?.data?.non_field_errors?.[0] ||
+          err?.response?.data?.email?.[0] ||
+          err?.response?.data?.password?.[0] ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Не удалось создать аккаунт. Попробуйте снова.";
       setErrorMsg(String(msg));
     } finally {
       setLoading(false);

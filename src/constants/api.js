@@ -23,6 +23,7 @@ export const API = {
   TOKEN_OBTAIN: withBase(`/users/token/`), // POST {email, password} -> {access, refresh}
   TOKEN_REFRESH: withBase(`/users/token/refresh/`), // POST {refresh} -> {access}
   SIGNUP: withBase(`/users/signup/`), // POST
+  RESEND_VERIFICATION: withBase(`/users/resend-verification/`), // POST {email}
   ME: withBase(`/users/me/`), // GET
   USER_UPDATE: withBase(`/users/update/`), // PUT/PATCH
   USER_DELETE: withBase(`/users/delete/`), // DELETE

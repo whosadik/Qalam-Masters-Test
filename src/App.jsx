@@ -58,7 +58,9 @@ import ChiefEditorDashboard from "./pages/chief/ChiefEditorDashboard";
 import ReviewerDashboard from "./pages/reviewer/ReviewerDashboard";
 import ProofreaderDashboard from "./pages/proofreader/ProofreaderDashboard";
 import IssuesList from "@/pages/journal/IssuesList";
-import IssueTocPage from "@/pages/journal/IssueTocPage"; // см. ниже
+import IssueTocPage from "@/pages/journal/IssueTocPage"; 
+import VerifyEmailNotice from "./pages/Login/VerifyEmailNotice";
+import VerifyResult from "./pages/Login/VerifyResult";
 
 function PublicRoutes() {
   return (
@@ -70,6 +72,8 @@ function PublicRoutes() {
       <Route path="/requirements" element={<RequirementsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login/verify-email" element={<VerifyEmailNotice />} />
+      <Route path="/login/verify-result" element={<VerifyResult />} />
       <Route path="/403" element={<Forbidden />} />
       <Route path="/publication-terms" element={<PublicationTerms />} />
 
@@ -217,6 +221,8 @@ function AppContent() {
     "/requirements",
     "/login",
     "/register",
+      "/login/verify-email",
+    "/login/verify-result",
     "/403",
   ]);
 
