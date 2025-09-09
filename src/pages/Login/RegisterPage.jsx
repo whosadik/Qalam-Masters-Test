@@ -151,7 +151,7 @@ export default function RegisterPage() {
                 active={intent === "individual"}
                 onClick={() => setIntent("individual")}
                 icon={<UserRound className="w-4 h-4" />}
-                title="Индивидуально"
+                title="Зарегистрироваться как автор"
                 desc="Только личный аккаунт"
               />
               <ChoiceCard
