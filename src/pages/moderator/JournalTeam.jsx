@@ -26,7 +26,6 @@ import {
 const ROLE_LABEL = {
   chief_editor: "Главный редактор",
   editor: "Редактор",
-  manager: "Менеджер",
   proofreader: "Корректор",
   secretary: "Секретарь",
   reviewer: "Рецензент",

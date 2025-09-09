@@ -84,18 +84,6 @@ export default function ProfileMenu({
             <span>Профиль</span>
           </button>
 
-          <button
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-            role="menuitem"
-            onClick={() => {
-              onSettings && onSettings();
-              setOpen(false);
-            }}
-          >
-            <Settings className="h-4 w-4" />
-            <span>Настройки</span>
-          </button>
-
           <hr className="my-2" />
 
           <button

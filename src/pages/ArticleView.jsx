@@ -55,7 +55,7 @@ const NEXT_HINTS = {
     tone: "info",
   },
   submitted: {
-    title: "Ожидайте скрининг",
+    title: "Ожидайте ответ",
     text: "Редакция проверит соответствие требованиям (тематика, оформление, оригинальность). При успехе статья перейдёт на рецензирование.",
     icon: Search,
     tone: "info",
@@ -210,7 +210,7 @@ export default function ArticleView() {
   );
 
   const hasManuscript = useMemo(
-    () => files?.some((f) => f.type === "manuscript"),
+    () => files?.some((f) => f.type === "Рукопись"),
     [files]
   );
 
@@ -342,11 +342,133 @@ export default function ArticleView() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Загрузите рукопись</CardTitle>
             <CardDescription className="text-sm text-amber-800">
-              Чтобы отправить в редакцию, прикрепите файл типа «manuscript».
+              Чтобы отправить в редакцию, прикрепите файл типа «Рукопись».
             </CardDescription>
           </CardHeader>
         </Card>
       )}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Метаданные</CardTitle>
+          <CardDescription>Название, аннотации, ключевые слова</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(article.title || article.title_en) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Название (RU)</div>
+                <div className="font-medium">{article.title || "—"}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Название (EN)</div>
+                <div className="font-medium">{article.title_en || "—"}</div>
+              </div>
+            </div>
+          )}
+
+          {(article.abstract_ru || article.abstract_en) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Аннотация (RU)</div>
+                <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                  {article.abstract_ru || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Аннотация (EN)</div>
+                <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                  {article.abstract_en || "—"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(article.keywords_ru || article.keywords_en) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Ключевые слова (RU)
+                </div>
+                <div className="text-sm">{article.keywords_ru || "—"}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Ключевые слова (EN)
+                </div>
+                <div className="text-sm">{article.keywords_en || "—"}</div>
+              </div>
+            </div>
+          )}
+
+          {(article.thematic_direction ||
+            article.research_goal ||
+            article.research_tasks ||
+            article.research_methods) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Тематическое направление
+                </div>
+                <div className="text-sm">
+                  {article.thematic_direction || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Цель исследования
+                </div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {article.research_goal || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Задачи исследования
+                </div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {article.research_tasks || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Методы исследования
+                </div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {article.research_methods || "—"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(article.author_full_name || article.author_organization) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Автор (из формы)
+                </div>
+                <div className="text-sm">
+                  {article.author_full_name || "—"}
+                  {article.author_academic_degree
+                    ? `, ${article.author_academic_degree}`
+                    : ""}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {article.author_position || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Организация</div>
+                <div className="text-sm">
+                  {article.author_organization || "—"}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {article.contact_email || "—"}
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Мини-таймлайн процесса (статично) */}
       <Card className="border-0 shadow-sm">
@@ -355,70 +477,101 @@ export default function ArticleView() {
           <CardDescription>Как статья двигается по пайплайну</CardDescription>
         </CardHeader>
         <CardContent className="p-4">
-          <ol className="space-y-3">
-            {[
-              { key: "draft", label: "Черновик" },
-              { key: "submitted", label: "Отправлена" },
-              { key: "screening", label: "Скрининг" },
-              { key: "under_review", label: "На рецензии" },
-              { key: "revision_minor", label: "Minor revision" },
-              { key: "revision_major", label: "Major revision" },
-              { key: "accepted", label: "Принята" },
-              { key: "in_production", label: "В производстве" },
-              { key: "published", label: "Опубликована" },
-            ].map((step) => {
-              const active = article.status === step.key;
-              const passed =
-                [
-                  "submitted",
-                  "screening",
-                  "under_review",
-                  "revision_minor",
-                  "revision_major",
-                  "accepted",
-                  "in_production",
-                  "published",
-                ].includes(step.key) &&
-                [
-                  "submitted",
-                  "screening",
-                  "under_review",
-                  "revision_minor",
-                  "revision_major",
-                  "accepted",
-                  "in_production",
-                  "published",
-                ].indexOf(step.key) <=
-                  [
-                    "submitted",
-                    "screening",
-                    "under_review",
-                    "revision_minor",
-                    "revision_major",
-                    "accepted",
-                    "in_production",
-                    "published",
-                  ].indexOf(article.status);
+          {(() => {
+            const inEditorialDone = [
+              "submitted",
+              "screening",
+              "under_review",
+              "revision_minor",
+              "revision_major",
+              "accepted",
+              "in_production",
+              "published",
+            ].includes(article.status);
+            const underReviewDone = [
+              "under_review",
+              "revision_minor",
+              "revision_major",
+              "accepted",
+              "in_production",
+              "published",
+            ].includes(article.status);
+            const acceptedDone = [
+              "accepted",
+              "in_production",
+              "published",
+            ].includes(article.status);
+            const publishedDone = article.status === "published";
 
-              return (
-                <li key={step.key} className="flex items-center gap-3">
-                  <span
-                    className={[
-                      "inline-flex h-5 w-5 rounded-full border-2",
-                      active
-                        ? "border-blue-600 bg-blue-600"
-                        : passed
-                          ? "border-blue-600"
-                          : "border-gray-300",
-                    ].join(" ")}
-                  />
-                  <span className={active ? "font-semibold" : "text-gray-700"}>
-                    {step.label}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+            let activeKey = "in_editorial";
+            if (article.status === "screening") {
+              activeKey = !article.antiplag_ok
+                ? "antiplag"
+                : !article.zgs_ok
+                  ? "zgs"
+                  : "under_review";
+            } else if (
+              ["under_review", "revision_minor", "revision_major"].includes(
+                article.status
+              )
+            ) {
+              activeKey = "under_review";
+            } else if (["accepted", "in_production"].includes(article.status)) {
+              activeKey = "accepted";
+            } else if (publishedDone) {
+              activeKey = "published";
+            } else if (article.status === "submitted") {
+              activeKey = "in_editorial";
+            }
+
+            const steps6 = [
+              {
+                key: "in_editorial",
+                label: "Статья в редакции",
+                done: inEditorialDone,
+              },
+              {
+                key: "under_review",
+                label: "Статья на рецензии",
+                done: underReviewDone,
+              },
+              {
+                key: "antiplag",
+                label: "Проверка на плагиат",
+                done: !!article.antiplag_ok,
+              },
+              { key: "zgs", label: "Проверка ЗГС", done: !!article.zgs_ok },
+              {
+                key: "accepted",
+                label: "Принята для публикации",
+                done: acceptedDone,
+              },
+              { key: "published", label: "Опубликована", done: publishedDone },
+            ];
+
+            return (
+              <ol className="space-y-3">
+                {steps6.map((s) => (
+                  <li key={s.key} className="flex items-center gap-3">
+                    <span
+                      className={[
+                        "inline-flex h-5 w-5 rounded-full border-2",
+                        s.done ? "border-blue-600" : "border-gray-300",
+                        activeKey === s.key ? "bg-blue-600" : "",
+                      ].join(" ")}
+                    />
+                    <span
+                      className={
+                        activeKey === s.key ? "font-semibold" : "text-gray-700"
+                      }
+                    >
+                      {s.label}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            );
+          })()}
         </CardContent>
       </Card>
 

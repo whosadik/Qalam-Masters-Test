@@ -347,18 +347,48 @@ export default function SubmitArticle() {
       setSubmitting(true);
 
       // 1) Сначала создаём статью МИНИМАЛЬНЫМ JSON (по схеме Article)
-      const created = await createArticle({
+      const payload = {
         journal: Number(formData.selectedJournal),
-        title: formData.titleRu.trim(),
-        status: "draft", // ← явно создаём черновик
-      });
+        status: "submitted",
+        // Названия и аннотации
+        title: (formData.titleRu || "").trim(),
+        title_en: (formData.titleEn || "").trim(),
+
+        abstract_ru: (formData.abstractRu || "").trim(),
+        abstract_en: (formData.abstractEn || "").trim(),
+
+        // ключевые слова храним строками «a, b, c»
+        keywords_ru: (formData.keywordsRu || "").trim(),
+        keywords_en: (formData.keywordsEn || "").trim(),
+
+        thematic_direction: formData.thematicDirection || "",
+
+        // цель/задачи/методы
+        research_goal: formData.researchGoal || "",
+        research_tasks: formData.researchTasks || "",
+        research_methods: formData.researchMethods || "",
+
+        // автор из формы подачи
+        author_full_name: [
+          formData.lastName,
+          formData.firstName,
+          formData.middleName,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        author_academic_degree: formData.academicDegree || "",
+        author_position: formData.position || "",
+        author_organization: formData.organization || "",
+        contact_email: formData.email || "",
+      };
+      const created = await createArticle(payload);
 
       // 2) Потом — загрузки файлов на /articles/{id}/files/
       const uploads = [];
 
       if (formData.articleFile) {
         uploads.push(
-          uploadArticleFile(created.id, formData.articleFile, "manuscript")
+          uploadArticleFile(created.id, formData.articleFile, "Рукопись")
         );
       }
       if (formData.expertConclusion) {
@@ -377,7 +407,11 @@ export default function SubmitArticle() {
       }
       if (formData.authorsConsent) {
         uploads.push(
-          uploadArticleFile(created.id, formData.authorsConsent, "supplement")
+          uploadArticleFile(
+            created.id,
+            formData.authorsConsent,
+            "Доп. материалы"
+          )
         );
       }
       if (formData.conflictOfInterest) {
@@ -385,13 +419,17 @@ export default function SubmitArticle() {
           uploadArticleFile(
             created.id,
             formData.conflictOfInterest,
-            "supplement"
+            "Доп. материалы"
           )
         );
       }
       if (formData.ethicsApproval) {
         uploads.push(
-          uploadArticleFile(created.id, formData.ethicsApproval, "supplement")
+          uploadArticleFile(
+            created.id,
+            formData.ethicsApproval,
+            "Доп. материалы"
+          )
         );
       }
 
@@ -620,13 +658,6 @@ export default function SubmitArticle() {
                       <SelectItem value="__none__">Не выбрано</SelectItem>
                       <SelectItem value="professor">Профессор</SelectItem>
                       <SelectItem value="docent">Доцент</SelectItem>
-                      <SelectItem value="senior">
-                        Старший преподаватель
-                      </SelectItem>
-                      <SelectItem value="assistant">Ассистент</SelectItem>
-                      <SelectItem value="researcher">
-                        Научный сотрудник
-                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -637,7 +668,7 @@ export default function SubmitArticle() {
                   Должность
                 </label>
                 <Input
-                  placeholder="Заведующий кафедрой"
+                  placeholder="Кандидат наук"
                   value={formData.position}
                   onChange={(e) =>
                     handleInputChange("position", e.target.value)
@@ -971,17 +1002,6 @@ export default function SubmitArticle() {
                     />
                   </div>
                 )}
-              </div>
-
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">Оплата</h4>
-                <p className="text-sm text-blue-800 mb-2">
-                  Стоимость публикации: 10 000 тенге/статья. Оплата после
-                  принятия статьи.
-                </p>
-                <p className="text-sm text-blue-800">
-                  Реквизиты будут предоставлены после принятия статьи.
-                </p>
               </div>
             </div>
           )}

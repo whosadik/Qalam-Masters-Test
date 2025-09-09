@@ -20,6 +20,23 @@ export default function LoginPage() {
     setError("");
   };
 
+  const smartRedirectAfterLogin = () => {
+    const intent = sessionStorage.getItem("onboarding.intent");
+    // очистим, чтобы не застревать на следующих заходах
+    if (intent) sessionStorage.removeItem("onboarding.intent");
+
+    if (intent === "create-org") {
+      navigate("/onboarding/create-org", { replace: true });
+      return;
+    }
+    if (intent === "join-org") {
+      navigate("/onboarding/join-org", { replace: true });
+      return;
+    }
+    // дефолт как и было
+    navigate("/app", { replace: true });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
@@ -33,25 +50,24 @@ export default function LoginPage() {
         email: formData.email.trim(),
         password: formData.password,
       });
-      // ВСЁ: дальше умный роутер сам разрулит роли
-      navigate("/app", { replace: true });
+
+      // ⬇️ вот здесь вместо жесткого navigate("/app") — умный редирект
+      smartRedirectAfterLogin();
     } catch (err) {
       const status = err?.response?.status;
       const data = err?.response?.data || {};
       const code = data.code || data.detail;
 
-      // редиректим ТОЛЬКО если бэк явно сказал, что почта не подтверждена
+      // если почта не подтверждена — оставляем твою логику
       if (status === 401 && code === "email_not_verified") {
-        navigate("/login/verify-email", { state: { email: formData.email.trim() } });
+        navigate("/login/verify-email", {
+          state: { email: formData.email.trim() },
+        });
         return;
       }
 
-      // во всех остальных случаях просто показываем ошибку логина
       const detail =
-          data.detail ||
-          data.non_field_errors?.[0] ||
-          data.error ||
-          err?.message;
+        data.detail || data.non_field_errors?.[0] || data.error || err?.message;
 
       setError(detail || "Неверный email или пароль.");
     } finally {
@@ -91,10 +107,6 @@ export default function LoginPage() {
                 <label htmlFor="password" className="block text-sm font-medium">
                   Пароль
                 </label>
-                {/* Убери ссылку, если маршрута нет */}
-                {/* <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline">
-                  Забыли пароль?
-                </Link> */}
               </div>
               <div className="relative">
                 <Input
@@ -130,19 +142,26 @@ export default function LoginPage() {
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full bg-[#3972FE] hover:bg-[#2f62df] text-white"
+              disabled={loading}
+            >
               {loading ? "Входим..." : "Войти"}
             </Button>
 
-<div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-500">или</span>
-            <div className="h-px flex-1 bg-gray-200" />
-          </div>
-          <div className="text-center text-sm text-gray-600">
-           Нет аккаунта? {" "}
-            <Link to="/register" className="text-blue-600 hover:underline">Зарегистрироваться</Link>
-          </div>          </form>
+            <div className="my-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-xs text-gray-500">или</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+            <div className="text-center text-sm text-gray-600">
+              Нет аккаунта?{" "}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                Зарегистрироваться
+              </Link>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

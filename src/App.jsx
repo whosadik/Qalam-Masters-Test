@@ -13,7 +13,6 @@ import HomePage from "./pages/HomePage";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import EditorialProfile from "./pages/EditorialProfile";
 import EditorialBoardDashboard from "./pages/EditorialBoardDashboard";
-import EditorChiefDashboard from "./pages/EditorChiefDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AuthorProfile from "./pages/AuthorProfile";
 import ReviewerProfile from "./pages/ReviewerProfile";
@@ -58,10 +57,12 @@ import ChiefEditorDashboard from "./pages/chief/ChiefEditorDashboard";
 import ReviewerDashboard from "./pages/reviewer/ReviewerDashboard";
 import ProofreaderDashboard from "./pages/proofreader/ProofreaderDashboard";
 import IssuesList from "@/pages/journal/IssuesList";
-import IssueTocPage from "@/pages/journal/IssueTocPage"; 
+import IssueTocPage from "@/pages/journal/IssueTocPage";
 import VerifyEmailNotice from "@/pages/Login/VerifyEmailNotice";
 import VerifyResult from "@/pages/Login/VerifyResult";
-
+import OnboardingCreateOrg from "./pages/onboarding/OnboardingCreateOrg";
+import OnboardingJoinOrg from "./pages/onboarding/OnboardingJoinOrg";
+import ContactsPage from "./pages/ContactsPage";
 function PublicRoutes() {
   return (
     <Routes>
@@ -75,7 +76,10 @@ function PublicRoutes() {
       <Route path="/login/verify-email" element={<VerifyEmailNotice />} />
       <Route path="/login/verify-result" element={<VerifyResult />} />
       <Route path="/403" element={<Forbidden />} />
-      <Route path="/publication-terms" element={<PublicationTerms />} />
+      <Route path="/for-journals" element={<PublicationTerms />} />
+      <Route path="/onboarding/create-org" element={<OnboardingCreateOrg />} />
+      <Route path="/onboarding/join-org" element={<OnboardingJoinOrg />} />
+      <Route path="/contacts" element={<ContactsPage />} />
 
       {/* если зашли на несуществующий публичный путь */}
       <Route path="*" element={<Navigate to="/app" replace />} />
@@ -96,10 +100,7 @@ function PrivateRoutes() {
             path="/editorial-board-dashboard"
             element={<EditorialBoardDashboard />}
           />
-          <Route
-            path="/editor-chief-dashboard"
-            element={<EditorChiefDashboard />}
-          />
+
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
           <Route path="/author-profile" element={<AuthorProfile />} />
@@ -211,25 +212,29 @@ function AppContent() {
   const location = useLocation();
   const { booted } = useAuth();
   if (!booted) return <FullScreenSplash />;
-   const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
- const stripBase = (p) => (base && p.startsWith(base) ? p.slice(base.length) || "/" : p);
- const pathname = stripBase(location.pathname);
+  const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+  const stripBase = (p) =>
+    base && p.startsWith(base) ? p.slice(base.length) || "/" : p;
+  const pathname = stripBase(location.pathname);
 
   const publicPaths = new Set([
     "/",
     "/about-journal",
     "/editorial-board",
     "/author-info",
-    "/publication-terms",
+    "/for-journals",
     "/requirements",
     "/login",
     "/register",
-      "/login/verify-email",
+    "/login/verify-email",
     "/login/verify-result",
+    "/onboarding/create-org",
+    "/onboarding/join-org",
+    "/contacts",
     "/403",
   ]);
 
-   const isPublic = publicPaths.has(pathname);
+  const isPublic = publicPaths.has(pathname);
   return isPublic ? <PublicRoutes /> : <PrivateRoutes />;
 }
 

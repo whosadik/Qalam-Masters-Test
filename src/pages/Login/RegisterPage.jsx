@@ -3,7 +3,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Building2,
+  UserRound,
+  UserPlus,
+  ArrowRight,
+} from "lucide-react";
 import { signup as apiSignup } from "@/services/authService";
 import { useAuth } from "@/auth/AuthContext"; // <-- добавили
 
@@ -20,7 +27,16 @@ function scorePassword(pwd) {
   return Math.min(s, 5);
 }
 function strengthLabel(score) {
-  return (["Очень слабый","Слабый","Средний","Хороший","Сильный","Очень сильный"][score] || "Очень слабый");
+  return (
+    [
+      "Очень слабый",
+      "Слабый",
+      "Средний",
+      "Хороший",
+      "Сильный",
+      "Очень сильный",
+    ][score] || "Очень слабый"
+  );
 }
 
 // делим одно поле "name" на first_name / last_name
@@ -28,11 +44,19 @@ function splitName(full) {
   const parts = (full || "").trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return { first_name: "", last_name: "" };
   if (parts.length === 1) return { first_name: parts[0], last_name: "-" };
-  return { first_name: parts.slice(0, -1).join(" "), last_name: parts.slice(-1)[0] };
+  return {
+    first_name: parts.slice(0, -1).join(" "),
+    last_name: parts.slice(-1)[0],
+  };
 }
-
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [intent, setIntent] = useState("individual"); // "individual" | "create-org" | "join-org"
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [touched, setTouched] = useState({});
   const [showPwd, setShowPwd] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
@@ -40,11 +64,18 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [okMsg, setOkMsg] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth(); // <-- берём login из контекста
+  const { login } = useAuth();
 
-  const emailValid = useMemo(() => /^\S+@\S+\.\S+$/.test(formData.email), [formData.email]);
-  const pwdScore = useMemo(() => scorePassword(formData.password), [formData.password]);
-  const pwdMatch = formData.password && formData.password === formData.confirmPassword;
+  const emailValid = useMemo(
+    () => /^\S+@\S+\.\S+$/.test(formData.email),
+    [formData.email]
+  );
+  const pwdScore = useMemo(
+    () => scorePassword(formData.password),
+    [formData.password]
+  );
+  const pwdMatch =
+    formData.password && formData.password === formData.confirmPassword;
 
   const hasErrors = !formData.name || !emailValid || pwdScore < 2 || !pwdMatch;
 
@@ -59,7 +90,12 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setTouched({ name: true, email: true, password: true, confirmPassword: true });
+    setTouched({
+      name: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
     if (hasErrors) return;
 
     try {
@@ -67,7 +103,9 @@ export default function RegisterPage() {
       setErrorMsg("");
       const { first_name, last_name } = splitName(formData.name);
 
-      // 1) регистрация (по OpenAPI: email, password, first_name, last_name)
+      // сохраняем выбранный путь онбординга на после-логина
+      sessionStorage.setItem("onboarding.intent", intent);
+
       await apiSignup({
         email: formData.email.trim(),
         password: formData.password,
@@ -75,16 +113,19 @@ export default function RegisterPage() {
         last_name,
       });
 
-      navigate("/login/verify-email", { state: { email: formData.email.trim() }, replace: true });
+      navigate("/login/verify-email", {
+        state: { email: formData.email.trim() },
+        replace: true,
+      });
     } catch (err) {
       const msg =
-         err?.response?.data?.detail ||
-          err?.response?.data?.non_field_errors?.[0] ||
-          err?.response?.data?.email?.[0] ||
-          err?.response?.data?.password?.[0] ||
-          err?.response?.data?.error ||
-          err?.message ||
-          "Не удалось создать аккаунт. Попробуйте снова.";
+        err?.response?.data?.detail ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.response?.data?.email?.[0] ||
+        err?.response?.data?.password?.[0] ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Не удалось создать аккаунт. Попробуйте снова.";
       setErrorMsg(String(msg));
     } finally {
       setLoading(false);
@@ -100,45 +141,108 @@ export default function RegisterPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {/* ШАГ 0 — выбор пути */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">
+              Как вы планируете использовать Qalam Masters?
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <ChoiceCard
+                active={intent === "individual"}
+                onClick={() => setIntent("individual")}
+                icon={<UserRound className="w-4 h-4" />}
+                title="Индивидуально"
+                desc="Только личный аккаунт"
+              />
+              <ChoiceCard
+                active={intent === "create-org"}
+                onClick={() => setIntent("create-org")}
+                icon={<Building2 className="w-4 h-4" />}
+                title="Создать организацию"
+                desc="ВУЗ/журнал/компания"
+              />
+              {/* <ChoiceCard
+                active={intent === "join-org"}
+                onClick={() => setIntent("join-org")}
+                icon={<UserPlus className="w-4 h-4" />}
+                title="Присоединиться"
+                desc="К существующей организации"
+              /> */}
+            </div>
+          </div>
+
+          {/* ФОРМА АККАУНТА */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div className="space-y-1.5">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
                 Имя и фамилия
               </label>
               <Input
-                id="name" name="name" placeholder="Напр. Иван Иванов"
-                value={formData.name} onChange={handleChange} onBlur={onBlur}
-                autoComplete="name" aria-invalid={touched.name && !formData.name}
+                id="name"
+                name="name"
+                placeholder="Напр. Иван Иванов"
+                value={formData.name}
+                onChange={handleChange}
+                onBlur={onBlur}
+                autoComplete="name"
+                aria-invalid={touched.name && !formData.name}
                 disabled={loading}
               />
-              {touched.name && !formData.name && <p className="text-xs text-red-600">Введите имя.</p>}
+              {touched.name && !formData.name && (
+                <p className="text-xs text-red-600">Введите имя.</p>
+              )}
             </div>
 
             {/* Email */}
             <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
                 Email
               </label>
               <Input
-                id="email" name="email" type="email" placeholder="you@example.com"
-                value={formData.email} onChange={handleChange} onBlur={onBlur}
-                autoComplete="email" aria-invalid={touched.email && !emailValid}
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={onBlur}
+                autoComplete="email"
+                aria-invalid={touched.email && !emailValid}
                 disabled={loading}
               />
-              {touched.email && !emailValid && <p className="text-xs text-red-600">Введите корректный email.</p>}
+              {touched.email && !emailValid && (
+                <p className="text-xs text-red-600">
+                  Введите корректный email.
+                </p>
+              )}
             </div>
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
                 Пароль
               </label>
               <div className="relative">
                 <Input
-                  id="password" name="password" type={showPwd ? "text" : "password"} placeholder="Минимум 8 символов"
-                  value={formData.password} onChange={handleChange} onBlur={onBlur}
-                  autoComplete="new-password" aria-invalid={touched.password && pwdScore < 2}
+                  id="password"
+                  name="password"
+                  type={showPwd ? "text" : "password"}
+                  placeholder="Минимум 8 символов"
+                  value={formData.password}
+                  onChange={handleChange}
+                  onBlur={onBlur}
+                  autoComplete="new-password"
+                  aria-invalid={touched.password && pwdScore < 2}
                   disabled={loading}
                 />
                 <button
@@ -148,44 +252,67 @@ export default function RegisterPage() {
                   aria-label={showPwd ? "Скрыть пароль" : "Показать пароль"}
                   disabled={loading}
                 >
-                  {showPwd ? <EyeOff className="h-4 w-4 text-gray-600" /> : <Eye className="h-4 w-4 text-gray-600" />}
+                  {showPwd ? (
+                    <EyeOff className="h-4 w-4 text-gray-600" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-600" />
+                  )}
                 </button>
               </div>
 
-              {/* Индикатор силы пароля */}
+              {/* strength bar */}
               <div className="mt-1">
                 <div className="h-1.5 w-full rounded bg-gray-200 overflow-hidden">
                   <div
                     className={[
                       "h-full transition-all duration-300",
-                      ["w-1/6","w-2/6","w-3/6","w-4/6","w-5/6","w-full"][pwdScore],
-                      ["bg-red-500","bg-orange-500","bg-yellow-500","bg-lime-500","bg-green-500","bg-emerald-600"][pwdScore],
+                      ["w-1/6", "w-2/6", "w-3/6", "w-4/6", "w-5/6", "w-full"][
+                        pwdScore
+                      ],
+                      [
+                        "bg-red-500",
+                        "bg-orange-500",
+                        "bg-yellow-500",
+                        "bg-lime-500",
+                        "bg-green-500",
+                        "bg-emerald-600",
+                      ][pwdScore],
                     ].join(" ")}
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-600">
-                  Сила пароля: <span className="font-medium">{strengthLabel(pwdScore)}</span>
+                  Сила пароля:{" "}
+                  <span className="font-medium">{strengthLabel(pwdScore)}</span>
                 </p>
               </div>
 
               {touched.password && pwdScore < 2 && (
                 <p className="text-xs text-red-600">
-                  Добавьте длину (8–12+), цифры, строчные/прописные буквы и символы.
+                  Добавьте длину (8–12+), цифры, строчные/прописные буквы и
+                  символы.
                 </p>
               )}
             </div>
 
             {/* Confirm password */}
             <div className="space-y-1.5">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
                 Подтвердите пароль
               </label>
               <div className="relative">
                 <Input
-                  id="confirmPassword" name="confirmPassword" type={showPwd2 ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showPwd2 ? "text" : "password"}
                   placeholder="Повторите пароль"
-                  value={formData.confirmPassword} onChange={handleChange} onBlur={onBlur}
-                  autoComplete="new-password" aria-invalid={touched.confirmPassword && !pwdMatch}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  onBlur={onBlur}
+                  autoComplete="new-password"
+                  aria-invalid={touched.confirmPassword && !pwdMatch}
                   disabled={loading}
                 />
                 <button
@@ -195,31 +322,68 @@ export default function RegisterPage() {
                   aria-label={showPwd2 ? "Скрыть пароль" : "Показать пароль"}
                   disabled={loading}
                 >
-                  {showPwd2 ? <EyeOff className="h-4 w-4 text-gray-600" /> : <Eye className="h-4 w-4 text-gray-600" />}
+                  {showPwd2 ? (
+                    <EyeOff className="h-4 w-4 text-gray-600" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-600" />
+                  )}
                 </button>
               </div>
-              {touched.confirmPassword && !pwdMatch && <p className="text-xs text-red-600">Пароли не совпадают.</p>}
+              {touched.confirmPassword && !pwdMatch && (
+                <p className="text-xs text-red-600">Пароли не совпадают.</p>
+              )}
             </div>
 
             {/* Alerts */}
-            {errorMsg && <p className="text-sm text-red-600" role="alert">{errorMsg}</p>}
+            {errorMsg && (
+              <p className="text-sm text-red-600" role="alert">
+                {errorMsg}
+              </p>
+            )}
             {okMsg && <p className="text-sm text-green-600">{okMsg}</p>}
 
             {/* Submit */}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Создаём аккаунт..." : "Зарегистрироваться"}
+            <Button
+              type="submit"
+              className="w-full bg-[#3972FE] hover:bg-[#2f62df] text-white"
+              disabled={loading}
+            >
+              {loading ? (
+                "Создаём аккаунт..."
+              ) : (
+                <span className="inline-flex items-center justify-center gap-2">
+                  {intent === "individual" && "Зарегистрироваться"}
+                  {intent === "create-org" && (
+                    <>
+                      Зарегистрироваться и перейти к организации{" "}
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                  {intent === "join-org" && (
+                    <>
+                      Зарегистрироваться и присоединиться{" "}
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </span>
+              )}
             </Button>
 
-            {/* Низ формы */}
+            {/* низ формы */}
             <p className="text-center text-xs text-gray-500">
               Регистрируясь, вы соглашаетесь с{" "}
-              <Link to="/terms" className="text-blue-600 hover:underline">условиями сервиса</Link>{" "}
+              <Link to="/terms" className="text-blue-600 hover:underline">
+                условиями сервиса
+              </Link>{" "}
               и{" "}
-              <Link to="/privacy" className="text-blue-600 hover:underline">политикой конфиденциальности</Link>.
+              <Link to="/privacy" className="text-blue-600 hover:underline">
+                политикой конфиденциальности
+              </Link>
+              .
             </p>
           </form>
 
-          {/* Divider & link to login */}
+          {/* divider + link to login */}
           <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
             <span className="text-xs text-gray-500">или</span>
@@ -227,10 +391,44 @@ export default function RegisterPage() {
           </div>
           <div className="text-center text-sm text-gray-600">
             Уже есть аккаунт?{" "}
-            <Link to="/login" className="text-blue-600 hover:underline">Войти</Link>
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Войти
+            </Link>
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function ChoiceCard({ active, onClick, icon, title, desc }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "border rounded-lg p-3 text-left transition shadow-sm",
+        active
+          ? "border-blue-600 ring-2 ring-blue-200 bg-white dark:bg-slate-900"
+          : "border-gray-200 hover:border-blue-300",
+      ].join(" ")}
+    >
+      <div className="flex items-center gap-2">
+        <div
+          className={[
+            "p-1.5 rounded-md",
+            active
+              ? "bg-blue-50 dark:bg-slate-800"
+              : "bg-gray-50 dark:bg-slate-800",
+          ].join(" ")}
+        >
+          {icon}
+        </div>
+        <div>
+          <div className="text-sm font-medium">{title}</div>
+          <div className="text-xs text-gray-500">{desc}</div>
+        </div>
+      </div>
+    </button>
   );
 }

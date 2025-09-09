@@ -115,15 +115,13 @@ const demoArchive = [
   },
 ];
 
-
-
- // Лейблы рекомендаций рецензента
- const RECOMMENDATION_LABEL = {
-   accept: "Принять",
-   minor: "Нужны правки (minor)",
-   major: "Нужны правки (major)",
-   reject: "Отклонить",
- };
+// Лейблы рекомендаций рецензента
+const RECOMMENDATION_LABEL = {
+  accept: "Принять",
+  minor: "Нужны правки (minor)",
+  major: "Нужны правки (major)",
+  reject: "Отклонить",
+};
 function notificationIcon(type) {
   switch (type) {
     case "review":
@@ -143,12 +141,12 @@ export default function AuthorDashboard() {
   const [loading, setLoading] = useState(true);
   const [articles, setArticles] = useState([]);
   const [submittingId, setSubmittingId] = useState(null);
-const [submitModal, setSubmitModal] = useState({
-  open: false,
-  title: "",
-  desc: "",
-  articleId: null,
-});
+  const [submitModal, setSubmitModal] = useState({
+    open: false,
+    title: "",
+    desc: "",
+    articleId: null,
+  });
   const [statusFilter, setStatusFilter] = useState("");
   const [journalFilter, setJournalFilter] = useState("");
   const [journals, setJournals] = useState([]);
@@ -158,10 +156,9 @@ const [submitModal, setSubmitModal] = useState({
 
   const [journalQuery, setJournalQuery] = useState("");
   const [filesByArticle, setFilesByArticle] = useState({});
-const [assignmentsByArticle, setAssignmentsByArticle] = useState({});
-const [loadingActivity, setLoadingActivity] = useState(false);
-const [activityOpen, setActivityOpen] = useState(false);
-
+  const [assignmentsByArticle, setAssignmentsByArticle] = useState({});
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
 
   const [messages, setMessages] = useState([
     {
@@ -185,115 +182,113 @@ const [activityOpen, setActivityOpen] = useState(false);
   ]);
   const [newMessage, setNewMessage] = useState("");
   const TYPE_LABEL = {
-  manuscript: "Рукопись",
-  supplement: "Приложение",
-  zgs: "Справка ЗГС",
-  antiplag_report: "Отчёт антиплагиата",
-  response_to_review: "Ответ рецензенту",
-  production_pdf: "Верстка (PDF)",
-};
+    manuscript: "Рукопись",
+    supplement: "Приложение",
+    zgs: "Справка ЗГС",
+    antiplag_report: "Отчёт антиплагиата",
+    response_to_review: "Ответ рецензенту",
+    production_pdf: "Верстка (PDF)",
+  };
 
-// расширяем иконки
-function notificationIcon(type) {
-  switch (type) {
-    case "review":
-      return <MessageSquare className="h-4 w-4 text-blue-500" />;
-    case "status":
-      return <AlertCircle className="h-4 w-4 text-orange-500" />;
-    case "file":
-      return <Upload className="h-4 w-4 text-indigo-500" />;
-    case "assignment":
-      return <Shield className="h-4 w-4 text-purple-500" />;
-    case "message":
-      return <Mail className="h-4 w-4 text-green-500" />;
-    default:
-      return <Bell className="h-4 w-4 text-gray-500" />;
+  // расширяем иконки
+  function notificationIcon(type) {
+    switch (type) {
+      case "review":
+        return <MessageSquare className="h-4 w-4 text-blue-500" />;
+      case "status":
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+      case "file":
+        return <Upload className="h-4 w-4 text-indigo-500" />;
+      case "assignment":
+        return <Shield className="h-4 w-4 text-purple-500" />;
+      case "message":
+        return <Mail className="h-4 w-4 text-green-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-500" />;
+    }
   }
-}
-
-
 
   const totalRevisions = articles.filter(
-  (a) => a.status === "revision_minor" || a.status === "revision_major"
-).length;
-const needsRevision = (s) => s === "revision_minor" || s === "revision_major";
+    (a) => a.status === "revision_minor" || a.status === "revision_major"
+  ).length;
+  const needsRevision = (s) => s === "revision_minor" || s === "revision_major";
 
-const revisionArticles = useMemo(
-   () => articles.filter((a) => needsRevision(a.status)),
-   [articles]
-
+  const revisionArticles = useMemo(
+    () => articles.filter((a) => needsRevision(a.status)),
+    [articles]
   );
 
-   const [reviewsByArticle, setReviewsByArticle] = useState({});
- const [loadingReviews, setLoadingReviews] = useState(false);
-const activityEvents = useMemo(() => {
-  const events = [];
-  const byId = Object.fromEntries(articles.map((a) => [a.id, a]));
+  const [reviewsByArticle, setReviewsByArticle] = useState({});
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const activityEvents = useMemo(() => {
+    const events = [];
+    const byId = Object.fromEntries(articles.map((a) => [a.id, a]));
 
-
-  // РЕЦЕНЗИИ (как было)
-  Object.entries(reviewsByArticle || {}).forEach(([articleId, revs]) => {
-    const art = byId[Number(articleId)];
-    (revs || []).forEach((r) => {
-      events.push({
-        id: `rev-${r.id}`,
-        type: "review",
-        title: "Новая рецензия",
-        message: `${RECOMMENDATION_LABEL[r.recommendation] || r.recommendation} • «${art?.title || "Статья"}»`,
-        time: r.created_at,
+    // РЕЦЕНЗИИ (как было)
+    Object.entries(reviewsByArticle || {}).forEach(([articleId, revs]) => {
+      const art = byId[Number(articleId)];
+      (revs || []).forEach((r) => {
+        events.push({
+          id: `rev-${r.id}`,
+          type: "review",
+          title: "Новая рецензия",
+          message: `${RECOMMENDATION_LABEL[r.recommendation] || r.recommendation} • «${art?.title || "Статья"}»`,
+          time: r.created_at,
+        });
       });
     });
-  });
 
-  // СТАТУСЫ СТАТЕЙ (по created_at самой статьи — истории статусов в API нет)
-  articles.forEach((a) => {
-    events.push({
-      id: `status-${a.id}`,
-      type: "status",
-      title: "Статус статьи",
-      message: `«${a.title}»: ${STATUS_LABEL[a.status] || a.status}`,
-      time: a.created_at,
-    });
-  });
-
-  // ФАЙЛЫ (из /files)
-  Object.entries(filesByArticle || {}).forEach(([articleId, files]) => {
-    const art = byId[Number(articleId)];
-    (files || []).forEach((f) => {
+    // СТАТУСЫ СТАТЕЙ (по created_at самой статьи — истории статусов в API нет)
+    articles.forEach((a) => {
       events.push({
-        id: `file-${articleId}-${f.id}`,
-        type: "file",
-        title: "Новый файл",
-        message: `${TYPE_LABEL[f.type] || f.type} • «${art?.title || "Статья"}»`,
-        time: f.uploaded_at,
+        id: `status-${a.id}`,
+        type: "status",
+        title: "Статус статьи",
+        message: `«${a.title}»: ${STATUS_LABEL[a.status] || a.status}`,
+        time: a.created_at,
       });
     });
-  });
 
-  // НАЗНАЧЕНИЯ РЕЦЕНЗЕНТОВ
-  Object.entries(assignmentsByArticle || {}).forEach(([articleId, assigns]) => {
-    const art = byId[Number(articleId)];
-    (assigns || []).forEach((as) => {
-      const statusMap = {
-        assigned: "Назначен рецензент",
-        accepted: "Рецензент принял назначение",
-        declined: "Рецензент отклонил назначение",
-        cancelled: "Назначение отменено",
-        completed: "Рецензирование завершено",
-      };
-      events.push({
-        id: `assign-${as.id}`,
-        type: "assignment",
-        title: statusMap[as.status] || "Назначение рецензента",
-        message: `«${art?.title || "Статья"}»${as.due_at ? ` • срок до ${new Date(as.due_at).toLocaleDateString()}` : ""}`,
-        time: as.created_at,
+    // ФАЙЛЫ (из /files)
+    Object.entries(filesByArticle || {}).forEach(([articleId, files]) => {
+      const art = byId[Number(articleId)];
+      (files || []).forEach((f) => {
+        events.push({
+          id: `file-${articleId}-${f.id}`,
+          type: "file",
+          title: "Новый файл",
+          message: `${TYPE_LABEL[f.type] || f.type} • «${art?.title || "Статья"}»`,
+          time: f.uploaded_at,
+        });
       });
     });
-  });
 
-  events.sort((a, b) => new Date(b.time) - new Date(a.time));
-  return events;
-}, [articles, reviewsByArticle, filesByArticle, assignmentsByArticle]);
+    // НАЗНАЧЕНИЯ РЕЦЕНЗЕНТОВ
+    Object.entries(assignmentsByArticle || {}).forEach(
+      ([articleId, assigns]) => {
+        const art = byId[Number(articleId)];
+        (assigns || []).forEach((as) => {
+          const statusMap = {
+            assigned: "Назначен рецензент",
+            accepted: "Рецензент принял назначение",
+            declined: "Рецензент отклонил назначение",
+            cancelled: "Назначение отменено",
+            completed: "Рецензирование завершено",
+          };
+          events.push({
+            id: `assign-${as.id}`,
+            type: "assignment",
+            title: statusMap[as.status] || "Назначение рецензента",
+            message: `«${art?.title || "Статья"}»${as.due_at ? ` • срок до ${new Date(as.due_at).toLocaleDateString()}` : ""}`,
+            time: as.created_at,
+          });
+        });
+      }
+    );
+
+    events.sort((a, b) => new Date(b.time) - new Date(a.time));
+    return events;
+  }, [articles, reviewsByArticle, filesByArticle, assignmentsByArticle]);
 
   useEffect(() => {
     (async () => {
@@ -335,65 +330,64 @@ const activityEvents = useMemo(() => {
     );
   }, [journals, journalQuery]);
   useEffect(() => {
-  if (!articles.length) {
-    setFilesByArticle({});
-    setAssignmentsByArticle({});
-    return;
-  }
-
-  let aborted = false;
-  (async () => {
-    setLoadingActivity(true);
-    try {
-      // 1) последние файлы по каждой статье
-      const filesEntries = await Promise.all(
-        articles.map(async (a) => {
-          try {
-            const { data } = await http.get(
-              withParams(`/api/articles/articles/${a.id}/files/`, {
-                ordering: "-uploaded_at",
-                page_size: 3,
-              })
-            );
-            return [a.id, data?.results || []];
-          } catch {
-            return [a.id, []];
-          }
-        })
-      );
-
-      // 2) последние назначения рецензентов по каждой статье
-      const assignEntries = await Promise.all(
-        articles.map(async (a) => {
-          try {
-            const { data } = await http.get(
-              withParams("/api/reviews/assignments/", {
-                article: a.id,
-                ordering: "-created_at",
-                page_size: 3,
-              })
-            );
-            return [a.id, data?.results || []];
-          } catch {
-            return [a.id, []];
-          }
-        })
-      );
-
-      if (!aborted) {
-        setFilesByArticle(Object.fromEntries(filesEntries));
-        setAssignmentsByArticle(Object.fromEntries(assignEntries));
-      }
-    } finally {
-      if (!aborted) setLoadingActivity(false);
+    if (!articles.length) {
+      setFilesByArticle({});
+      setAssignmentsByArticle({});
+      return;
     }
-  })();
 
-  return () => {
-    aborted = true;
-  };
-}, [articles]);
+    let aborted = false;
+    (async () => {
+      setLoadingActivity(true);
+      try {
+        // 1) последние файлы по каждой статье
+        const filesEntries = await Promise.all(
+          articles.map(async (a) => {
+            try {
+              const { data } = await http.get(
+                withParams(`/api/articles/articles/${a.id}/files/`, {
+                  ordering: "-uploaded_at",
+                  page_size: 3,
+                })
+              );
+              return [a.id, data?.results || []];
+            } catch {
+              return [a.id, []];
+            }
+          })
+        );
 
+        // 2) последние назначения рецензентов по каждой статье
+        const assignEntries = await Promise.all(
+          articles.map(async (a) => {
+            try {
+              const { data } = await http.get(
+                withParams("/api/reviews/assignments/", {
+                  article: a.id,
+                  ordering: "-created_at",
+                  page_size: 3,
+                })
+              );
+              return [a.id, data?.results || []];
+            } catch {
+              return [a.id, []];
+            }
+          })
+        );
+
+        if (!aborted) {
+          setFilesByArticle(Object.fromEntries(filesEntries));
+          setAssignmentsByArticle(Object.fromEntries(assignEntries));
+        }
+      } finally {
+        if (!aborted) setLoadingActivity(false);
+      }
+    })();
+
+    return () => {
+      aborted = true;
+    };
+  }, [articles]);
 
   useEffect(() => {
     const handler = setTimeout(async () => {
@@ -430,24 +424,25 @@ const activityEvents = useMemo(() => {
   };
 
   const submitWithModal = async (article) => {
-  setSubmittingId(article.id);
-  try {
-    const updated = await updateArticleStatus(article.id, "submitted");
-    setArticles((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-    setSubmitModal({
-      open: true,
-      title: "Отправлено!",
-      desc: `Статья «${article.title}» успешно отправлена в редакцию.`,
-      articleId: updated.id,
-    });
-  } catch (e) {
-    console.error("submit failed", e);
-    alert("Не удалось отправить. Попробуйте ещё раз.");
-  } finally {
-    setSubmittingId(null);
-  }
-};
-
+    setSubmittingId(article.id);
+    try {
+      const updated = await updateArticleStatus(article.id, "submitted");
+      setArticles((prev) =>
+        prev.map((a) => (a.id === updated.id ? updated : a))
+      );
+      setSubmitModal({
+        open: true,
+        title: "Отправлено!",
+        desc: `Статья «${article.title}» успешно отправлена в редакцию.`,
+        articleId: updated.id,
+      });
+    } catch (e) {
+      console.error("submit failed", e);
+      alert("Не удалось отправить. Попробуйте ещё раз.");
+    } finally {
+      setSubmittingId(null);
+    }
+  };
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
@@ -473,69 +468,68 @@ const activityEvents = useMemo(() => {
   };
 
   useEffect(() => {
-   const load = async () => {
-     if (revisionArticles.length === 0) {
-       setReviewsByArticle({});
-       return;
-     }
-     setLoadingReviews(true);
-     try {
-       const entries = await Promise.all(
-         revisionArticles.map(async (a) => {
-           // 1) Берём назначения рецензентов по статье
-           const { data: assignData } = await http.get(
-             withParams("/api/reviews/assignments/", {
-               article: a.id,
-               ordering: "-created_at",
-             })
-           );
-           const assignments = assignData?.results || [];
+    const load = async () => {
+      if (revisionArticles.length === 0) {
+        setReviewsByArticle({});
+        return;
+      }
+      setLoadingReviews(true);
+      try {
+        const entries = await Promise.all(
+          revisionArticles.map(async (a) => {
+            // 1) Берём назначения рецензентов по статье
+            const { data: assignData } = await http.get(
+              withParams("/api/reviews/assignments/", {
+                article: a.id,
+                ordering: "-created_at",
+              })
+            );
+            const assignments = assignData?.results || [];
 
-           // 2) По каждому назначению берём отзывы
-           const reviews = (
-             await Promise.all(
-               assignments.map(async (as) => {
-                 const { data: revData } = await http.get(
-                   withParams("/api/reviews/reviews/", {
-                     assignment: as.id,
-                     ordering: "-created_at",
-                   })
-                 );
-                 const list = revData?.results || [];
-                 // приклеим само назначение — бывает полезно (due_at, blind, status)
-                 return list.map((r) => ({ ...r, _assignment: as }));
-               })
-             )
-           ).flat();
+            // 2) По каждому назначению берём отзывы
+            const reviews = (
+              await Promise.all(
+                assignments.map(async (as) => {
+                  const { data: revData } = await http.get(
+                    withParams("/api/reviews/reviews/", {
+                      assignment: as.id,
+                      ordering: "-created_at",
+                    })
+                  );
+                  const list = revData?.results || [];
+                  // приклеим само назначение — бывает полезно (due_at, blind, status)
+                  return list.map((r) => ({ ...r, _assignment: as }));
+                })
+              )
+            ).flat();
 
-           return [a.id, reviews];
-         })
-       );
-       setReviewsByArticle(Object.fromEntries(entries));
-     } catch (e) {
-       console.error("reviews load failed", e);
-     } finally {
-       setLoadingReviews(false);
-     }
-   };
-   load();
- }, [revisionArticles]);
+            return [a.id, reviews];
+          })
+        );
+        setReviewsByArticle(Object.fromEntries(entries));
+      } catch (e) {
+        console.error("reviews load failed", e);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    load();
+  }, [revisionArticles]);
 
   const total = articles.length;
   const totalAccepted = articles.filter((a) => a.status === "accepted").length;
-    const eventsCount = activityEvents.length;
+  const eventsCount = activityEvents.length;
 
   const totalReview = articles.filter(
     (a) => a.status === "under_review"
   ).length;
 
-   const totalPublished = articles.filter(
+  const totalPublished = articles.filter(
     (a) => a.status === "published"
   ).length;
-   const totalInProduction = articles.filter((a) => a.status === "in_production").length;
-
-
-
+  const totalInProduction = articles.filter(
+    (a) => a.status === "in_production"
+  ).length;
 
   return (
     <div className="space-y-6 p-3 sm:p-4 lg:p-6">
@@ -555,7 +549,6 @@ const activityEvents = useMemo(() => {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          
           <Link to="/submit-article">
             <Button className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full sm:w-auto">
               <PlusCircle className="h-4 w-4 mr-2" />
@@ -590,9 +583,6 @@ const activityEvents = useMemo(() => {
           </CardContent>
         </Card>
 
-
-
-
         <Card className="border-0 shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
@@ -607,15 +597,14 @@ const activityEvents = useMemo(() => {
           </CardContent>
         </Card>
 
-
-
-
         <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm">Опубликовано</p>
-                <p className="text-2xl sm:text-3xl font-bold">{totalPublished}</p>
+                <p className="text-2xl sm:text-3xl font-bold">
+                  {totalPublished}
+                </p>
               </div>
               <Archive className="h-7 w-7 sm:h-8 sm:w-8 text-purple-200" />
             </div>
@@ -634,17 +623,17 @@ const activityEvents = useMemo(() => {
             <span className="sm:hidden">Статьи</span>
           </TabsTrigger>
           <TabsTrigger
-   value="reviews"
-   className="flex items-center gap-2 shrink-0"
- >
-   <MessageSquare className="h-4 w-4" />
-   <span>Рецензии</span>
-   {totalRevisions > 0 && (
-     <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
-       {totalRevisions}
-     </span>
-   )}
- </TabsTrigger>
+            value="reviews"
+            className="flex items-center gap-2 shrink-0"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Рецензии</span>
+            {totalRevisions > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+                {totalRevisions}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger
             value="journals"
             className="flex items-center gap-2 shrink-0"
@@ -653,21 +642,19 @@ const activityEvents = useMemo(() => {
             <span className="hidden sm:inline">Поиск журналов</span>
             <span className="sm:hidden">Журналы</span>
           </TabsTrigger>
-         
- <TabsTrigger
-  value="activity"
-  className="flex items-center gap-2 shrink-0"
->
-  <Bell className="h-4 w-4" />
-  <span>События</span>
-  {eventsCount > 0 && (
-    <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
-      {eventsCount > 99 ? "99+" : eventsCount}
-    </span>
-  )}
-</TabsTrigger>
 
-          
+          <TabsTrigger
+            value="activity"
+            className="flex items-center gap-2 shrink-0"
+          >
+            <Bell className="h-4 w-4" />
+            <span>События</span>
+            {eventsCount > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
+                {eventsCount > 99 ? "99+" : eventsCount}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         {/* ====== Мои статьи (БОЕВЫЕ ДАННЫЕ) ====== */}
@@ -735,121 +722,102 @@ const activityEvents = useMemo(() => {
               </Card>
             )}
 
-          {articles.map((article) => {
-  // безопасно «распаковываем» файлы: в списке статей их может и не быть
-  const files = Array.isArray(article.files) ? article.files : [];
-  const hasManuscript = files.some((f) => f.type === "manuscript");
-  const hasResponse   = files.some((f) => f.type === "response_to_review");
-  const isRevision =
-    article.status === "revision_minor" || article.status === "revision_major";
+            {articles.map((article) => {
+              // безопасно «распаковываем» файлы: в списке статей их может и не быть
+              const files = Array.isArray(article.files) ? article.files : [];
+              const hasManuscript = files.some((f) => f.type === "manuscript");
+              const hasResponse = files.some(
+                (f) => f.type === "response_to_review"
+              );
+              const isRevision =
+                article.status === "revision_minor" ||
+                article.status === "revision_major";
 
-  return (
-    <Card
-      key={article.id}
-      className="w-full max-w-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-    >
-      <CardHeader className="pb-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2 flex-1 min-w-0">
-            <div className="flex items-center gap-3 min-w-0">
-              <CardTitle className="text-lg sm:text-xl text-gray-900 truncate">
-                {article.title}
-              </CardTitle>
-            </div>
-            <CardDescription className="text-gray-600 truncate">
-              <span className="font-medium">
-                {article.journal_title || `Журнал #${article.journal}`}
-              </span>
-            </CardDescription>
-          </div>
-          <div className="md:ml-4">
-            <Badge className={statusBadgeClass(article.status)}>
-              {STATUS_LABEL[article.status] || article.status}
-            </Badge>
-            {article.status === "draft" && (
-              <Badge variant="outline" className="ml-2">
-                манускрипт загружен
-              </Badge>
-            )}
-          </div>
-        </div>
-      </CardHeader>
+              return (
+                <Card
+                  key={article.id}
+                  className="w-full max-w-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <CardTitle className="text-lg sm:text-xl text-gray-900 truncate">
+                            {article.title}
+                          </CardTitle>
+                        </div>
+                        <CardDescription className="text-gray-600 truncate">
+                          <span className="font-medium">
+                            {article.journal_title ||
+                              `Журнал #${article.journal}`}
+                          </span>
+                        </CardDescription>
+                      </div>
+                      <div className="md:ml-4">
+                        <Badge className={statusBadgeClass(article.status)}>
+                          {STATUS_LABEL[article.status] || article.status}
+                        </Badge>
+                        {article.status === "draft" && (
+                          <Badge variant="outline" className="ml-2">
+                            манускрипт загружен
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Метаданные */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <div>
-              <p className="text-gray-500">Создана</p>
-              <p className="font-medium">
-                {article.created_at
-                  ? new Date(article.created_at).toLocaleString()
-                  : "—"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Shield className="h-4 w-4 text-indigo-500" />
-            <div>
-              <p className="text-gray-500">Автор</p>
-              <p className="font-medium">{article.author_email || "—"}</p>
-            </div>
-          </div>
-        </div>
+                  <CardContent className="space-y-6">
+                    {/* Метаданные */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <div>
+                          <p className="text-gray-500">Создана</p>
+                          <p className="font-medium">
+                            {article.created_at
+                              ? new Date(article.created_at).toLocaleString()
+                              : "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Shield className="h-4 w-4 text-indigo-500" />
+                        <div>
+                          <p className="text-gray-500">Автор</p>
+                          <p className="font-medium">
+                            {article.author_email || "—"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-        {/* Действия */}
-        <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 border-t border-gray-100">
-          <Link to={`/articles/${article.id}`}>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2 bg-transparent"
-            >
-              <Eye className="h-4 w-4" />
-              <span>Открыть</span>
-            </Button>
-          </Link>
+                    {/* Действия */}
+                    <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 border-t border-gray-100">
+                      <Link to={`/articles/${article.id}`}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>Открыть</span>
+                        </Button>
+                      </Link>
 
-          <Link to={`/articles/${article.id}/edit`}>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2 bg-transparent"
-            >
-              Редактировать
-            </Button>
-          </Link>
-
-          
-
-                                         
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex items-center gap-2 bg-transparent"
-            disabled
-          >
-            <Download className="h-4 w-4" />
-            <span>Скачать</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex items-center gap-2 bg-transparent"
-            disabled
-          >
-            <MessageSquare className="h-4 w-4" />
-            <span>Обсуждение</span>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-})}
-
+                      <Link to={`/articles/${article.id}/edit`}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent"
+                        >
+                          Редактировать
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
 
@@ -951,270 +919,290 @@ const activityEvents = useMemo(() => {
 
         {/* ====== Рецензии ====== */}
         <TabsContent value="reviews" className="space-y-6">
-  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-    Рецензии / Требуются правки
-  </h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Рецензии / Требуются правки
+          </h2>
 
-  {revisionArticles.length === 0 ? (
-    <Card className="border-dashed">
-      <CardContent className="p-6 text-gray-500">
-        Пока нет статей, возвращённых на доработку.
-      </CardContent>
-    </Card>
-  ) : loadingReviews ? (
-    <Card>
-      <CardContent className="p-6 text-gray-500">Загрузка отзывов…</CardContent>
-    </Card>
-  ) : (
-    <div className="grid gap-4 sm:gap-6">
-      {revisionArticles.map((article) => {
-        const reviews = reviewsByArticle[article.id] || [];
-        const files = Array.isArray(article.files) ? article.files : [];
-        const hasManuscript = files.some((f) => f.type === "manuscript");
-        const hasResponse = files.some((f) => f.type === "response_to_review");
+          {revisionArticles.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="p-6 text-gray-500">
+                Пока нет статей, возвращённых на доработку.
+              </CardContent>
+            </Card>
+          ) : loadingReviews ? (
+            <Card>
+              <CardContent className="p-6 text-gray-500">
+                Загрузка отзывов…
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:gap-6">
+              {revisionArticles.map((article) => {
+                const reviews = reviewsByArticle[article.id] || [];
+                const files = Array.isArray(article.files) ? article.files : [];
+                const hasManuscript = files.some(
+                  (f) => f.type === "manuscript"
+                );
+                const hasResponse = files.some(
+                  (f) => f.type === "response_to_review"
+                );
 
-        return (
-          <Card
-            key={article.id}
-            className="border shadow-sm hover:shadow-md transition-all duration-200"
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <CardTitle className="text-lg truncate">
-                    {article.title}
-                  </CardTitle>
-                  <CardDescription className="truncate">
-                    {article.journal_title || `Журнал #${article.journal}`} •{" "}
-                    <Badge className={statusBadgeClass(article.status)}>
-                      {STATUS_LABEL[article.status] || article.status}
-                    </Badge>
-                  </CardDescription>
-                </div>
-                <Link to={`/articles/${article.id}`}>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4 mr-1" /> Открыть
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              {/* Список реальных отзывов */}
-              {reviews.length === 0 ? (
-                <div className="text-sm text-gray-500">
-                  Отзывов пока нет. Загляните позже.
-                </div>
-              ) : (
-                <ul className="space-y-3">
-                  {reviews.map((rev) => (
-                    <li
-                      key={rev.id}
-                      className="p-3 rounded-lg bg-gray-50 border border-gray-100"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-sm">
-                          <span className="font-medium">
-                            Рекомендация:{" "}
-                            {RECOMMENDATION_LABEL[rev.recommendation] ||
-                              rev.recommendation}
-                          </span>
-                          {rev._assignment?.due_at && (
-                            <span className="ml-2 text-gray-500">
-                              (срок:{" "}
-                              {new Date(
-                                rev._assignment.due_at
-                              ).toLocaleDateString()}
-                              )
-                            </span>
-                          )}
+                return (
+                  <Card
+                    key={article.id}
+                    className="border shadow-sm hover:shadow-md transition-all duration-200"
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <CardTitle className="text-lg truncate">
+                            {article.title}
+                          </CardTitle>
+                          <CardDescription className="truncate">
+                            {article.journal_title ||
+                              `Журнал #${article.journal}`}{" "}
+                            •{" "}
+                            <Badge className={statusBadgeClass(article.status)}>
+                              {STATUS_LABEL[article.status] || article.status}
+                            </Badge>
+                          </CardDescription>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(rev.created_at).toLocaleString()}
-                        </div>
+                        <Link to={`/articles/${article.id}`}>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" /> Открыть
+                          </Button>
+                        </Link>
                       </div>
+                    </CardHeader>
 
-                      {rev.body && (
-                        <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
-                          {rev.body}
-                        </p>
+                    <CardContent className="space-y-4">
+                      {/* Список реальных отзывов */}
+                      {reviews.length === 0 ? (
+                        <div className="text-sm text-gray-500">
+                          Отзывов пока нет. Загляните позже.
+                        </div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {reviews.map((rev) => (
+                            <li
+                              key={rev.id}
+                              className="p-3 rounded-lg bg-gray-50 border border-gray-100"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="text-sm">
+                                  <span className="font-medium">
+                                    Рекомендация:{" "}
+                                    {RECOMMENDATION_LABEL[rev.recommendation] ||
+                                      rev.recommendation}
+                                  </span>
+                                  {rev._assignment?.due_at && (
+                                    <span className="ml-2 text-gray-500">
+                                      (срок:{" "}
+                                      {new Date(
+                                        rev._assignment.due_at
+                                      ).toLocaleDateString()}
+                                      )
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(rev.created_at).toLocaleString()}
+                                </div>
+                              </div>
+
+                              {rev.body && (
+                                <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
+                                  {rev.body}
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       )}
+
+                      {/* Кнопки для загрузки и повторной отправки правок */}
+                      <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                        <Link to={`/articles/${article.id}/edit?tab=files`}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-transparent"
+                          >
+                            Загрузить правки
+                          </Button>
+                        </Link>
+
+                        <Button
+                          size="sm"
+                          disabled={submittingId === article.id}
+                          onClick={async () => {
+                            if (!hasManuscript) {
+                              alert(
+                                "Загрузите обновлённую рукопись (manuscript) в «Файлы»."
+                              );
+                              return;
+                            }
+                            if (!hasResponse) {
+                              alert(
+                                "Загрузите ответ рецензенту (response_to_review) в «Файлы»."
+                              );
+                              return;
+                            }
+                            await submitWithModal(article);
+                          }}
+                        >
+                          {submittingId === article.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Отправка…
+                            </>
+                          ) : (
+                            "Отправить исправления"
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Лента событий
+          </h2>
+
+          {loadingActivity ? (
+            <Card>
+              <CardContent className="p-6 text-gray-500 flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Загрузка событий…
+              </CardContent>
+            </Card>
+          ) : activityEvents.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="p-6 text-gray-500">
+                Пока нет новых событий.
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-0">
+                <ul className="divide-y divide-gray-100">
+                  {activityEvents.map((n) => (
+                    <li key={n.id} className="p-4 flex items-start gap-3">
+                      {notificationIcon(n.type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900">{n.title}</p>
+                        <p className="text-sm text-gray-600">{n.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {n.time ? new Date(n.time).toLocaleString() : "—"}
+                        </p>
+                      </div>
                     </li>
                   ))}
                 </ul>
-              )}
-
-              {/* Кнопки для загрузки и повторной отправки правок */}
-              <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                <Link to={`/articles/${article.id}/edit?tab=files`}>
-                  <Button size="sm" variant="outline" className="bg-transparent">
-                    Загрузить правки
-                  </Button>
-                </Link>
-
-                <Button
-                  size="sm"
-                  disabled={submittingId === article.id}
-  onClick={async () => {
-    if (!hasManuscript) {
-      alert("Загрузите обновлённую рукопись (manuscript) в «Файлы».");
-      return;
-    }
-    if (!hasResponse) {
-      alert("Загрузите ответ рецензенту (response_to_review) в «Файлы».");
-      return;
-    }
-    await submitWithModal(article);
-  }}
-                >
-                 {submittingId === article.id ? (
-    <>
-      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-      Отправка…
-    </>
-  ) : (
-    "Отправить исправления"
-  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  )}
-</TabsContent>
-
-<TabsContent value="activity" className="space-y-6">
-  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-    Лента событий
-  </h2>
-
-  {loadingActivity ? (
-    <Card>
-      <CardContent className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Загрузка событий…
-      </CardContent>
-    </Card>
-  ) : activityEvents.length === 0 ? (
-    <Card className="border-dashed">
-      <CardContent className="p-6 text-gray-500">
-        Пока нет новых событий.
-      </CardContent>
-    </Card>
-  ) : (
-    <Card className="border-0 shadow-sm">
-      <CardContent className="p-0">
-        <ul className="divide-y divide-gray-100">
-          {activityEvents.map((n) => (
-            <li key={n.id} className="p-4 flex items-start gap-3">
-              {notificationIcon(n.type)}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">{n.title}</p>
-                <p className="text-sm text-gray-600">{n.message}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {n.time ? new Date(n.time).toLocaleString() : "—"}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  )}
-</TabsContent>
-
-
-
-
-     
-
-       
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* Модалка «успешно отправлено» */}
-<Dialog
-  open={submitModal.open}
-  onOpenChange={(open) => setSubmitModal((s) => ({ ...s, open }))}
->
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>{submitModal.title || "Успех"}</DialogTitle>
-      <DialogDescription>
-        {submitModal.desc || "Действие выполнено успешно."}
-      </DialogDescription>
-    </DialogHeader>
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setSubmitModal({ open: false, title: "", desc: "", articleId: null })}>
-        Ок
-      </Button>
-      {submitModal.articleId && (
-        <Button
-          onClick={() => {
-            const id = submitModal.articleId;
-            setSubmitModal({ open: false, title: "", desc: "", articleId: null });
-            navigate(`/articles/${id}`);
+      <Dialog
+        open={submitModal.open}
+        onOpenChange={(open) => setSubmitModal((s) => ({ ...s, open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{submitModal.title || "Успех"}</DialogTitle>
+            <DialogDescription>
+              {submitModal.desc || "Действие выполнено успешно."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setSubmitModal({
+                  open: false,
+                  title: "",
+                  desc: "",
+                  articleId: null,
+                })
+              }
+            >
+              Ок
+            </Button>
+            {submitModal.articleId && (
+              <Button
+                onClick={() => {
+                  const id = submitModal.articleId;
+                  setSubmitModal({
+                    open: false,
+                    title: "",
+                    desc: "",
+                    articleId: null,
+                  });
+                  navigate(`/articles/${id}`);
+                }}
+              >
+                Открыть статью
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {editOpen && editingArticle && (
+        <EditArticleSheet
+          open
+          onOpenChange={(o) => {
+            setEditOpen(o);
+            if (!o) setEditingArticle(null);
           }}
-        >
-          Открыть статью
-        </Button>
+          article={editingArticle}
+          onSave={handleSaveArticle}
+        />
       )}
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
 
+      {/* Модалка со всем списком событий */}
+      <Dialog open={activityOpen} onOpenChange={setActivityOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Все события</DialogTitle>
+            <DialogDescription>
+              Лента последних действий по вашим статьям.
+            </DialogDescription>
+          </DialogHeader>
 
-   {editOpen && editingArticle && (
-  <EditArticleSheet
-    open
-    onOpenChange={(o) => {
-      setEditOpen(o);
-      if (!o) setEditingArticle(null);
-    }}
-    article={editingArticle}
-    onSave={handleSaveArticle}
-  />
-)}
-
-
-{/* Модалка со всем списком событий */}
-<Dialog open={activityOpen} onOpenChange={setActivityOpen}>
-  <DialogContent className="max-w-2xl">
-    <DialogHeader>
-      <DialogTitle>Все события</DialogTitle>
-      <DialogDescription>
-        Лента последних действий по вашим статьям.
-      </DialogDescription>
-    </DialogHeader>
-
-    <div className="max-h-[60vh] overflow-auto space-y-3">
-      {activityEvents.map((n) => (
-        <div
-          key={n.id}
-          className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
-        >
-          {notificationIcon(n.type)}
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-900">{n.title}</p>
-            <p className="text-sm text-gray-600">{n.message}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {n.time ? new Date(n.time).toLocaleString() : "—"}
-            </p>
+          <div className="max-h-[60vh] overflow-auto space-y-3">
+            {activityEvents.map((n) => (
+              <div
+                key={n.id}
+                className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
+              >
+                {notificationIcon(n.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900">{n.title}</p>
+                  <p className="text-sm text-gray-600">{n.message}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {n.time ? new Date(n.time).toLocaleString() : "—"}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      ))}
-    </div>
 
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setActivityOpen(false)}>
-        Закрыть
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
-
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActivityOpen(false)}>
+              Закрыть
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

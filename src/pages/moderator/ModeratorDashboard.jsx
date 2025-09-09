@@ -451,7 +451,7 @@ export default function ModeratorDashboard() {
 
   /* ── render guards ────────────────────────────────────────── */
   if (allowed === null)
-    return <div className="p-6 text-gray-500">Проверка прав…</div>;
+    return <div className="p-6 text-gray-500">Загрузка…</div>;
   if (loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
 
   if (error) {

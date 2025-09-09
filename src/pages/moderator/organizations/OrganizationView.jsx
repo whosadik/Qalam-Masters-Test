@@ -29,9 +29,18 @@ function toUrl(url) {
 
 function Initials({ text = "", className = "" }) {
   const t = String(text || "").trim();
-  const letters = t ? t.split(" ").map(s => s[0]).join("").slice(0, 2).toUpperCase() : "OR";
+  const letters = t
+    ? t
+        .split(" ")
+        .map((s) => s[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "OR";
   return (
-    <div className={`h-16 w-16 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl font-bold ${className}`}>
+    <div
+      className={`h-16 w-16 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl font-bold ${className}`}
+    >
       {letters}
     </div>
   );
@@ -52,7 +61,12 @@ function FieldRow({ icon: Icon, label, value, href }) {
   if (href && value) {
     return (
       <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50">
-        <a href={href} target="_blank" rel="noreferrer" className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1">
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1"
+        >
           {content} <ExternalLink className="h-4 w-4" />
         </a>
       </div>
@@ -101,8 +115,19 @@ export default function OrganizationView() {
           setJournals(o.journals || []);
         } else {
           try {
-            const js = await listJournals({ organization: id });
-            setJournals(js?.results ?? js ?? []);
+            const js = await listJournals({ page_size: 100 });
+            const items = js?.results ?? js ?? [];
+
+            const orgIdNum = Number(id);
+            const onlyThisOrg = items.filter((j) => {
+              const oid =
+                Number(j?.organization) ??
+                Number(j?.organization_id) ??
+                Number(j?.organization?.id);
+              return oid === orgIdNum;
+            });
+
+            setJournals(onlyThisOrg);
           } catch {
             setJournals([]);
           }
@@ -125,11 +150,16 @@ export default function OrganizationView() {
   }, [org]);
 
   const websiteUrl = toUrl(org?.website);
-  const socials = Array.isArray(org?.social_links) ? org.social_links : (org?.social_link ? [org.social_link] : []);
+  const socials = Array.isArray(org?.social_links)
+    ? org.social_links
+    : org?.social_link
+      ? [org.social_link]
+      : [];
 
   if (loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
   if (err) return <div className="p-6 text-red-600">{err}</div>;
-  if (!org) return <div className="p-6 text-red-600">Организация не найдена</div>;
+  if (!org)
+    return <div className="p-6 text-red-600">Организация не найдена</div>;
 
   return (
     <div className="p-6 space-y-8">
@@ -184,8 +214,18 @@ export default function OrganizationView() {
         </Card>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-          <StatCard title="Журналов" value={journals.length} icon={Building2} className="bg-blue-600 text-white" />
-          <StatCard title="Обновлено" value={updatedAt} icon={Calendar} className="bg-slate-800 text-white" />
+          <StatCard
+            title="Журналов"
+            value={journals.length}
+            icon={Building2}
+            className="bg-blue-600 text-white"
+          />
+          <StatCard
+            title="Обновлено"
+            value={updatedAt}
+            icon={Calendar}
+            className="bg-slate-800 text-white"
+          />
         </div>
       </div>
 
@@ -194,9 +234,23 @@ export default function OrganizationView() {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-5 space-y-1">
             <h3 className="text-lg font-semibold mb-3">Контакты и реквизиты</h3>
-            <FieldRow icon={Building2} label="Руководитель" value={org.head_name} />
-            <FieldRow icon={Phone} label="Телефон" value={org.head_phone} href={org.head_phone ? `tel:${org.head_phone}` : undefined} />
-            <FieldRow icon={Mail} label="Email" value={org.head_email} href={org.head_email ? `mailto:${org.head_email}` : undefined} />
+            <FieldRow
+              icon={Building2}
+              label="Руководитель"
+              value={org.head_name}
+            />
+            <FieldRow
+              icon={Phone}
+              label="Телефон"
+              value={org.head_phone}
+              href={org.head_phone ? `tel:${org.head_phone}` : undefined}
+            />
+            <FieldRow
+              icon={Mail}
+              label="Email"
+              value={org.head_email}
+              href={org.head_email ? `mailto:${org.head_email}` : undefined}
+            />
             <FieldRow icon={Hash} label="БИН" value={org.bin} />
           </CardContent>
         </Card>
@@ -216,11 +270,18 @@ export default function OrganizationView() {
               </div>
               <div className="space-y-1">
                 <div className="text-sm text-gray-500">Индекс</div>
-                <div className="font-medium">{org.postal_code || org.postal_zip || "—"}</div>
+                <div className="font-medium">
+                  {org.postal_code || org.postal_zip || "—"}
+                </div>
               </div>
             </div>
 
-            <FieldRow icon={Globe} label="Сайт" value={websiteUrl || org.website} href={websiteUrl} />
+            <FieldRow
+              icon={Globe}
+              label="Сайт"
+              value={websiteUrl || org.website}
+              href={websiteUrl}
+            />
 
             {/* Соцсети */}
             <div className="mt-2">
@@ -234,7 +295,9 @@ export default function OrganizationView() {
                 <div className="flex flex-wrap gap-2">
                   {socials.slice(0, 6).map((s, idx) => {
                     const href = toUrl(s);
-                    const label = href ? new URL(href).hostname.replace(/^www\./, "") : s;
+                    const label = href
+                      ? new URL(href).hostname.replace(/^www\./, "")
+                      : s;
                     return (
                       <a
                         key={`${s}-${idx}`}
@@ -275,7 +338,9 @@ export default function OrganizationView() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {journals.map((j) => {
-            const created = j.created_at ? new Date(j.created_at).toLocaleDateString("ru-RU") : "—";
+            const created = j.created_at
+              ? new Date(j.created_at).toLocaleDateString("ru-RU")
+              : "—";
             const cover = j.cover || j.cover_url;
             const lang = j.language ? String(j.language).toUpperCase() : "—";
             const periodicityMap = {
@@ -289,7 +354,11 @@ export default function OrganizationView() {
               <Card key={j.id} className="border-0 shadow-sm overflow-hidden">
                 <div className="h-40 bg-indigo-50 relative">
                   {cover ? (
-                    <img src={cover} alt="cover" className="w-full h-full object-cover" />
+                    <img
+                      src={cover}
+                      alt="cover"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-3xl font-bold text-indigo-600">
@@ -319,7 +388,9 @@ export default function OrganizationView() {
                   </div>
                   <div className="pt-2">
                     <Link to={`/moderator/journals/${j.id}`}>
-                      <Button size="sm" className="w-full">Открыть</Button>
+                      <Button size="sm" className="w-full">
+                        Открыть
+                      </Button>
                     </Link>
                   </div>
                 </CardContent>
