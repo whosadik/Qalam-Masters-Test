@@ -693,17 +693,6 @@ export default function ModeratorDashboard() {
                                       Команда журнала
                                     </Button>
                                   </Link>
-                                  <Link
-                                    to={`/moderator/journals/${j.id}/articles`}
-                                  >
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-36"
-                                    >
-                                      Список статей
-                                    </Button>
-                                  </Link>
                                 </div>
                               </div>
                             </li>

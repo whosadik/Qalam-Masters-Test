@@ -10,38 +10,6 @@ import { API } from "@/constants/api";
 import { useAuth } from "@/auth/AuthContext";
 import { http } from "@/lib/apiClient";
 
-const SAMPLE = {
-  id: 0,
-  name: "Научный журнал «Вестник науки»",
-  description:
-    "«Вестник науки» — рецензируемый журнал, публикующий оригинальные исследования, обзоры и аналитические материалы по широкому спектру дисциплин.",
-  mission:
-    "Продвигать научные исследования и развивать академический диалог между представителями различных научных направлений.",
-  topics: [
-    "Естественные и технические науки",
-    "Гуманитарные и общественные дисциплины",
-    "Информационные технологии и инжиниринг",
-    "Экономика, менеджмент, юриспруденция",
-    "Образование, педагогика, психология",
-  ],
-  audience:
-    "Научные сотрудники, преподаватели вузов, аспиранты, докторанты и практики.",
-  ethics: "Двустороннее слепое рецензирование; стандарты COPE.",
-  periodicity: "Ежеквартально.",
-  editorial: [
-    { role: "Главный редактор", name: "Асанов Алмас Ахатович, д.ф.н., проф." },
-  ],
-  forAuthors: {
-    fee: "Стоимость публикации — 5 000 ₸.",
-    firstDecision: "Первичное решение — до 5 рабочих дней.",
-    reviewTime: "Срок рецензирования — до 21 дня.",
-    publication: "Публикация — в ближайшем номере после принятия.",
-  },
-  coverUrl: "",
-  site: "",
-  email: "contact@example.com",
-};
-
 export default function JournalView() {
   const { jid } = useParams();
   const navigate = useNavigate();
@@ -51,7 +19,7 @@ export default function JournalView() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [forbidden, setForbidden] = useState(false);
-  const { isModerator } = useAuth();
+  const { isOrgAdmin } = useAuth();
 
   const normalize = (raw) => ({
     id: raw?.id ?? SAMPLE.id,
@@ -136,7 +104,8 @@ export default function JournalView() {
       <div className="max-w-xl mx-auto p-6 text-center space-y-4">
         <div className="text-2xl font-semibold">Доступ запрещён (403)</div>
         <p className="text-gray-600">
-          Просмотр этого журнала доступен только авторизованным пользователям с соответствующими правами.
+          Просмотр этого журнала доступен только авторизованным пользователям с
+          соответствующими правами.
         </p>
         <div className="flex gap-2 justify-center">
           <Link to={`/login?next=/journals/${encodeURIComponent(jid)}`}>
@@ -166,17 +135,19 @@ export default function JournalView() {
         <h1 className="text-3xl md:text-4xl font-bold text-center">
           {journal.name}
         </h1>
-        {org && (
-          org.is_verified ? (
+        {org &&
+          (org.is_verified ? (
             <span className="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
-              Верифицирована{org.verification_date ? ` • ${new Date(org.verification_date).toLocaleDateString('ru-RU')}` : ""}
+              Верифицирована
+              {org.verification_date
+                ? ` • ${new Date(org.verification_date).toLocaleDateString("ru-RU")}`
+                : ""}
             </span>
           ) : (
             <span className="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
               Не верифицирована
             </span>
-          )
-        )}
+          ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -200,20 +171,19 @@ export default function JournalView() {
                   </div>
                 </div>
               )}
-
-              <Link
-                to={`/submit-article?journalId=${encodeURIComponent(journal.id)}`}
-                className="block"
-              >
-                <Button className="w-full">Подать статью в журнал</Button>
-              </Link>
-
+              {!isOrgAdmin && (
+                <Link
+                  to={`/submit-article?journalId=${encodeURIComponent(journal.id)}`}
+                  className="block"
+                >
+                  <Button className="w-full">Подать статью в журнал</Button>
+                </Link>
+              )}
               <Link to={`/journals/${journal.id}/issues`} className="block">
                 <Button variant="outline" className="w-full bg-transparent">
                   Выпуски / Архив
                 </Button>
               </Link>
-
               <div className="text-sm text-gray-700 space-y-1">
                 {org?.name && (
                   <div>
@@ -250,7 +220,6 @@ export default function JournalView() {
                     .join(" • ")}
                 </div>
               </div>
-
               {topics.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {topics.map((t) => (
@@ -260,23 +229,6 @@ export default function JournalView() {
                   ))}
                 </div>
               )}
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={onPrint} className="w-full">
-                  <FileDown className="w-4 h-4 mr-2" />
-                  Печать/PDF
-                </Button>
-                {!isModerator && (
-                  <Link to="/author-dashboard">
-                    <Button variant="outline">Личный кабинет</Button>
-                  </Link>
-                )}
-                {isModerator && (
-                  <Link to="/moderator">
-                    <Button variant="outline">Кабинет модератора</Button>
-                  </Link>
-                )}
-              </div>
             </CardContent>
           </Card>
         </aside>
@@ -289,15 +241,6 @@ export default function JournalView() {
                 <h2 className="text-xl font-semibold">Описание журнала</h2>
                 <p className="text-gray-800">
                   {journal.description || SAMPLE.description}
-                </p>
-              </section>
-
-              <Separator />
-
-              <section className="space-y-2">
-                <h2 className="text-xl font-semibold">Миссия журнала</h2>
-                <p className="text-gray-800">
-                  {journal.mission || SAMPLE.mission}
                 </p>
               </section>
 
