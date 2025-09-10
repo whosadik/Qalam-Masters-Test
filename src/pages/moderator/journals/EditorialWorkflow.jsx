@@ -568,7 +568,7 @@ export default function EditorialWorkflow() {
           <Button variant="outline">К журналу</Button>
         </Link>
         <Link to={`/moderator/journals/${jid}/reviewer`}>
-          <Button className="gap-2">
+          <Button className="gap-2 bg-[#3972FE]">
             <ArrowLeftRight className="w-4 h-4" />В дашборд рецензента
           </Button>
         </Link>

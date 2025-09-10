@@ -388,7 +388,7 @@ export default function SubmitArticle() {
 
       if (formData.articleFile) {
         uploads.push(
-          uploadArticleFile(created.id, formData.articleFile, "Рукопись")
+          uploadArticleFile(created.id, formData.articleFile, "manuscript")
         );
       }
       if (formData.expertConclusion) {

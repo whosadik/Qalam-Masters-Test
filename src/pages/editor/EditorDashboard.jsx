@@ -1,18 +1,28 @@
 // src/pages/editor/EditorDashboard.jsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Loader2,
+  RefreshCw,
   Search,
   ClipboardList,
   FileEdit,
   Hammer,
   UserPlus,
+  PanelRightOpen,
+  PanelRightClose,
+  CheckSquare,
+  Square,
+  Filter,
+  Keyboard as KeyboardIcon,
+  X,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import {
   Select,
@@ -21,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { listArticles, updateArticleStatus } from "@/services/articlesService";
@@ -39,8 +48,7 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+
 /* ---------- helpers ---------- */
 const STATUS_LABEL = {
   draft: "Черновик",
@@ -54,11 +62,28 @@ const STATUS_LABEL = {
   in_production: "В производстве",
   published: "Опубликована",
 };
-
 const fmt = (iso) => (iso ? new Date(iso).toLocaleString("ru-RU") : "—");
-const isPendingAssignment = (as) => String(as?.status || "") === "assigned";
 const ASSIGNMENTS_URL = "/reviews/assignments/";
+const isPendingAssignment = (as) => String(as?.status || "") === "assigned";
 
+const STATUS_TW = {
+  under_review: "bg-blue-100 text-blue-700",
+  revision_minor: "bg-amber-100 text-amber-700",
+  revision_major: "bg-rose-100 text-rose-700",
+  accepted: "bg-emerald-100 text-emerald-700",
+};
+
+function StatusPill({ status }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_TW[status] || "bg-slate-100 text-slate-700"}`}
+    >
+      {STATUS_LABEL[status] || status}
+    </span>
+  );
+}
+
+/* ---------- assignments fetch ---------- */
 async function fetchAssignmentsFor(articleIds = []) {
   const entries = await Promise.all(
     articleIds.map(async (id) => {
@@ -84,208 +109,8 @@ async function fetchAssignmentsFor(articleIds = []) {
   );
   return Object.fromEntries(entries);
 }
-function statusAccent(status) {
-  switch (status) {
-    case "under_review":
-      return "border-l-4 border-l-blue-500";
-    case "revision_minor":
-      return "border-l-4 border-l-amber-500";
-    case "revision_major":
-      return "border-l-4 border-l-rose-500";
-    default:
-      return "border-l-4 border-l-slate-300";
-  }
-}
 
-/* ---------- назначение рецензента inline (UI обновлён) ---------- */
-function AssignReviewerInline({
-  articleId,
-  journalId,
-  organizationId,
-  assignmentsForArticle = [], // массив назначений по статье
-  journalTeam = [], // [{id,user,role,...}] команда журнала
-  orgMembers = [], // [{organization,user:{...},...}] участники организации
-  onAssigned,
-}) {
-  const [open, setOpen] = useState(false);
-  const [reviewerId, setReviewerId] = useState("");
-  const [dueAt, setDueAt] = useState("");
-  const [blind, setBlind] = useState(true);
-  const [addingToTeam, setAddingToTeam] = useState(true); // по умолчанию — добавить в команду как reviewer
-  const [showAllOrg, setShowAllOrg] = useState(false); // по умолчанию — показывать только рецензентов журнала
-  const [busy, setBusy] = useState(false);
-
-  // активные назначения (status = assigned)
-  const activeAssigned = useMemo(
-    () =>
-      (assignmentsForArticle || []).filter(
-        (x) => String(x.status) === "assigned"
-      ),
-    [assignmentsForArticle]
-  );
-  const activeReviewerIds = useMemo(
-    () => new Set(activeAssigned.map((a) => a.reviewer)),
-    [activeAssigned]
-  );
-
-  // userId -> User из orgMembers
-  const usersFromOrg = useMemo(() => {
-    const map = new Map();
-    for (const m of orgMembers) {
-      const u = m?.user ?? m; // поддержка обоих форматов
-      if (u?.id && !map.has(u.id)) map.set(u.id, u);
-    }
-    return map;
-  }, [orgMembers]);
-
-  // набор userId, у кого роль reviewer в журнале
-  const journalReviewerIds = useMemo(
-    () =>
-      new Set(
-        journalTeam.filter((m) => m.role === "reviewer").map((m) => m.user)
-      ),
-    [journalTeam]
-  );
-
-  // список кандидатов в комбобокс
-  const candidateUsers = useMemo(() => {
-    const all = Array.from(usersFromOrg.values());
-    return showAllOrg ? all : all.filter((u) => journalReviewerIds.has(u.id));
-  }, [usersFromOrg, showAllOrg, journalReviewerIds]);
-
-  // выбранный не рецензент журнала?
-  const selectedIsNotJournalReviewer = useMemo(
-    () => reviewerId && !journalReviewerIds.has(Number(reviewerId)),
-    [reviewerId, journalReviewerIds]
-  );
-
-  async function submit() {
-    if (!reviewerId) return alert("Выберите пользователя-рецензента");
-    setBusy(true);
-    try {
-      // если выбрали не-участника команды как reviewer — добавим (если чекбокс включён)
-      if (selectedIsNotJournalReviewer && addingToTeam) {
-        const { addJournalMember } = await import(
-          "@/services/journalMembershipsService"
-        );
-        await addJournalMember({
-          journal: journalId,
-          user: Number(reviewerId),
-          role: "reviewer",
-        });
-      }
-
-      const { createAssignment } = await import("@/services/reviewsService");
-      await createAssignment({
-        article: articleId,
-        reviewer: Number(reviewerId),
-        due_at: dueAt ? new Date(dueAt).toISOString() : undefined,
-        blind,
-      });
-
-      setOpen(false);
-      setReviewerId("");
-      setDueAt("");
-      setBlind(true);
-      onAssigned?.();
-      alert("Рецензент назначен");
-    } catch (e) {
-      console.error(e);
-      alert(e?.response?.data?.detail || "Не удалось назначить рецензента");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Button
-        variant="outline"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full sm:w-60 justify-center border-dashed bg-slate-50 hover:bg-slate-100 text-slate-800 gap-2"
-      >
-        <UserPlus className="h-4 w-4" />
-        {open ? "Скрыть назначение" : "Назначить рецензента"}
-      </Button>
-
-      {open && (
-        <div className="rounded-xl border border-dashed bg-slate-50/60 p-3 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-            <div className="col-span-1 sm:col-span-2">
-              <ReviewerCombobox
-                value={reviewerId}
-                onChange={setReviewerId}
-                options={candidateUsers}
-                disabledIds={activeReviewerIds}
-                placeholder={
-                  showAllOrg
-                    ? "Выберите из участников организации"
-                    : "Выберите из рецензентов журнала"
-                }
-              />
-              <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={showAllOrg}
-                    onChange={(e) => setShowAllOrg(e.target.checked)}
-                  />
-                  Показать всех из организации
-                </label>
-              </div>
-            </div>
-
-            <input
-              type="datetime-local"
-              value={dueAt}
-              onChange={(e) => setDueAt(e.target.value)}
-              className="col-span-1 sm:col-span-2 h-9 rounded-md border px-2 text-sm"
-            />
-            <label className="col-span-1 flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={blind}
-                onChange={(e) => setBlind(e.target.checked)}
-              />
-              Blind
-            </label>
-          </div>
-
-          {selectedIsNotJournalReviewer && (
-            <div className="text-xs text-gray-700">
-              Пользователь не является рецензентом журнала.{" "}
-              <label className="inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={addingToTeam}
-                  onChange={(e) => setAddingToTeam(e.target.checked)}
-                />
-                Добавить его в команду журнала как <b>reviewer</b> перед
-                назначением
-              </label>
-            </div>
-          )}
-
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <Button
-              onClick={submit}
-              disabled={busy}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              {busy ? "Назначаем..." : "Создать назначение"}
-            </Button>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              Отмена
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-
+/* ---------- combobox helpers ---------- */
 function labelUser(u) {
   const f = (u?.first_name || "").trim();
   const l = (u?.last_name || "").trim();
@@ -302,7 +127,6 @@ function ReviewerCombobox({
 }) {
   const [open, setOpen] = useState(false);
 
-  // options — массив Users (не membership-ов)
   const sorted = useMemo(() => {
     return [...options].sort((a, b) => {
       const A = (labelUser(a).name || labelUser(a).email).toLowerCase();
@@ -377,67 +201,251 @@ function ReviewerCombobox({
   );
 }
 
-async function hasAssignedForArticle(articleId) {
-  try {
-    const { data } = await http.get(
-      withParams("/reviews/assignments/", {
+/* ---------- inline assign reviewer ---------- */
+function AssignReviewerInline({
+  articleId,
+  journalId,
+  organizationId,
+  assignmentsForArticle = [],
+  journalTeam = [],
+  orgMembers = [],
+  onAssigned,
+}) {
+  const [open, setOpen] = useState(false);
+  const [reviewerId, setReviewerId] = useState("");
+  const [dueAt, setDueAt] = useState("");
+  const [blind, setBlind] = useState(true);
+  const [addingToTeam, setAddingToTeam] = useState(true);
+  const [showAllOrg, setShowAllOrg] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const activeAssigned = useMemo(
+    () =>
+      (assignmentsForArticle || []).filter(
+        (x) => String(x.status) === "assigned"
+      ),
+    [assignmentsForArticle]
+  );
+  const activeReviewerIds = useMemo(
+    () => new Set(activeAssigned.map((a) => a.reviewer)),
+    [activeAssigned]
+  );
+
+  const usersFromOrg = useMemo(() => {
+    const map = new Map();
+    for (const m of orgMembers) {
+      const u = m?.user ?? m;
+      if (u?.id && !map.has(u.id)) map.set(u.id, u);
+    }
+    return map;
+  }, [orgMembers]);
+
+  const journalReviewerIds = useMemo(
+    () =>
+      new Set(
+        journalTeam.filter((m) => m.role === "reviewer").map((m) => m.user)
+      ),
+    [journalTeam]
+  );
+
+  const candidateUsers = useMemo(() => {
+    const all = Array.from(usersFromOrg.values());
+    return showAllOrg ? all : all.filter((u) => journalReviewerIds.has(u.id));
+  }, [usersFromOrg, showAllOrg, journalReviewerIds]);
+
+  const selectedIsNotJournalReviewer = useMemo(
+    () => reviewerId && !journalReviewerIds.has(Number(reviewerId)),
+    [reviewerId, journalReviewerIds]
+  );
+
+  async function submit() {
+    if (!reviewerId) return alert("Выберите пользователя-рецензента");
+    setBusy(true);
+    try {
+      if (selectedIsNotJournalReviewer && addingToTeam) {
+        const { addJournalMember } = await import(
+          "@/services/journalMembershipsService"
+        );
+        await addJournalMember({
+          journal: journalId,
+          user: Number(reviewerId),
+          role: "reviewer",
+        });
+      }
+
+      const { createAssignment } = await import("@/services/reviewsService");
+      await createAssignment({
         article: articleId,
-        status: "assigned",
-        page_size: 1,
-      })
-    );
-    // пагинация: если server вернёт count — используем его, иначе смотрим на results
-    const count =
-      typeof data?.count === "number"
-        ? data.count
-        : Array.isArray(data?.results)
-          ? data.results.length
-          : Array.isArray(data)
-            ? data.length
-            : 0;
-    return count > 0;
-  } catch {
-    return false;
+        reviewer: Number(reviewerId),
+        due_at: dueAt ? new Date(dueAt).toISOString() : undefined,
+        blind,
+      });
+
+      setOpen(false);
+      setReviewerId("");
+      setDueAt("");
+      setBlind(true);
+      onAssigned?.();
+      alert("Рецензент назначен");
+    } catch (e) {
+      console.error(e);
+      alert(e?.response?.data?.detail || "Не удалось назначить рецензента");
+    } finally {
+      setBusy(false);
+    }
   }
+
+  return (
+    <div className="space-y-2">
+      <Button
+        variant="outline"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full justify-center border-dashed bg-slate-50 hover:bg-slate-100 text-slate-800 gap-2"
+      >
+        <UserPlus className="h-4 w-4" />
+        {open ? "Скрыть назначение" : "Назначить рецензента"}
+      </Button>
+
+      {open && (
+        <div className="rounded-xl border border-dashed bg-slate-50/60 p-3 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+            <div className="sm:col-span-2">
+              <ReviewerCombobox
+                value={reviewerId}
+                onChange={setReviewerId}
+                options={candidateUsers}
+                disabledIds={activeReviewerIds}
+                placeholder={
+                  showAllOrg
+                    ? "Выберите из организации"
+                    : "Выберите из рецензентов журнала"
+                }
+              />
+              <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={showAllOrg}
+                    onChange={(e) => setShowAllOrg(e.target.checked)}
+                  />
+                  Показать всех из организации
+                </label>
+              </div>
+            </div>
+
+            <input
+              type="datetime-local"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+              className="sm:col-span-2 h-9 rounded-md border px-2 text-sm"
+            />
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={blind}
+                onChange={(e) => setBlind(e.target.checked)}
+              />
+              Blind
+            </label>
+          </div>
+
+          {selectedIsNotJournalReviewer && (
+            <div className="text-xs text-gray-700">
+              Пользователь не является рецензентом журнала.&nbsp;
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={addingToTeam}
+                  onChange={(e) => setAddingToTeam(e.target.checked)}
+                />
+                Добавить его в команду журнала как <b>reviewer</b> перед
+                назначением
+              </label>
+            </div>
+          )}
+
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <Button
+              onClick={submit}
+              disabled={busy}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              {busy ? "Назначаем..." : "Создать назначение"}
+            </Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Отмена
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
-/* ---------- main ---------- */
+/* ============================
+   MAIN DASHBOARD (3-pane)
+============================ */
 export default function EditorDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [membershipsLoading, setMembershipsLoading] = useState(true);
+  // layout / UI
+  const [dense, setDense] = useState(
+    () => (localStorage.getItem("ed_dense") ?? "1") === "1"
+  );
+  const [showRight, setShowRight] = useState(true);
+  const [queue, setQueue] = useState("under_review"); // under_review | assigned | revision_minor | revision_major
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  const [journals, setJournals] = useState([]); // [{id,title,organization}]
+  // access / journals
+  const [membershipsLoading, setMembershipsLoading] = useState(true);
+  const [journals, setJournals] = useState([]);
   const [journalId, setJournalId] = useState(null);
 
-  const [underReview, setUnderReview] = useState([]);
+  // data
+  const [loading, setLoading] = useState(false);
+  const [urAll, setUrAll] = useState([]); // все under_review
+  const [urAssigned, setUrAssigned] = useState([]); // подмножество: есть active assignment
+  const [urUnassigned, setUrUnassigned] = useState([]); // подмножество: нет active assignment
   const [revMinor, setRevMinor] = useState([]);
   const [revMajor, setRevMajor] = useState([]);
-
-  // поиск/сортировка/страница
-  const [ordering, setOrdering] = useState("-created_at");
-  const [pageSize, setPageSize] = useState(50);
-
-  const [urQuery, setUrQuery] = useState("");
-  const [miQuery, setMiQuery] = useState("");
-  const [maQuery, setMaQuery] = useState("");
-  const searchTimer = useRef(null);
-  // рядом с остальными useState:
-  const [urUnassigned, setUrUnassigned] = useState([]); // under_review БЕЗ assigned
-  const [urAssigned, setUrAssigned] = useState([]); // under_review С assigned
   const [assignmentsMap, setAssignmentsMap] = useState({});
+
+  // org & team for combobox
   const [orgMembersForJournal, setOrgMembersForJournal] = useState([]);
   const [journalTeam, setJournalTeam] = useState([]);
 
-  function onSearchChange(queue, value) {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    if (queue === "ur") setUrQuery(value);
-    if (queue === "mi") setMiQuery(value);
-    if (queue === "ma") setMaQuery(value);
-    searchTimer.current = setTimeout(() => {
-      if (journalId) loadArticlesForJournal(journalId);
-    }, 400);
-  }
+  // filters
+  const [globalQuery, setGlobalQuery] = useState("");
+  const [ordering, setOrdering] = useState("-created_at");
+  const [pageSize, setPageSize] = useState(50);
+  const searchTimer = useRef(null);
 
+  // selection + detail
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [detailArticle, setDetailArticle] = useState(null);
+
+  const clearSelection = () => setSelectedIds(new Set());
+  const toggleSelect = (id) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const selectAllVisible = (rows) =>
+    setSelectedIds(new Set(rows.map((r) => r.id)));
+
+  const visibleRows = useMemo(() => {
+    switch (queue) {
+      case "assigned":
+        return urAssigned;
+      case "revision_minor":
+        return revMinor;
+      case "revision_major":
+        return revMajor;
+      default:
+        return urUnassigned;
+    }
+  }, [queue, urAssigned, urUnassigned, revMinor, revMajor]);
+
+  // data loading
   async function loadArticlesForJournal(jid) {
     if (!jid) return;
     setLoading(true);
@@ -448,38 +456,41 @@ export default function EditorDashboard() {
           journal: jid,
           ordering,
           page_size: pageSize,
-          search: urQuery || undefined,
+          search: globalQuery || undefined,
         }),
         listArticles({
           status: "revision_minor",
           journal: jid,
           ordering,
           page_size: pageSize,
-          search: miQuery || undefined,
+          search: globalQuery || undefined,
         }),
         listArticles({
           status: "revision_major",
           journal: jid,
           ordering,
           page_size: pageSize,
-          search: maQuery || undefined,
+          search: globalQuery || undefined,
         }),
       ]);
 
       const norm = (x) =>
         Array.isArray(x?.results) ? x.results : Array.isArray(x) ? x : [];
       const ur = norm(u);
-
       setRevMinor(norm(mi));
       setRevMajor(norm(ma));
 
-      // грузим все назначения разом и делим under_review на назначенные/неназначенные
+      // assignments for under_review
       const amap = await fetchAssignmentsFor(ur.map((a) => a.id));
       setAssignmentsMap(amap);
 
       const hasActive = (id) => (amap[id] || []).some(isPendingAssignment);
       setUrAssigned(ur.filter((a) => hasActive(a.id)));
       setUrUnassigned(ur.filter((a) => !hasActive(a.id)));
+      setUrAll(ur);
+
+      setLastUpdated(new Date());
+      clearSelection();
     } finally {
       setLoading(false);
     }
@@ -537,11 +548,21 @@ export default function EditorDashboard() {
     };
   }, []);
 
+  // load data on deps
   useEffect(() => {
     if (!journalId) return;
     loadArticlesForJournal(journalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [journalId, ordering, pageSize]);
+
+  // global search debounce
+  function onGlobalSearch(value) {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    setGlobalQuery(value);
+    searchTimer.current = setTimeout(() => {
+      if (journalId) loadArticlesForJournal(journalId);
+    }, 400);
+  }
 
   // actions
   async function requestRevision(
@@ -566,50 +587,112 @@ export default function EditorDashboard() {
     }
   }
 
-  const currentJournal = useMemo(
-    () => journals.find((j) => Number(j.id) === Number(journalId)),
-    [journals, journalId]
-  );
+  // batch actions (редактору понадобится быстро переводить пачки в minor/major)
+  async function bulkMinor(ids) {
+    if (!ids.size) return;
+    for (const id of [...ids]) await requestRevision(id, "revision_minor");
+  }
+  async function bulkMajor(ids) {
+    if (!ids.size) return;
+    for (const id of [...ids]) await requestRevision(id, "revision_major");
+  }
+  async function bulkBackToUR(ids) {
+    if (!ids.size) return;
+    for (const id of [...ids]) await backToUnderReview(id);
+  }
 
-  useEffect(() => {
-  (async () => {
-    if (!journalId) return;
-    const j = journals.find((x) => Number(x.id) === Number(journalId));
-    if (!j?.organization) {
-      setOrgMembersForJournal([]);
-      setJournalTeam([]);
-      return;
-    }
-    try {
-      // 1) Команда журнала (журнальные роли: editor/reviewer/…)
-      const teamList = await listJournalMembers(journalId, { page_size: 500 });
-      setJournalTeam(Array.isArray(teamList) ? teamList : teamList?.results || []);
+  // keyboard shortcuts
+  const keydown = useCallback(
+    (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      const typing = tag === "input" || tag === "textarea";
+      if (typing) return;
 
-      // 2) Участники организации (берём user: UserMini)
-      let users = [];
-      try {
-        // ВАЖНО: используем /organizations/memberships/ с фильтром organization
-        const url = withParams("/organizations/memberships/", {
-          organization: j.organization,
-          page_size: 1000,
-        });
-        const { data } = await http.get(url);
-        const rows = Array.isArray(data?.results) ? data.results
-                   : Array.isArray(data)        ? data
-                   : [];
-        users = rows.map((r) => r?.user ?? r).filter(Boolean); // UserMini[]
-      } catch (e) {
-        console.error("org members load failed", e?.response?.data || e);
+      if (e.key === "/") {
+        e.preventDefault();
+        document.getElementById("ed_global_search")?.focus();
       }
-      setOrgMembersForJournal(users);
-    } catch (e) {
-      console.error("load candidates failed", e);
-      setJournalTeam([]);
-      setOrgMembersForJournal([]);
-    }
-  })();
-}, [journalId, journals]);
+      if (e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        journalId && loadArticlesForJournal(journalId);
+      }
+      if (e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        const first = [...selectedIds][0];
+        if (first) {
+          const row = visibleRows.find((r) => r.id === first);
+          if (row) {
+            setDetailArticle(row);
+            setShowRight(true);
+          }
+        }
+      }
+      if (
+        e.key.toLowerCase() === "m" &&
+        selectedIds.size &&
+        queue === "under_review"
+      ) {
+        e.preventDefault();
+        bulkMinor(selectedIds);
+      }
+      if (
+        e.key.toLowerCase() === "j" &&
+        selectedIds.size &&
+        queue === "under_review"
+      ) {
+        e.preventDefault();
+        bulkMajor(selectedIds);
+      }
+    },
+    [journalId, selectedIds, visibleRows, queue]
+  );
+  useEffect(() => {
+    window.addEventListener("keydown", keydown);
+    return () => window.removeEventListener("keydown", keydown);
+  }, [keydown]);
 
+  // org members & journal team for combobox
+  useEffect(() => {
+    (async () => {
+      if (!journalId) return;
+      const j = journals.find((x) => Number(x.id) === Number(journalId));
+      if (!j?.organization) {
+        setOrgMembersForJournal([]);
+        setJournalTeam([]);
+        return;
+      }
+      try {
+        const teamList = await listJournalMembers(journalId, {
+          page_size: 500,
+        });
+        setJournalTeam(
+          Array.isArray(teamList) ? teamList : teamList?.results || []
+        );
+        // org users
+        try {
+          const url = withParams("/organizations/memberships/", {
+            organization: j.organization,
+            page_size: 1000,
+          });
+          const { data } = await http.get(url);
+          const rows = Array.isArray(data?.results)
+            ? data.results
+            : Array.isArray(data)
+              ? data
+              : [];
+          const users = rows.map((r) => r?.user ?? r).filter(Boolean);
+          setOrgMembersForJournal(users);
+        } catch (e) {
+          console.error("org members load failed", e?.response?.data || e);
+          setOrgMembersForJournal([]);
+        }
+      } catch (e) {
+        console.error("load candidates failed", e);
+        setJournalTeam([]);
+        setOrgMembersForJournal([]);
+      }
+    })();
+  }, [journalId, journals]);
 
   // guards
   if (membershipsLoading) {
@@ -627,431 +710,526 @@ export default function EditorDashboard() {
     );
   }
 
+  const rowPad = dense ? "py-2.5" : "py-4";
+  const rowText = dense ? "text-[13px]" : "text-sm";
+
+  // counts
+  const counts = {
+    under_review: urUnassigned.length,
+    assigned: urAssigned.length,
+    revision_minor: revMinor.length,
+    revision_major: revMajor.length,
+  };
+
   return (
-    <div className="space-y-6 p-4 lg:p-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Дашборд редактора</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-600">Журнал:</span>
-          <Select
-            value={journalId ? String(journalId) : undefined}
-            onValueChange={(v) => setJournalId(Number(v))}
-          >
-            <SelectTrigger className="w-72">
-              <SelectValue placeholder="Выберите журнал" />
-            </SelectTrigger>
-            <SelectContent>
-              {journals.map((j) => (
-                <SelectItem key={j.id} value={String(j.id)}>
-                  {j.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <div className="min-h-[100dvh] bg-slate-50">
+      {/* Top toolbar */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="mx-auto max-w-[1400px] px-4 py-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+                Дашборд редактора
+              </h1>
+              <div className="mt-1 text-xs sm:text-sm text-slate-500">
+                {lastUpdated ? `Обновлено: ${fmt(lastUpdated)}` : "—"}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={journalId ? String(journalId) : undefined}
+                onValueChange={(v) => setJournalId(Number(v))}
+              >
+                <SelectTrigger className="w-72 bg-white">
+                  <SelectValue placeholder="Выберите журнал" />
+                </SelectTrigger>
+                <SelectContent>
+                  {journals.map((j) => (
+                    <SelectItem key={j.id} value={String(j.id)}>
+                      {j.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-          <Select value={ordering} onValueChange={setOrdering}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Сортировка" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="-created_at">Новее → старее</SelectItem>
-              <SelectItem value="created_at">Старее → новее</SelectItem>
-              <SelectItem value="title">Заголовок A→Z</SelectItem>
-              <SelectItem value="-title">Заголовок Z→A</SelectItem>
-            </SelectContent>
-          </Select>
+              <Select value={ordering} onValueChange={setOrdering}>
+                <SelectTrigger className="w-44 bg-white">
+                  <SelectValue placeholder="Сортировка" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="-created_at">Новее → старее</SelectItem>
+                  <SelectItem value="created_at">Старее → новее</SelectItem>
+                  <SelectItem value="title">Заголовок A→Z</SelectItem>
+                  <SelectItem value="-title">Заголовок Z→A</SelectItem>
+                </SelectContent>
+              </Select>
 
-          <Select
-            value={String(pageSize)}
-            onValueChange={(v) => setPageSize(Number(v))}
-          >
-            <SelectTrigger className="w-28">
-              <SelectValue placeholder="Порог" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 50, 100].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}/стр
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(v) => setPageSize(Number(v))}
+              >
+                <SelectTrigger className="w-28 bg-white">
+                  <SelectValue placeholder="Порог" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[10, 20, 50, 100].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}/стр
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                onClick={() => journalId && loadArticlesForJournal(journalId)}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Обновить
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setDense((v) => {
+                    localStorage.setItem("ed_dense", v ? "0" : "1");
+                    return !v;
+                  })
+                }
+              >
+                {dense ? "Плотно" : "Обычно"}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowRight((v) => !v)}
+                title={showRight ? "Скрыть панель" : "Показать панель"}
+              >
+                {showRight ? (
+                  <PanelRightClose className="h-4 w-4 mr-2" />
+                ) : (
+                  <PanelRightOpen className="h-4 w-4 mr-2" />
+                )}
+                Панель
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2">
+            <div className="relative w-full">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input
+                id="ed_global_search"
+                placeholder="Поиск по заголовку/автору…  (нажмите / чтобы перейти к поиску)"
+                className="pl-9 bg-white"
+                value={globalQuery}
+                onChange={(e) => onGlobalSearch(e.target.value)}
+              />
+            </div>
+            <Button variant="outline">
+              <Filter className="h-4 w-4 mr-2" />
+              Быстрые фильтры
+            </Button>
+            <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 px-2">
+              <KeyboardIcon className="h-3.5 w-3.5" /> / — поиск, R — обновить,
+              O — детали, M — Вернуть автору
+            </span>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {currentJournal && (
-        <div className="text-sm text-gray-600">
-          Организация: <b>{currentJournal.organization ?? "—"}</b>
-        </div>
-      )}
+      {/* Content layout */}
+      <div className="mx-auto max-w-[1400px] px-4 py-4 grid grid-cols-1 lg:grid-cols-[260px,1fr,420px] gap-4">
+        {/* LEFT: queues */}
+        <aside className="rounded-xl border border-slate-200 bg-white p-2 sticky top-[68px] h-fit">
+          <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-slate-500">
+            Очереди
+          </div>
+          <nav className="p-1 space-y-1">
+            <button
+              className={`w-full text-left rounded-lg px-3 py-2.5 ${queue === "under_review" ? "bg-blue-50 text-blue-700" : "hover:bg-slate-50"}`}
+              onClick={() => setQueue("under_review")}
+            >
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4" /> На рецензии
+                </span>
+                <span className="text-xs rounded-full bg-blue-100 text-blue-700 px-2 py-0.5">
+                  {counts.under_review}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                Без назначенных рецензентов
+              </div>
+            </button>
 
-      {loading ? (
-        <div className="p-6 text-gray-500 flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" /> Загрузка статей…
-        </div>
-      ) : (
-        <Tabs
-          defaultValue="under_review"
-          className="space-y-6"
-          aria-label="Очереди редактора"
-        >
-          <TabsList className="grid w-full grid-cols-4 gap-2 p-1 bg-white shadow-sm rounded-lg sticky top-0 z-10">
-            <TabsTrigger
-              value="under_review"
-              className="flex items-center gap-2 shrink-0"
+            <button
+              className={`w-full text-left rounded-lg px-3 py-2.5 ${queue === "assigned" ? "bg-emerald-50 text-emerald-700" : "hover:bg-slate-50"}`}
+              onClick={() => setQueue("assigned")}
             >
-              <ClipboardList className="h-4 w-4" />
-              <span className="hidden sm:inline">На рецензии</span>
-              <span className="sm:hidden">Рецензии</span>
-              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
-                {urUnassigned.length}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="assigned"
-              className="flex items-center gap-2 shrink-0"
-            >
-              <UserPlus className="h-4 w-4" />
-              <span>Назначено</span>
-              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-700">
-                {urAssigned.length}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="minor"
-              className="flex items-center gap-2 shrink-0"
-            >
-              <FileEdit className="h-4 w-4" />
-              <span>Небольшие правки</span>
-              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">
-                {revMinor.length}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="major"
-              className="flex items-center gap-2 shrink-0"
-            >
-              <Hammer className="h-4 w-4" />
-              <span>Крупные правки</span>
-              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-rose-100 text-rose-700">
-                {revMajor.length}
-              </span>
-            </TabsTrigger>
-          </TabsList>
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" /> Назначено
+                </span>
+                <span className="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
+                  {counts.assigned}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                С активными назначениями
+              </div>
+            </button>
 
-          {/* ===== TAB: UNDER REVIEW ===== */}
-          <TabsContent value="under_review" className="space-y-4">
-            {/* отдельная карточка заголовка+поиска */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>
-                    На рецензии (Under review){" "}
-                    <span className="text-gray-400">
-                      ({urUnassigned.length})
-                    </span>
-                  </span>
-                  <div className="relative w-full max-w-[480px] ml-4">
-                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <Input
-                      placeholder="Поиск по Under review…"
-                      className="pl-9"
-                      value={urQuery}
-                      onChange={(e) => onSearchChange("ur", e.target.value)}
-                    />
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
+            <button
+              className={`w-full text-left rounded-lg px-3 py-2.5 ${queue === "revision_minor" ? "bg-amber-50 text-amber-700" : "hover:bg-slate-50"}`}
+              onClick={() => setQueue("revision_minor")}
+            >
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2">
+                  <FileEdit className="h-4 w-4" /> Вернуть автору
+                </span>
+                <span className="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
+                  {counts.revision_minor}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                Ждут корректировок
+              </div>
+            </button>
+          </nav>
 
-            {/* отдельные карточки статей */}
-            {urUnassigned.length ? (
-              <div className="space-y-4">
-                {urUnassigned.map((a) => (
-                  <Card
-                    key={a.id}
-                    className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-                  >
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <div className="font-medium break-words">
+          <div className="mt-2 border-t border-slate-200 pt-2 px-2">
+            <div className="text-xs text-slate-500 mb-1">Батч-операции</div>
+            {queue === "under_review" ? (
+              <div className="grid grid-cols-1 gap-1.5">
+                <Button
+                  size="sm"
+                  className="justify-start bg-amber-600 hover:bg-amber-700"
+                  disabled={!selectedIds.size}
+                  onClick={() => bulkMinor(selectedIds)}
+                >
+                  Вернуть автору ({selectedIds.size})
+                </Button>
+              </div>
+            ) : queue === "revision_minor" || queue === "revision_major" ? (
+              <div className="grid grid-cols-1 gap-1.5"></div>
+            ) : (
+              <div className="text-xs text-slate-400">
+                Нет групповых действий
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* CENTER: table */}
+        <main className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div className="overflow-auto">
+            <table className={`w-full ${rowText}`}>
+              <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0 z-10">
+                <tr>
+                  <th className="px-3 py-2 w-[44px] text-left">
+                    <button
+                      className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900"
+                      onClick={() =>
+                        selectedIds.size === visibleRows.length
+                          ? clearSelection()
+                          : selectAllVisible(visibleRows)
+                      }
+                      title={
+                        selectedIds.size === visibleRows.length
+                          ? "Снять все"
+                          : "Выбрать все"
+                      }
+                    >
+                      {selectedIds.size === visibleRows.length &&
+                      visibleRows.length > 0 ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2 text-left">Статья</th>
+                  <th className="px-3 py-2 text-left w-[160px]">Автор</th>
+                  <th className="px-3 py-2 text-left w-[160px]">Создана</th>
+                  <th className="px-3 py-2 text-left w-[140px]">Статус</th>
+                  <th className="px-3 py-2 text-right w-[340px]">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <tr
+                      key={i}
+                      className="border-b border-slate-200 animate-pulse"
+                    >
+                      <td className={`px-3 ${rowPad}`}></td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <div className="h-3.5 bg-slate-200 rounded w-3/4" />
+                      </td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <div className="h-3.5 bg-slate-200 rounded w-2/3" />
+                      </td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <div className="h-3.5 bg-slate-200 rounded w-1/2" />
+                      </td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <div className="h-6 bg-slate-200 rounded w-[120px]" />
+                      </td>
+                      <td className={`px-3 ${rowPad}`} />
+                    </tr>
+                  ))
+                ) : visibleRows.length ? (
+                  visibleRows.map((a) => {
+                    const assigns = assignmentsMap[a.id] || [];
+                    const active = assigns.filter(isPendingAssignment);
+                    return (
+                      <tr
+                        key={a.id}
+                        className="border-b border-slate-200 hover:bg-slate-50"
+                      >
+                        <td className={`px-3 ${rowPad}`}>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4"
+                            checked={selectedIds.has(a.id)}
+                            onChange={() => toggleSelect(a.id)}
+                            aria-label="Выбрать строку"
+                          />
+                        </td>
+                        <td className={`px-3 ${rowPad}`}>
+                          <div className="font-medium text-slate-900 truncate">
                             {a.title}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            Журнал #{a.journal} • Автор {a.author_email} •{" "}
-                            {fmt(a.created_at)}
+                          <div className="text-xs text-slate-500">
+                            Журнал #{a.journal}
                           </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                          <Link to={`/articles/${a.id}`}>
+                        </td>
+                        <td className={`px-3 ${rowPad}`}>
+                          <div className="truncate">
+                            {a.author_email ?? "—"}
+                          </div>
+                        </td>
+                        <td className={`px-3 ${rowPad}`}>
+                          {fmt(a.created_at)}
+                        </td>
+                        <td className={`px-3 ${rowPad}`}>
+                          <StatusPill status={a.status} />
+                        </td>
+                        <td className={`px-3 ${rowPad}`}>
+                          <div className="flex items-center justify-end gap-2 flex-wrap">
                             <Button
                               variant="outline"
-                              className="bg-transparent"
+                              size="sm"
+                              onClick={() => {
+                                setDetailArticle(a);
+                                setShowRight(true);
+                              }}
                             >
-                              Открыть
+                              Детали
                             </Button>
-                          </Link>
+
+                            {queue === "under_review" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-amber-600 hover:bg-amber-700"
+                                  onClick={() =>
+                                    requestRevision(a.id, "revision_minor")
+                                  }
+                                >
+                                  Вернуть автору
+                                </Button>
+                              </>
+                            )}
+
+                            {queue === "assigned" && (
+                              <Link to={`/articles/${a.id}`}>
+                                <Button size="sm" variant="outline">
+                                  Открыть
+                                </Button>
+                              </Link>
+                            )}
+
+                            {/* мини-сводка активных назначений для assigned */}
+                            {queue === "assigned" && active.length > 0 && (
+                              <span className="text-xs text-slate-500">
+                                Активных назначений: <b>{active.length}</b>
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-16 text-center">
+                      <div className="mx-auto w-full max-w-md">
+                        <div className="text-2xl font-semibold">Пока пусто</div>
+                        <p className="mt-2 text-slate-500">
+                          В очереди{" "}
+                          <b>
+                            {queue === "under_review"
+                              ? "На рецензии"
+                              : queue === "assigned"
+                                ? "Назначено"
+                                : queue === "revision_minor"
+                                  ? "Небольшие правки"
+                                  : "Крупные правки"}
+                          </b>{" "}
+                          нет статей под текущие фильтры.
+                        </p>
+                        <div className="mt-4">
                           <Button
                             variant="outline"
-                            className="border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
-                            onClick={() =>
-                              requestRevision(a.id, "revision_minor")
-                            }
+                            onClick={() => {
+                              setGlobalQuery("");
+                              journalId && loadArticlesForJournal(journalId);
+                            }}
                           >
-                            Небольшие правки
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100"
-                            onClick={() =>
-                              requestRevision(a.id, "revision_major")
-                            }
-                          >
-                            Крупные правки
+                            Сбросить поиск
                           </Button>
                         </div>
                       </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-                      <AssignReviewerInline
-                        articleId={a.id}
-                        journalId={journalId}
-                        organizationId={currentJournal?.organization}
-                        assignmentsForArticle={assignmentsMap[a.id] || []}
-                        journalTeam={journalTeam}
-                        orgMembers={orgMembersForJournal}
-                        onAssigned={() => loadArticlesForJournal(journalId)}
-                      />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="p-6 text-gray-500">
-                Сейчас нет статей, требующих назначения рецензента.
-              </div>
-            )}
-          </TabsContent>
+          {/* bottom selection bar */}
+          {selectedIds.size > 0 && (
+            <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-3 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm text-slate-600">
+                  Выбрано: <b>{selectedIds.size}</b>
+                </div>
+                <div className="flex items-center gap-2">
+                  {queue === "under_review" && (
+                    <>
+                      <Button
+                        size="sm"
+                        className="bg-amber-600 hover:bg-amber-700"
+                        onClick={() => bulkMinor(selectedIds)}
+                      >
+                        Вернуть автору
+                      </Button>
+                    </>
+                  )}
 
-          {/* ===== TAB: REVISION MINOR ===== */}
-          <TabsContent value="minor" className="space-y-4">
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>
-                    Запрошены правки — Minor{" "}
-                    <span className="text-gray-400">({revMinor.length})</span>
-                  </span>
-                  <div className="relative w-full max-w-[480px] ml-4">
-                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <Input
-                      placeholder="Поиск по Minor…"
-                      className="pl-9"
-                      value={miQuery}
-                      onChange={(e) => onSearchChange("mi", e.target.value)}
-                    />
+                  <Button size="sm" variant="ghost" onClick={clearSelection}>
+                    <X className="h-4 w-4 mr-1" />
+                    Снять выделение
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* RIGHT: details panel */}
+        <aside
+          className={`relative transition-all duration-200 ${showRight ? "opacity-100 translate-x-0" : "pointer-events-none -translate-x-2 opacity-0"}`}
+        >
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
+              <div className="font-semibold">Панель деталей</div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowRight(false)}
+              >
+                <PanelRightClose className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {detailArticle ? (
+              <div className="p-3 space-y-4">
+                <div>
+                  <div className="text-sm text-slate-500">Статья</div>
+                  <div className="font-medium break-words">
+                    {detailArticle.title}
                   </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    Автор: {detailArticle.author_email ?? "—"} • Создана:{" "}
+                    {fmt(detailArticle.created_at)}
+                  </div>
+                  <div className="mt-1">
+                    <StatusPill status={detailArticle.status} />
+                  </div>
+                </div>
 
-            {revMinor.length ? (
-              <div className="space-y-4">
-                {revMinor.map((a) => (
-                  <Card
-                    key={a.id}
-                    className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-                  >
-                    <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="font-medium break-words">{a.title}</div>
-                        <div className="text-xs text-gray-500">
-                          Журнал #{a.journal} • {fmt(a.created_at)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                        <Link to={`/articles/${a.id}`}>
-                          <Button variant="outline" className="bg-transparent">
-                            Открыть
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          onClick={() => backToUnderReview(a.id)}
+                {/* Назначение рецензента доступно только для under_review */}
+                {["under_review", "assigned"].includes(
+                  detailArticle.status
+                ) && (
+                  <AssignReviewerInline
+                    articleId={detailArticle.id}
+                    journalId={journalId}
+                    organizationId={
+                      journals.find((x) => x.id === journalId)?.organization
+                    }
+                    assignmentsForArticle={
+                      assignmentsMap[detailArticle.id] || []
+                    }
+                    journalTeam={journalTeam}
+                    orgMembers={orgMembersForJournal}
+                    onAssigned={async () => {
+                      await loadArticlesForJournal(journalId);
+                    }}
+                  />
+                )}
+
+                {/* Сводка активных назначений */}
+                <div className="space-y-1.5">
+                  <div className="font-medium">Назначения</div>
+                  {(() => {
+                    const assigns = assignmentsMap[detailArticle.id] || [];
+                    const active = assigns.filter(isPendingAssignment);
+                    return active.length ? (
+                      active.map((as) => (
+                        <div
+                          key={as.id}
+                          className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
                         >
-                          Вернуть на рецензию
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="p-6 text-gray-500">
-                Нет статей с Небольшими правками.
-              </div>
-            )}
-          </TabsContent>
-
-          {/* ===== TAB: REVISION MAJOR ===== */}
-          <TabsContent value="major" className="space-y-4">
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>
-                    Запрошены правки — Major{" "}
-                    <span className="text-gray-400">({revMajor.length})</span>
-                  </span>
-                  <div className="relative w-full max-w-[480px] ml-4">
-                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <Input
-                      placeholder="Поиск по Major…"
-                      className="pl-9"
-                      value={maQuery}
-                      onChange={(e) => onSearchChange("ma", e.target.value)}
-                    />
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-
-            {revMajor.length ? (
-              <div className="space-y-4">
-                {revMajor.map((a) => (
-                  <Card
-                    key={a.id}
-                    className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-                  >
-                    <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="font-medium break-words">{a.title}</div>
-                        <div className="text-xs text-gray-500">
-                          Журнал #{a.journal} • {fmt(a.created_at)}
+                          <div>
+                            #{as.id} • статус: <b>{as.status}</b>
+                            {as.due_at
+                              ? ` • срок до ${new Date(as.due_at).toLocaleDateString()}`
+                              : ""}
+                          </div>
+                          <span className="text-xs text-slate-500">
+                            Рецензент: {as.reviewer}
+                          </span>
                         </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        Активных назначений нет.
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                        <Link to={`/articles/${a.id}`}>
-                          <Button variant="outline" className="bg-transparent">
-                            Открыть
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          onClick={() => backToUnderReview(a.id)}
-                        >
-                          Вернуть на рецензию
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    );
+                  })()}
+                </div>
+
+                <div className="pt-1">
+                  <Link to={`/articles/${detailArticle.id}`} className="w-full">
+                    <Button variant="outline" className="w-full">
+                      Открыть страницу статьи
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
-              <div className="p-6 text-gray-500">
-                Нет статей с Крупными правками.
+              <div className="p-6 text-sm text-slate-500">
+                Выберите строку и нажмите <b>Детали</b>, чтобы назначить
+                рецензента, посмотреть назначения и перейти к статье.
               </div>
             )}
-          </TabsContent>
-          <TabsContent value="assigned" className="space-y-4">
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>
-                    Назначено{" "}
-                    <span className="text-gray-400">({urAssigned.length})</span>
-                  </span>
-                  {/* можно реиспользовать urQuery для поиска */}
-                  <div className="relative w-full max-w-[480px] ml-4">
-                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <Input
-                      placeholder="Поиск по Under review…"
-                      className="pl-9"
-                      value={urQuery}
-                      onChange={(e) => onSearchChange("ur", e.target.value)}
-                    />
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-
-            {urAssigned.length ? (
-              <div className="space-y-4">
-                {urAssigned.map((a) => {
-                  const assigns = assignmentsMap[a.id] || [];
-                  const active = assigns.filter(isPendingAssignment);
-                  return (
-                    <Card
-                      key={a.id}
-                      className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-                    >
-                      <CardContent className="p-4 space-y-3">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="min-w-0">
-                            <div className="font-medium break-words">
-                              {a.title}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Журнал #{a.journal} • Автор {a.author_email} •{" "}
-                              {fmt(a.created_at)}
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                            <Link to={`/articles/${a.id}`}>
-                              <Button
-                                variant="outline"
-                                className="bg-transparent"
-                              >
-                                Открыть
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-
-                        {/* мини-сводка назначений */}
-                        {active.length ? (
-                          <div className="text-sm text-gray-700">
-                            {active.map((as) => (
-                              <div
-                                key={as.id}
-                                className="flex items-center justify-between py-1 border-t border-slate-100 first:border-t-0"
-                              >
-                                <div>
-                                  Назначение #{as.id} • статус:{" "}
-                                  <b>{as.status}</b>
-                                  {as.due_at && (
-                                    <>
-                                      {" "}
-                                      • срок до{" "}
-                                      {new Date(as.due_at).toLocaleDateString()}
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-gray-500">
-                            Активных назначений нет.
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="p-6 text-gray-500">
-                Нет статей с назначенными рецензентами.
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      )}
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

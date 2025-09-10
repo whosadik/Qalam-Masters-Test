@@ -190,12 +190,12 @@ export default function OrganizationView() {
             Назад
           </Button>
           <Link to={`/moderator/organizations/${id}/edit`}>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-[#3972FE]">
               <Edit3 className="h-4 w-4" /> Редактировать
             </Button>
           </Link>
           <Link to={`/moderator/organizations/${id}/add-journal`}>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-[#3972FE]">
               <FilePlus2 className="h-4 w-4" /> Добавить журнал
             </Button>
           </Link>
@@ -323,7 +323,7 @@ export default function OrganizationView() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Журналы организации</h2>
         <Link to={`/moderator/organizations/${id}/add-journal`}>
-          <Button className="gap-2">
+          <Button className="gap-2 bg-[#3972FE]">
             <FilePlus2 className="h-4 w-4" /> Создать журнал
           </Button>
         </Link>

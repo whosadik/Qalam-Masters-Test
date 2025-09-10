@@ -260,22 +260,10 @@ export default function OrgMembersManager({ orgId }) {
   }
 
   return (
-    <Card className="border-0 shadow-sm">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle>Участники организации</CardTitle>
-          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-            <RefreshCcw
-              className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
-            />
-            Обновить
-          </Button>
-        </div>
-      </CardHeader>
-
+    <div className="border-0 shadow-sm">
       <CardContent className="space-y-6">
         {/* Добавление по email */}
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm font-medium mb-3">
             Добавить участника по email
           </div>
@@ -332,13 +320,13 @@ export default function OrgMembersManager({ orgId }) {
 
         {/* Список участников */}
         {error ? (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3 bg-white">
             {error}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-gray-500">Участников нет.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto ">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-600 border-b">
@@ -465,6 +453,6 @@ export default function OrgMembersManager({ orgId }) {
           </div>
         )}
       </CardContent>
-    </Card>
+    </div>
   );
 }

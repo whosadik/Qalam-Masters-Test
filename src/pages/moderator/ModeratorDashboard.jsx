@@ -594,7 +594,7 @@ export default function ModeratorDashboard() {
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Журналы</h2>
                   <Link to={`/moderator/organizations/${org.id}/add-journal`}>
-                    <Button className="gap-2">
+                    <Button className="gap-2 bg-[#3972FE]">
                       <FilePlus2 className="w-4 h-4" /> Создать журнал
                     </Button>
                   </Link>
