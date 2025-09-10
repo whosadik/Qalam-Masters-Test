@@ -586,7 +586,7 @@ export default function ModeratorDashboard() {
             <Tabs defaultValue="journals" className="mt-2">
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="journals">Журналы</TabsTrigger>
-                <TabsTrigger value="members">Участники</TabsTrigger>
+                <TabsTrigger value="members">Сотрудники</TabsTrigger>
               </TabsList>
 
               {/* Вкладка ЖУРНАЛЫ (то, что уже было) */}
@@ -706,7 +706,9 @@ export default function ModeratorDashboard() {
 
               {/* Вкладка УЧАСТНИКИ */}
               <TabsContent value="members" className="space-y-4">
-                <h2 className="text-xl font-semibold">Участники организации</h2>
+                <h2 className="text-xl font-semibold">
+                  Сотрудники организации
+                </h2>
                 <OrgMembersManager orgId={org.id} />
               </TabsContent>
             </Tabs>

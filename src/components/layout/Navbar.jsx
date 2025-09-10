@@ -1,54 +1,136 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "../../assets/QM_logo-.png";
-// import NotificationsButton from "@/components/NotificationsButton"; // <- пока убрали
 import ProfileMenu from "@/components/ProfileMenu";
-import { User as UserIcon, Compass } from "lucide-react";
+import { User as UserIcon, Compass, ArrowRight } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
-import DashboardNavigatorModal, {
-  useCommandK,
-} from "@/components/DashboardNavigatorModal";
-import { http, withParams } from "@/lib/apiClient";
-import { API } from "@/constants/api";
 import { listMyJournalMemberships } from "@/services/journalMembershipsService";
-import { NavLink } from "react-router-dom";
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-  const [navOpen, setNavOpen] = useState(false);
-  useCommandK(setNavOpen);
-
   const navigate = useNavigate();
   const { user, isAuthenticated, isOrgAdmin, logout, booted } = useAuth();
-  // готовность навбара: дожидаемся бутстрапа контекста
-  const ready = booted;
 
-  // локальный user для показа, если контекст ещё пуст
-  const displayUser = user || null;
+  // Mobile sheet open/close
+  const [open, setOpen] = useState(false);
 
-  const [roleSet, setRoleSet] = useState(() => new Set());
+  // ====== Roles loading ======
+  const [roles, setRoles] = useState({
+    reviewer: false,
+    editor: false,
+    chief: false,
+    secretary: false,
+    proofreader: false,
+  });
+
   useEffect(() => {
-    if (!ready || !isAuthenticated) {
-      setRoleSet(new Set());
-      return;
+    let alive = true;
+    async function load() {
+      if (!booted || !isAuthenticated) {
+        if (alive)
+          setRoles({
+            reviewer: false,
+            editor: false,
+            chief: false,
+            secretary: false,
+            proofreader: false,
+          });
+        return;
+      }
+      try {
+        const memberships = await listMyJournalMemberships({ page_size: 500 });
+        if (!alive) return;
+        const set = new Set((memberships || []).map((m) => String(m.role)));
+        setRoles({
+          reviewer: set.has("reviewer"),
+          editor: set.has("editor"),
+          chief: set.has("chief_editor"),
+          secretary: set.has("secretary"),
+          proofreader: set.has("proofreader"),
+        });
+      } catch {
+        // мягко игнорим – просто оставим роли пустыми
+        if (alive) {
+          setRoles({
+            reviewer: false,
+            editor: false,
+            chief: false,
+            secretary: false,
+            proofreader: false,
+          });
+        }
+      }
     }
-    (async () => {
-      const memberships = await listMyJournalMemberships({ page_size: 500 });
-      // m.role — строка: "reviewer" | "editor" | "chief_editor" | "secretary" | "proofreader" | ...
-      const next = new Set(memberships.map((m) => String(m.role)));
-      setRoleSet(next);
-    })();
-  }, [ready, isAuthenticated]);
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [booted, isAuthenticated]);
 
-  const isReviewer = roleSet.has("reviewer");
-  const isEditor = roleSet.has("editor");
-  const isChief = roleSet.has("chief_editor");
-  const isSecretary = roleSet.has("secretary");
-  const isProofreader = roleSet.has("proofreader");
+  useEffect(() => {
+    let alive = true;
 
+    async function load() {
+      // когда не залогинен — чистим роли
+      if (!booted || !isAuthenticated || !user?.id) {
+        if (alive) {
+          setRoles({
+            reviewer: false,
+            editor: false,
+            chief: false,
+            secretary: false,
+            proofreader: false,
+          });
+        }
+        return;
+      }
+
+      try {
+        // 1) Пытаемся спросить только "мои" membership-ы
+        // Проверь, поддерживает ли твой сервис такие параметры:
+        // const memberships = await listMyJournalMemberships({ page_size: 500, mine: true });
+
+        const memberships = await listMyJournalMemberships({ page_size: 500 });
+
+        if (!alive) return;
+
+        // 2) Если бэк всё равно вернул всех, фильтруем по текущему юзеру
+        const onlyMine = (memberships || []).filter((m) => {
+          // подстроимся под разные формы
+          const uid = m.user?.id ?? m.user_id ?? m.user ?? null;
+          return String(uid) === String(user.id);
+        });
+
+        const set = new Set(onlyMine.map((m) => String(m.role)));
+        setRoles({
+          reviewer: set.has("reviewer"),
+          editor: set.has("editor"),
+          chief: set.has("chief_editor"),
+          secretary: set.has("secretary"),
+          proofreader: set.has("proofreader"),
+        });
+      } catch {
+        if (alive) {
+          setRoles({
+            reviewer: false,
+            editor: false,
+            chief: false,
+            secretary: false,
+            proofreader: false,
+          });
+        }
+      }
+    }
+
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [booted, isAuthenticated, user?.id]);
+
+  // Esc закрывает мобильное меню + блокируем скролл, когда открыто
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
@@ -61,140 +143,36 @@ export default function Navbar() {
 
   const closeMenu = () => setOpen(false);
 
-  const navItems = [
-    {
-      title: "Дашборды",
-      links: [
-        {
-          to: "/author-dashboard",
-          label: "Дашборд автора",
-          type: "dashboard",
-          desc: "Подачи, черновики, статусы",
-        },
-        {
-          to: "/reviewer-dashboard",
-          label: "Дашборд рецензента",
-          type: "dashboard",
-          desc: "Рецензирование, задачи",
-        },
-        {
-          to: "/editorial-board-dashboard",
-          label: "Дашборд редколлегии",
-          type: "dashboard",
-          desc: "Очередь, публикации",
-        },
-        {
-          to: "/editor-chief-dashboard",
-          label: "Дашборд главного редактора",
-          type: "dashboard",
-          desc: "Управление журналом",
-        },
-        {
-          to: "/admin-dashboard",
-          label: "Админ-панель",
-          type: "dashboard",
-          desc: "Пользователи, права, системные настройки",
-        },
-      ],
-    },
-    {
-      title: "Профили",
-      links: [
-        {
-          to: "/author-profile",
-          label: "Профиль автора",
-          desc: "Личные данные, настройки",
-        },
-        {
-          to: "/reviewer-profile",
-          label: "Профиль рецензента",
-          desc: "Специализации, загрузка CV",
-        },
-        {
-          to: "/editorial-profile",
-          label: "Профиль редакции",
-          desc: "Информация об аккаунте редакции",
-        },
-      ],
-    },
-    {
-      title: "Действия",
-      links: [
-        {
-          to: "/submit-article",
-          label: "Подать статью",
-          desc: "Создать новую заявку",
-        },
-      ],
-    },
-    {
-      title: "Публичные страницы",
-      links: [
-        { to: "/", label: "Главная", type: "home" },
-        { to: "/about-journal", label: "О платформе" },
-        { to: "/author-info", label: "Информация для авторов" },
-        { to: "/publication-terms", label: "Для Журналов" },
-        { to: "/requirements", label: "Требования" },
-      ],
-    },
-    {
-      title: "Вход",
-      links: [
-        { to: "/login", label: "Войти" },
-        { to: "/register", label: "Зарегистрироваться" },
-      ],
-    },
-  ];
+  // ====== Primary dashboard resolver ======
+  function getPrimaryDashboard(r, isOrgAdminFlag) {
+    if (r.chief)
+      return { to: "/editor-chief-dashboard", label: "Гл. редактор" };
+    if (r.editor)
+      return { to: "/editorial-board-dashboard", label: "Редколлегия" };
+    if (r.secretary) return { to: "/secretary-dashboard", label: "Секретарь" };
+    if (r.proofreader)
+      return { to: "/proofreafer-dashboard", label: "Корректор" };
+    if (r.reviewer) return { to: "/reviewer-dashboard", label: "Рецензент" };
+    // отдельная кнопка модератора ниже; основной — личный кабинет автора
+    return { to: "/author-dashboard", label: "Личный кабинет" };
+  }
 
-  // гостю — публичные/вход; пользователю — рабочие секции
-  const filteredNavItems = useMemo(() => {
-    if (isAuthenticated) {
-      return navItems.filter(
-        (s) => s.title !== "Вход" && s.title !== "Публичные страницы"
-      );
-    }
-    return navItems.filter(
-      (s) => s.title === "Публичные страницы" || s.title === "Вход"
-    );
-  }, [isAuthenticated]);
+  const primary = useMemo(
+    () => getPrimaryDashboard(roles, isOrgAdmin),
+    [roles, isOrgAdmin]
+  );
 
+  // display user/avatar
+  const displayUser = user || null;
   const avatarNode = (
     <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
       <UserIcon className="h-4 w-4 text-white" />
     </div>
   );
-
   const displayName =
     displayUser?.first_name || displayUser?.last_name
       ? `${displayUser?.first_name || ""} ${displayUser?.last_name || ""}`.trim()
       : displayUser?.name || "Профиль";
-
-  const primaryDashPath = isChief
-    ? "/editor-chief-dashboard"
-    : isEditor
-      ? "/editorial-board-dashboard"
-      : isSecretary
-        ? "/secretary-dashboard"
-        : isProofreader
-          ? "/proofreafer-dashboard"
-          : isReviewer
-            ? "/reviewer-dashboard"
-            : isOrgAdmin
-              ? "/moderator"
-              : "/author-dashboard";
-  const primaryDashLabel = isChief
-    ? "Гл. редактор"
-    : isEditor
-      ? "Редколлегия"
-      : isSecretary
-        ? "Секретарь"
-        : isProofreader
-          ? "Корректор"
-          : isReviewer
-            ? "Рецензент"
-            : isOrgAdmin
-              ? "Модер."
-              : "ЛК";
 
   return (
     <>
@@ -220,44 +198,51 @@ export default function Navbar() {
                 to="/"
                 className={({ isActive }) =>
                   isActive
-                    ? "text-[#3972FE] font-medium transition-colors"
-                    : "text-gray-600 hover:text-[#3972FE] transition-colors"
+                    ? "text-[#3972FE] font-medium"
+                    : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
                 Главная
               </NavLink>
-
               <NavLink
                 to="/author-info"
                 className={({ isActive }) =>
                   isActive
-                    ? "text-[#3972FE] font-medium transition-colors"
-                    : "text-gray-600 hover:text-[#3972FE] transition-colors"
+                    ? "text-[#3972FE] font-medium"
+                    : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
                 Для авторов
               </NavLink>
-
               <NavLink
                 to="/for-journals"
                 className={({ isActive }) =>
                   isActive
-                    ? "text-[#3972FE] font-medium transition-colors"
-                    : "text-gray-600 hover:text-[#3972FE] transition-colors"
+                    ? "text-[#3972FE] font-medium"
+                    : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
                 Для журналов
               </NavLink>
-
               <NavLink
                 to="/contacts"
                 className={({ isActive }) =>
                   isActive
-                    ? "text-[#3972FE] font-medium transition-colors"
-                    : "text-gray-600 hover:text-[#3972FE] transition-colors"
+                    ? "text-[#3972FE] font-medium"
+                    : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
                 Контакты
+              </NavLink>
+              <NavLink
+                to="/news"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-[#3972FE] font-medium"
+                    : "text-gray-600 hover:text-[#3972FE]"
+                }
+              >
+                Новости
               </NavLink>
             </nav>
 
@@ -269,59 +254,26 @@ export default function Navbar() {
                     <Button variant="outline">Войти</Button>
                   </Link>
                   <Link to="/register">
-                    <Button className=" bg-[#3972FE] hover:bg-[#2f62df] text-white">
+                    <Button className="bg-[#3972FE] hover:bg-[#2f62df] text-white">
                       Зарегистрироваться
                     </Button>
                   </Link>
                 </>
               ) : (
                 <>
-                  {!ready && (
+                  {!booted ? (
                     <div className="h-9 w-[140px] rounded-md bg-gray-100 animate-pulse" />
-                  )}
-                  {ready && (
+                  ) : (
                     <>
-                      {/* показываем кнопки для КАЖДОЙ роли, если она есть */}
-                      {isChief && (
-                        <Link to="/editor-chief-dashboard">
-                          <Button variant="outline">Главный редактор</Button>
-                        </Link>
-                      )}
-                      {isEditor && (
-                        <Link to="/editorial-board-dashboard">
-                          <Button variant="outline">Редколлегия</Button>
-                        </Link>
-                      )}
-                      {isSecretary && (
-                        <Link to="/secretary-dashboard">
-                          <Button variant="outline">Секретарь</Button>
-                        </Link>
-                      )}
-                      {isProofreader && (
-                        <Link to="/proofreader-dashboard">
-                          <Button variant="outline">Корректор</Button>
-                        </Link>
-                      )}
-                      {isReviewer && (
-                        <Link to="/reviewer-dashboard">
-                          <Button variant="outline">Рецензент</Button>
-                        </Link>
-                      )}
-                      {/* если специальных ролей нет — показать авторский кабинет */}
-                      {!isChief &&
-                        !isEditor &&
-                        !isSecretary &&
-                        !isProofreader &&
-                        !isReviewer &&
-                        !isOrgAdmin && (
-                          <Link to="/author-dashboard">
-                            <Button variant="outline">Личный кабинет</Button>
-                          </Link>
-                        )}
-                      {/* модератор отдельной кнопкой */}
+                      {/* Один контекстный кабинет */}
+                      <Link to={primary.to}>
+                        <Button variant="outline">{primary.label}</Button>
+                      </Link>
+
+                      {/* Отдельно модератор (если нужен параллельно) */}
                       {isOrgAdmin && (
                         <Link to="/moderator">
-                          <Button variant="outline">Кабинет модератора</Button>
+                          <Button variant="outline">Модератор</Button>
                         </Link>
                       )}
                     </>
@@ -345,7 +297,7 @@ export default function Navbar() {
             {/* Правый блок (мобилка) */}
             <div className="md:hidden flex items-center gap-1">
               <button
-                onClick={() => setNavOpen(true)}
+                onClick={() => setOpen(true)}
                 className="p-2 rounded-lg hover:bg-gray-100"
                 aria-label="Навигация"
                 title="Навигация"
@@ -366,17 +318,15 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  {!ready ? (
+                  {!booted ? (
                     <div className="h-8 w-[64px] rounded bg-gray-100 animate-pulse" />
                   ) : (
-                    <Link to={primaryDashPath}>
+                    <Link to={primary.to}>
                       <Button variant="outline" size="sm">
-                        {primaryDashLabel}
+                        {primary.label}
                       </Button>
                     </Link>
                   )}
-
-                  {/* <NotificationsButton ... /> */}
 
                   <ProfileMenu
                     name={displayName}
@@ -416,8 +366,6 @@ export default function Navbar() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
                   >
                     <path d="M18 6L6 18M6 6l12 12" />
                   </svg>
@@ -429,8 +377,6 @@ export default function Navbar() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
                   >
                     <path d="M3 6h18M3 12h18M3 18h18" />
                   </svg>
@@ -496,19 +442,22 @@ export default function Navbar() {
           ) : (
             <nav className="grid gap-4">
               <Link
-                to="/author-dashboard"
+                to={primary.to}
                 onClick={closeMenu}
                 className="py-2 text-base text-gray-700 hover:text-gray-900"
               >
-                Мои статьи
+                Перейти: {primary.label}{" "}
+                <ArrowRight className="inline-block h-4 w-4 ml-1" />
               </Link>
-              <Link
-                to="/reviews"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
-                Рецензии
-              </Link>
+              {isOrgAdmin && (
+                <Link
+                  to="/moderator"
+                  onClick={closeMenu}
+                  className="py-2 text-base text-gray-700 hover:text-gray-900"
+                >
+                  Кабинет модератора
+                </Link>
+              )}
               <Link
                 to="/messages"
                 onClick={closeMenu}
@@ -527,12 +476,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-
-      <DashboardNavigatorModal
-        open={navOpen}
-        onClose={() => setNavOpen(false)}
-        items={filteredNavItems}
-      />
     </>
   );
 }

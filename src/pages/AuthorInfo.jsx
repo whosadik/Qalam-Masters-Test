@@ -70,15 +70,6 @@ export default function AuthorsPage() {
                 >
                   <Link to={ctaHref}>{ctaLabel}</Link>
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="h-11 px-5 text-base border-[#3972FE] text-[#3972FE] hover:bg-[#3972FE]/5"
-                >
-                  <Link to="/about-journal" className="flex items-center gap-2">
-                    Узнать подробнее <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
               </div>
 
               {/* Быстрые преимущества */}
@@ -95,6 +86,84 @@ export default function AuthorsPage() {
                   <CheckCircle2 className="size-4 text-[#3972FE]" /> Уведомления
                   о статусе
                 </span>
+              </div>
+            </div>
+            <div className="relative">
+              {/* мягкий фон-блик */}
+              <div
+                aria-hidden="true"
+                className="absolute -top-10 -right-6 h-56 w-56 rounded-full blur-3xl opacity-30"
+                style={{
+                  background:
+                    "radial-gradient(circle at 70% 30%, #3972FE 0%, #A3C6FF 40%, transparent 70%)",
+                }}
+              />
+
+              <div className="relative grid gap-4">
+                {/* Главная карточка: превью загрузки рукописи */}
+                <Card className="rounded-2xl border-slate-200 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <FilePlus2 className="size-5 text-[#3972FE]" />
+                      Загрузка рукописи
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* “файл” */}
+                    <div className="flex items-center justify-between gap-3 rounded-xl border bg-white px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          manuscript_v3_final.docx
+                        </p>
+                        <p className="text-xs text-slate-500">1.8 MB • DOCX</p>
+                      </div>
+                      <Badge variant="secondary" className="whitespace-nowrap">
+                        Готово к отправке
+                      </Badge>
+                    </div>
+
+                    {/* шаги */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="rounded-xl border p-3 text-center">
+                        <div className="mx-auto mb-1 grid h-8 w-8 place-items-center rounded-lg bg-[#3972FE]/10 text-[#3972FE]">
+                          <ShieldCheck className="size-4" />
+                        </div>
+                        <p className="text-xs font-medium">Антиплагиат</p>
+                        <p className="text-[11px] text-slate-500">пройден</p>
+                      </div>
+                      <div className="rounded-xl border p-3 text-center">
+                        <div className="mx-auto mb-1 grid h-8 w-8 place-items-center rounded-lg bg-[#3972FE]/10 text-[#3972FE]">
+                          <ClipboardList className="size-4" />
+                        </div>
+                        <p className="text-xs font-medium">Метаданные</p>
+                        <p className="text-[11px] text-slate-500">заполнены</p>
+                      </div>
+                      <div className="rounded-xl border p-3 text-center">
+                        <div className="mx-auto mb-1 grid h-8 w-8 place-items-center rounded-lg bg-[#3972FE]/10 text-[#3972FE]">
+                          <BookOpenCheck className="size-4" />
+                        </div>
+                        <p className="text-xs font-medium">Требования</p>
+                        <p className="text-[11px] text-slate-500">OK</p>
+                      </div>
+                    </div>
+
+                    {/* прогресс */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-slate-600">
+                          Подготовка заявки
+                        </span>
+                        <span className="font-medium text-[#3972FE]">80%</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-[#3972FE]"
+                          style={{ width: "80%" }}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
@@ -214,7 +283,7 @@ export default function AuthorsPage() {
           </div>
 
           {/* Мини‑стата доверия */}
-          <div className="mt-8 grid sm:grid-cols-3 gap-4">
+          {/* <div className="mt-8 grid sm:grid-cols-3 gap-4">
             {[
               { n: "30+", t: "вузов доверяют" },
               { n: "500 000+", t: "работ проверено" },
@@ -230,7 +299,7 @@ export default function AuthorsPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </div> */}
         </div>
       </section>
 

@@ -10,6 +10,33 @@ import { API } from "@/constants/api";
 import { useAuth } from "@/auth/AuthContext";
 import { http } from "@/lib/apiClient";
 
+const SAMPLE = {
+  id: "sample",
+  name: "Демонстрационный журнал",
+  description:
+    "Это пример карточки журнала. Здесь будет краткое описание целей, тематики и аудитории издания.",
+  mission:
+    "Продвижение научных исследований, прозрачное рецензирование и качественная публикация.",
+  topics: ["Наука и образование", "Инженерия", "Информатика", "Экономика"],
+  audience: "Исследователи, преподаватели, студенты магистратуры и PhD.",
+  ethics: "Следуем принципам COPE. Антиплагиат на этапе скрининга.",
+  periodicity: "Ежеквартально",
+  editorial: [],
+  forAuthors: {
+    fee: "Публикационный взнос отсутствует",
+    firstDecision: "7–14 дней (первичное решение)",
+    reviewTime: "2–4 недели",
+    publication: "Онлайн-публикация после приёма",
+  },
+  coverUrl: "",
+  site: "",
+  email: "info@example.com",
+  issn: "",
+  theme: "Междисциплинарный",
+  language: "ru / en",
+  frequency: "Ежеквартально",
+};
+
 export default function JournalView() {
   const { jid } = useParams();
   const navigate = useNavigate();

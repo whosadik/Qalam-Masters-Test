@@ -63,6 +63,10 @@ import VerifyResult from "@/pages/Login/VerifyResult";
 import OnboardingCreateOrg from "./pages/onboarding/OnboardingCreateOrg";
 import OnboardingJoinOrg from "./pages/onboarding/OnboardingJoinOrg";
 import ContactsPage from "./pages/ContactsPage";
+import JournalsPublicPage from "./pages/JournalsPublicPage";
+import NewsUpdatesPage from "./pages/NewsPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+
 function PublicRoutes() {
   return (
     <Routes>
@@ -80,7 +84,10 @@ function PublicRoutes() {
       <Route path="/onboarding/create-org" element={<OnboardingCreateOrg />} />
       <Route path="/onboarding/join-org" element={<OnboardingJoinOrg />} />
       <Route path="/contacts" element={<ContactsPage />} />
-
+      <Route path="/journals" element={<JournalsPublicPage />} />
+      <Route path="/journals/:jid" element={<JournalView />} />
+      <Route path="/news" element={<NewsUpdatesPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
       {/* если зашли на несуществующий публичный путь */}
       <Route path="*" element={<Navigate to="/app" replace />} />
     </Routes>
@@ -231,6 +238,10 @@ function AppContent() {
     "/onboarding/create-org",
     "/onboarding/join-org",
     "/contacts",
+    "/journals",
+    "/journals/:jid",
+    "/news",
+    "/privacy",
     "/403",
   ]);
 

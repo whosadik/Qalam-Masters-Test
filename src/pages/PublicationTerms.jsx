@@ -72,24 +72,17 @@ export default function JournalsPage() {
                   className="h-11 px-5 text-base font-semibold bg-[#3972FE] hover:bg-[#2f63e3]"
                 >
                   <Link to={createOrgHref} className="flex items-center gap-2">
-                    <Building2 className="size-4" /> Создать организацию
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="h-11 px-5 text-base border-[#3972FE] text-[#3972FE] hover:bg-[#3972FE]/5"
-                >
-                  <Link
-                    to={createJournalHref}
-                    className="flex items-center gap-2"
-                  >
-                    <BookOpenCheck className="size-4" /> Подключить журнал
+                    <Building2 className="size-4" />
+                    Подключить организацию и добавить журнал
                   </Link>
                 </Button>
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-[#3972FE]" /> Сделайте
+                  ваш журнал прибыльным
+                </span>
                 <span className="inline-flex items-center gap-2">
                   <CheckCircle2 className="size-4 text-[#3972FE]" /> Роли и
                   права: авторы, рецензенты, редакторы
@@ -99,9 +92,93 @@ export default function JournalsPage() {
                   аналитика и отчёты
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-[#3972FE]" /> Интеграции
-                  и антиплагиат
+                  <CheckCircle2 className="size-4 text-[#3972FE]" /> Интеграция
+                  с Platonus и ORCID в процессе.
                 </span>
+              </div>
+            </div>
+            {/* ПРАВАЯ КОЛОНКА — «Создать журнал» */}
+            <div className="relative">
+              {/* мягкий блик */}
+              <div
+                aria-hidden="true"
+                className="absolute -top-10 -right-6 h-56 w-56 rounded-full blur-3xl opacity-30"
+                style={{
+                  background:
+                    "radial-gradient(circle at 70% 30%, #3972FE 0%, #A3C6FF 40%, transparent 70%)",
+                }}
+              />
+
+              <div className="relative grid gap-4">
+                {/* Главная карточка: СОЗДАТЬ ЖУРНАЛ */}
+                <Card className="rounded-2xl border-slate-200 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <FilePlus2 className="size-5 text-[#3972FE]" />
+                        Создать журнал
+                      </CardTitle>
+                      <span className="text-xs text-slate-500">
+                        Шаг{" "}
+                        <span className="font-semibold text-[#3972FE]">1</span>
+                        /3
+                      </span>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    {/* Организация */}
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <Building2 className="size-4 text-[#3972FE]" />
+                      <span className="truncate">
+                        Организация: выберите или создайте
+                      </span>
+                    </div>
+
+                    {/* Псевдо-поля формы (макап) */}
+                    <div className="grid gap-2">
+                      <div className="rounded-xl border bg-white px-3 py-2">
+                        <p className="text-[11px] text-slate-500">
+                          Название журнала
+                        </p>
+                        <p className="text-sm font-medium truncate">
+                          "Вестник науки"{" "}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-xl border bg-white px-3 py-2">
+                          <p className="text-[11px] text-slate-500">ISSN</p>
+                          <p className="text-sm font-medium">1234-5678</p>
+                        </div>
+                        <div className="rounded-xl border bg-white px-3 py-2">
+                          <p className="text-[11px] text-slate-500">
+                            Периодичность
+                          </p>
+                          <p className="text-sm font-medium">Ежеквартально</p>
+                        </div>
+                      </div>
+
+                      {/* Секции */}
+                      <div className="rounded-xl border bg-white px-3 py-2">
+                        <p className="text-[11px] text-slate-500 mb-1.5">
+                          Тематика
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          <Badge variant="outline" className="text-[11px]">
+                            Экономика
+                          </Badge>
+                          <Badge variant="outline" className="text-[11px]">
+                            IT
+                          </Badge>
+                          <Badge variant="outline" className="text-[11px]">
+                            Педагогика
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 

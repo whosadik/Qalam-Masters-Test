@@ -27,6 +27,14 @@ export default function Footer() {
                     Каталог журналов
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to="/privacy"
+                    className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3972FE] rounded"
+                  >
+                    Политика конфиденциальности
+                  </Link>
+                </li>
               </ul>
             </nav>
 
