@@ -1111,10 +1111,9 @@ export default function SubmitArticle() {
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
-            <h2 className="text-2xl font-bold mb-4">Черновик создан</h2>
+            <h2 className="text-2xl font-bold mb-4">Статья отправлена</h2>
             <p className="text-gray-700 mb-6">
-              Рукопись сохранена как черновик. Откройте статью и нажмите
-              “Отправить в редакцию”, когда будете готовы.
+              Вы можете открыть страницу стотьи и отслеживать статус рецензирования.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
