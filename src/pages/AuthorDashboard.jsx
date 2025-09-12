@@ -845,11 +845,11 @@ export default function AuthorDashboard() {
                   {filteredJournals.map((j) => (
                     <li
                       key={j.id}
-                      className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
+                      className="p-3 sm:p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
                     >
-                      <div className="flex items-stretch gap-4">
+                      <div className="flex flex-col sm:flex-row items-stretch gap-4">
                         {/* мини-обложка */}
-                        <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
+                        <div className="w-28 sm:w-36 h-40 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
                           {j.logo ? (
                             <img
                               src={j.logo}
@@ -891,9 +891,9 @@ export default function AuthorDashboard() {
                         </div>
 
                         {/* действия */}
-                        <div className="flex flex-col gap-2 self-center shrink-0">
+                        <div className="mt-3 sm:mt-0 flex w-full sm:w-auto flex-row sm:flex-col gap-2 self-stretch sm:self-center">
                           <Link to={`/journals/${j.id}`}>
-                            <Button size="sm" className="w-40">
+                            <Button size="sm" className="w-full sm:w-40">
                               <Eye className="w-4 h-4 mr-2" /> Открыть
                             </Button>
                           </Link>
@@ -901,7 +901,7 @@ export default function AuthorDashboard() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="w-40"
+                              className="w-full sm:w-40 sm:whitespace-nowrap"
                             >
                               <Upload className="w-4 h-4 mr-2" /> Отправить
                               статью

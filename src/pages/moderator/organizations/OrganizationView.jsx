@@ -48,34 +48,26 @@ function Initials({ text = "", className = "" }) {
 
 function FieldRow({ icon: Icon, label, value, href }) {
   const content = value ? String(value) : "—";
-  const common = (
-    <>
+  const Value =
+    href && value ? (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="font-medium break-all text-blue-600 hover:underline inline-flex items-center gap-1"
+      >
+        {content} <ExternalLink className="h-4 w-4" />
+      </a>
+    ) : (
+      <span className="font-medium break-all">{content}</span>
+    );
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 p-3 rounded-lg hover:bg-slate-50">
       <span className="inline-flex items-center gap-2 text-gray-500">
         <Icon className="h-4 w-4" />
         <span className="text-sm">{label}</span>
       </span>
-      <span className="font-medium">{content}</span>
-    </>
-  );
-
-  if (href && value) {
-    return (
-      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50">
-        <a
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1"
-        >
-          {content} <ExternalLink className="h-4 w-4" />
-        </a>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center justify-between p-3 rounded-lg">
-      {common}
+      {Value}
     </div>
   );
 }
@@ -164,8 +156,8 @@ export default function OrganizationView() {
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-[1fr,auto] items-start">
+        <div className="flex items-center gap-3 sm:gap-4">
           {org.logo ? (
             <img
               src={org.logo}
@@ -179,23 +171,25 @@ export default function OrganizationView() {
             <h1 className="text-2xl font-bold text-gray-900">
               {org.title || "Организация"}
             </h1>
-            <p className="text-gray-600">
-              Профиль организации • просмотр и быстрые действия
-            </p>
+            <p className="text-gray-600">Профиль организации</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+        <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:justify-end w-full sm:w-auto">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => navigate(-1)}
+          >
             Назад
           </Button>
           <Link to={`/moderator/organizations/${id}/edit`}>
-            <Button className="gap-2 bg-[#3972FE]">
+            <Button className="gap-2 bg-[#3972FE] w-full sm:w-auto">
               <Edit3 className="h-4 w-4" /> Редактировать
             </Button>
           </Link>
           <Link to={`/moderator/organizations/${id}/add-journal`}>
-            <Button className="gap-2 bg-[#3972FE]">
+            <Button className="gap-2 bg-[#3972FE] w-full sm:w-auto sm:whitespace-nowrap">
               <FilePlus2 className="h-4 w-4" /> Добавить журнал
             </Button>
           </Link>

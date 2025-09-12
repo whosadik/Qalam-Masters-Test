@@ -88,7 +88,7 @@ const JournalCover = ({ journal }) => {
   const title = journal?.title || "Журнал";
 
   return (
-    <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
+    <div className="w-28 sm:w-36 h-40 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
       {src ? (
         <img
           src={src}
@@ -473,7 +473,9 @@ export default function ModeratorDashboard() {
             <Building2 className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Модератор</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+              Модератор
+            </h1>
             <p className="text-gray-600">
               У вас нет организаций или журналов с правами модерации. Создайте
               свою организацию или попросите доступ.
@@ -528,21 +530,24 @@ export default function ModeratorDashboard() {
         return (
           <div key={org.id} className="space-y-6">
             {/* Header */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-4">
+            <div className="grid gap-3 sm:gap-4 sm:grid-cols-[1fr,auto] items-start">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <OrgLogo org={org} />
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
                     {org.title || "Организация"}
                   </h1>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 text-sm">
                     Управление журналами и данными организации
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:justify-end w-full sm:w-auto">
                 <Link to={`/moderator/organizations/${org.id}`}>
-                  <Button variant="outline" className="gap-2">
+                  <Button
+                    variant="outline"
+                    className="gap-2 w-full sm:w-auto sm:whitespace-nowrap"
+                  >
                     <Eye className="w-4 h-4" /> Профиль организации
                   </Button>
                 </Link>
@@ -591,10 +596,10 @@ export default function ModeratorDashboard() {
 
               {/* Вкладка ЖУРНАЛЫ (то, что уже было) */}
               <TabsContent value="journals" className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <h2 className="text-xl font-semibold">Журналы</h2>
                   <Link to={`/moderator/organizations/${org.id}/add-journal`}>
-                    <Button className="gap-2 bg-[#3972FE]">
+                    <Button className="gap-2 bg-[#3972FE] w-full sm:w-auto sm:whitespace-nowrap">
                       <FilePlus2 className="w-4 h-4" /> Создать журнал
                     </Button>
                   </Link>
@@ -616,11 +621,13 @@ export default function ModeratorDashboard() {
                               key={j.id}
                               className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
                             >
-                              <div className="flex items-stretch gap-4">
-                                <JournalCover journal={j} />
+                              <div className="flex flex-col sm:flex-row items-stretch gap-4">
+                                <div className="sm:self-start">
+                                  <JournalCover journal={j} />
+                                </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-2">
-                                    <h3 className="font-semibold text-lg leading-tight truncate">
+                                    <h3 className="font-semibold text-lg leading-tight line-clamp-2 break-words">
                                       {j.title || "Без названия"}
                                     </h3>
                                     <span
@@ -650,7 +657,7 @@ export default function ModeratorDashboard() {
                                     </div>
                                     <Progress value={pct} />
                                     {pct < 100 && (
-                                      <div className="mt-2 text-xs text-gray-500">
+                                      <div className="mt-2 text-xs text-gray-500 break-words">
                                         <p className="font-medium mb-1">
                                           Советы для заполнения:
                                         </p>
@@ -667,9 +674,12 @@ export default function ModeratorDashboard() {
                                     )}
                                   </div>
                                 </div>
-                                <div className="flex flex-col gap-2 self-center shrink-0">
+                                <div className="mt-3 sm:mt-0 flex w-full sm:w-auto flex-row sm:flex-col gap-2 self-stretch sm:self-center">
                                   <Link to={`/moderator/journals/${j.id}`}>
-                                    <Button size="sm" className="w-36">
+                                    <Button
+                                      size="sm"
+                                      className="w-full sm:w-36"
+                                    >
                                       Открыть
                                     </Button>
                                   </Link>
@@ -679,7 +689,7 @@ export default function ModeratorDashboard() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="w-36"
+                                      className="w-full sm:w-36 sm:whitespace-nowrap"
                                     >
                                       Настройки
                                     </Button>
@@ -688,7 +698,7 @@ export default function ModeratorDashboard() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="w-36"
+                                      className="w-full sm:w-36 sm:whitespace-nowrap"
                                     >
                                       Команда журнала
                                     </Button>

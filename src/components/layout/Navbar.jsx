@@ -174,6 +174,14 @@ export default function Navbar() {
       ? `${displayUser?.first_name || ""} ${displayUser?.last_name || ""}`.trim()
       : displayUser?.name || "Профиль";
 
+  const NAV_LINKS = [
+    { to: "/", label: "Главная" },
+    { to: "/author-info", label: "Для авторов" },
+    { to: "/for-journals", label: "Для журналов" },
+    { to: "/contacts", label: "Контакты" },
+    { to: "/news", label: "Новости" },
+  ];
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -296,15 +304,6 @@ export default function Navbar() {
 
             {/* Правый блок (мобилка) */}
             <div className="md:hidden flex items-center gap-1">
-              <button
-                onClick={() => setOpen(true)}
-                className="p-2 rounded-lg hover:bg-gray-100"
-                aria-label="Навигация"
-                title="Навигация"
-              >
-                <Compass className="h-5 w-5" />
-              </button>
-
               {!isAuthenticated ? (
                 <>
                   <Link to="/login">
@@ -397,83 +396,142 @@ export default function Navbar() {
         />
       )}
 
-      {/* Мобильное меню */}
+      {/* Мобильное меню (off-canvas справа) */}
       <div
         id="mobile-menu"
         className={[
-          "fixed md:hidden z-50 left-0 right-0 top-0 origin-top",
-          "bg-white shadow-lg border-b",
+          "fixed inset-y-0 right-0 md:hidden",
+          "w-[88%] max-w-sm",
+          open ? "translate-x-0" : "translate-x-full", // ← только один класс
           "transition-transform duration-300 ease-out motion-reduce:transition-none",
-          open ? "translate-y-0" : "-translate-y-full",
+          "z-[60]", // поверх header'а
         ].join(" ")}
+        role="dialog"
+        aria-modal="true"
       >
-        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 pb-6 pt-20">
-          {!isAuthenticated ? (
-            <nav className="grid gap-4">
-              <Link
-                to="/about-journal"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
+        <div className="flex h-full flex-col bg-white shadow-xl border-l">
+          {/* Header внутри шторки */}
+          <div className="flex items-center justify-between px-4 py-3 border-b">
+            <Link
+              to="/"
+              onClick={closeMenu}
+              className="flex items-center gap-2"
+            >
+              <img
+                className="h-10 w-10 object-contain"
+                src={Logo}
+                alt="Qalam Masters логотип"
+                width={40}
+                height={40}
+              />
+              <span className="font-semibold">Qalam Masters</span>
+            </Link>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-lg p-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              aria-label="Закрыть меню"
+              onClick={closeMenu}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
               >
-                О платформе
-              </Link>
-              <Link
-                to="/editorial-board"
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Навигация (те же ссылки, что и на десктопе) */}
+          <nav className="flex-1 overflow-y-auto px-2 py-3">
+            {NAV_LINKS.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
                 onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
+                className={({ isActive }) =>
+                  [
+                    "block rounded-lg px-3 py-2 text-base",
+                    isActive
+                      ? "bg-blue-50 text-[#1f4fd9]"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                  ].join(" ")
+                }
               >
-                Редколлегия
-              </Link>
-              <Link
-                to="/author-info"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
-                Информация для авторов
-              </Link>
-              <Link
-                to="/publication-terms"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
-                Условия публикации
-              </Link>
-            </nav>
-          ) : (
-            <nav className="grid gap-4">
-              <Link
-                to={primary.to}
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
-                Перейти: {primary.label}{" "}
-                <ArrowRight className="inline-block h-4 w-4 ml-1" />
-              </Link>
-              {isOrgAdmin && (
-                <Link
-                  to="/moderator"
-                  onClick={closeMenu}
-                  className="py-2 text-base text-gray-700 hover:text-gray-900"
-                >
-                  Кабинет модератора
+                {l.label}
+              </NavLink>
+            ))}
+
+            {/* Доп. секция для авторизованных */}
+            {isAuthenticated ? (
+              <>
+                <div className="mt-4 border-t pt-4">
+                  <Link
+                    to={primary.to}
+                    onClick={closeMenu}
+                    className="flex items-center justify-between rounded-lg px-3 py-2 text-base text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    <span>Перейти: {primary.label}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+
+                  {isOrgAdmin && (
+                    <Link
+                      to="/moderator"
+                      onClick={closeMenu}
+                      className="mt-1 block rounded-lg px-3 py-2 text-base text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    >
+                      Кабинет модератора
+                    </Link>
+                  )}
+                </div>
+
+                {/* Профиль / Выход */}
+                <div className="mt-6 px-3">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      closeMenu();
+                      navigate("/author-profile");
+                    }}
+                  >
+                    Профиль
+                  </Button>
+                  <Button
+                    className="w-full mt-2 bg-[#b23b3b]"
+                    onClick={() => {
+                      logout();
+                      closeMenu();
+                      navigate("/");
+                    }}
+                  >
+                    Выйти
+                  </Button>
+                </div>
+              </>
+            ) : (
+              // Гости
+              <div className="mt-4 border-t pt-4 px-3">
+                <Link to="/login" onClick={closeMenu}>
+                  <Button variant="outline" className="w-full">
+                    Войти
+                  </Button>
                 </Link>
-              )}
-              <Link
-                to="/messages"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
-                Переписка
-              </Link>
-              <Link
-                to="/archive"
-                onClick={closeMenu}
-                className="py-2 text-base text-gray-700 hover:text-gray-900"
-              >
-                Архив
-              </Link>
-            </nav>
-          )}
+                <Link to="/register" onClick={closeMenu}>
+                  <Button className="w-full mt-2">Регистрация</Button>
+                </Link>
+              </div>
+            )}
+          </nav>
+
+          {/* Низ (опционально: копирайт/язык) */}
+          <div className="border-t px-4 py-3 text-xs text-gray-500">
+            © {new Date().getFullYear()} Qalam Masters
+          </div>
         </div>
       </div>
     </>

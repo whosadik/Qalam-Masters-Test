@@ -306,23 +306,6 @@ export default function JournalsPage() {
           </div>
 
           {/* Мини‑стата доверия */}
-          <div className="mt-8 grid sm:grid-cols-3 gap-4">
-            {[
-              { n: "30+", t: "организаций" },
-              { n: "500 000+", t: "проверок в системе" },
-              { n: "24/7", t: "поддержка" },
-            ].map((s, i) => (
-              <Card
-                key={i}
-                className="rounded-2xl border-slate-200 bg-[#3972FE]/5"
-              >
-                <CardContent className="p-5">
-                  <p className="text-2xl font-bold text-[#3972FE]">{s.n}</p>
-                  <p className="text-slate-600">{s.t}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
       </section>
 
