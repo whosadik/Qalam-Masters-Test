@@ -16,6 +16,7 @@ import { Loader2, FileText, ArrowLeft } from "lucide-react";
 import { listArticles } from "@/services/articlesService";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
+import { useTranslation } from "react-i18next";
 
 const STATUS = {
   draft: "Черновик",
@@ -31,6 +32,8 @@ const STATUS = {
 };
 
 export default function JournalArticles() {
+  const { t } = useTranslation("review");
+
   // ВАЖНО: если твой роут выглядит как /moderator/journals/:jid/articles,
   // то нужно доставать jid. Оставим fallback на id на всякий случай.
   const { jid, id } = useParams();
@@ -48,7 +51,12 @@ export default function JournalArticles() {
 
     // Если journalId не число — сразу показываем ошибку и не делаем запросы
     if (!Number.isFinite(journalId)) {
-      setError("Некорректный ID журнала в URL");
+      setError(
+          t(
+          "journal_articles.errors.bad_journal_id",
+          "Некорректный ID журнала в URL"
+        )
+      );
       setLoading(false);
       return () => {
         mounted = false;
@@ -76,7 +84,10 @@ export default function JournalArticles() {
         setError(
           e?.response?.data?.detail ||
             e?.message ||
-            "Не удалось загрузить статьи журнала"
+            t(
+                "journal_articles.errors.load_failed",
+                "Не удалось загрузить статьи журнала"
+            )
         );
       } finally {
         mounted && setLoading(false);
@@ -96,14 +107,16 @@ export default function JournalArticles() {
             <FileText className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Статьи журнала</h1>
-            <p className="text-gray-600">{journal?.title || "Журнал"}</p>
+            <h1 className="text-2xl font-bold">
+              {t("journal_articles.title", "Статьи журнала")}
+            </h1>
+            <p className="text-gray-600">{journal?.title ||  t("journal_articles.journal_fallback", "Журнал")}</p>
           </div>
         </div>
         <Link to="/moderator">
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Назад
+            {t("journal_articles.back", "Назад")}
           </Button>
         </Link>
       </div>
@@ -121,10 +134,15 @@ export default function JournalArticles() {
             onValueChange={(v) => setStatus(v === "__all__" ? "" : v)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Статус" />
+              <SelectValue placeholder={t(
+                  "journal_articles.filters.status_placeholder",
+                  "Статус"
+              )} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">Все статусы</SelectItem>
+              <SelectItem value="__all__">
+                {t("journal_articles.filters.all_statuses", "Все статусы")}
+              </SelectItem>
               {Object.keys(STATUS).map((s) => (
                 <SelectItem key={s} value={s}>
                   {STATUS[s]}
@@ -135,7 +153,10 @@ export default function JournalArticles() {
         </div>
         <div className="flex-1">
           <Input
-            placeholder="Поиск по названию/автору…"
+            placeholder={t(
+                "journal_articles.filters.search_placeholder",
+                "Поиск по названию/автору…"
+            )}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -146,10 +167,12 @@ export default function JournalArticles() {
         <CardContent className="p-0">
           {loading ? (
             <div className="p-6 text-gray-500 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Загрузка…
+              <Loader2 className="h-4 w-4 animate-spin" /> {t("journal_articles.loading", "Загрузка…")}
             </div>
           ) : items.length === 0 ? (
-            <div className="p-6 text-gray-500">Статей не найдено.</div>
+            <div className="p-6 text-gray-500">
+              {t("journal_articles.empty", "Статей не найдено.")}
+            </div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {items.map((a) => (
@@ -163,8 +186,9 @@ export default function JournalArticles() {
                         <Badge>{STATUS[a.status] || a.status}</Badge>
                       </div>
                       <p className="text-sm text-gray-600">
-                        Автор: {a.author_email || `user #${a.author}`} •
-                        Создана:{" "}
+                        {t("journal_articles.item.author", "Автор:")}{" "}
+                         {a.author_email || `user #${a.author}`} •
+                        {t("journal_articles.item.created", "Создана:")}{" "}
                         {a.created_at
                           ? new Date(a.created_at).toLocaleString()
                           : "—"}
@@ -175,7 +199,7 @@ export default function JournalArticles() {
                         to={`/moderator/journals/${journalId}/articles/${a.id}`}
                       >
                         <Button size="sm" variant="outline" className="gap-2">
-                          Открыть
+                          {t("journal_articles.open", "Открыть")}
                         </Button>
                       </Link>
                     </div>

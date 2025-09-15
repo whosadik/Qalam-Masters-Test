@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { createArticle, uploadArticleFile } from "@/services/articlesService";
+import { useTranslation } from "react-i18next";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Вспомогательные контролы
@@ -69,6 +70,7 @@ function Toggle({ label, hint, checked, onChange }) {
 }
 
 function FileDropZone({ label, value, onFileChange }) {
+  const { t } = useTranslation();
   const [isDragActive, setIsDragActive] = useState(false);
   const inputRef = useRef(null);
 
@@ -103,10 +105,18 @@ function FileDropZone({ label, value, onFileChange }) {
       >
         <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <p className="text-lg font-medium text-gray-900 mb-2">
-          {value ? value.name : "Выберите или перетащите файл"}
+          {value
+              ? value.name
+              : t(
+                  "submission:file_choose_or_drop",
+                  "Выберите или перетащите файл"
+              )}
         </p>
         <p className="text-gray-600 mb-4">
-          Поддерживаемые форматы: PDF, DOC, DOCX
+          {t(
+              "submission:file_supported_formats",
+              "Поддерживаемые форматы: PDF, DOC, DOCX"
+          )}
         </p>
         <input
           ref={inputRef}
@@ -117,7 +127,7 @@ function FileDropZone({ label, value, onFileChange }) {
         />
         <Button variant="outline" onClick={handleButtonClick}>
           <Upload className="h-4 w-4 mr-2" />
-          Выбрать файл
+          {t("submission:file_btn_choose", "Выбрать файл")}
         </Button>
       </div>
     </div>
@@ -125,6 +135,7 @@ function FileDropZone({ label, value, onFileChange }) {
 }
 
 function JournalCombobox({ value, onChange, items }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const selected = items.find((j) => String(j.id) === String(value));
 
@@ -145,7 +156,7 @@ function JournalCombobox({ value, onChange, items }) {
               </span>
             </span>
           ) : (
-            "Выберите журнал"
+              t("submission:choose_journal", "Выберите журнал")
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>
@@ -162,10 +173,13 @@ function JournalCombobox({ value, onChange, items }) {
             return hay.includes(search.toLowerCase()) ? 1 : 0;
           }}
         >
-          <CommandInput placeholder="Поиск журнала по названию или организации..." />
+          <CommandInput placeholder={t(
+              "submission:search_journal_placeholder",
+              "Поиск журнала по названию или организации..."
+          )} />
           <CommandList>
-            <CommandEmpty>Ничего не найдено.</CommandEmpty>
-            <CommandGroup heading="Журналы">
+            <CommandEmpty>{t("submission:journal_empty", "Ничего не найдено.")}</CommandEmpty>
+            <CommandGroup heading={t("submission:journal_group", "Журналы")}>
               {items.map((j) => (
                 <CommandItem
                   key={j.id}
@@ -203,19 +217,20 @@ function JournalCombobox({ value, onChange, items }) {
 // ────────────────────────────────────────────────────────────────────────────────
 
 export default function SubmitArticle() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [createdId, setCreatedId] = useState(null);
 
   // шаги (исправлено: 1..8 — разные экраны)
   const steps = [
-    { id: 1, title: "Выбор журнала", icon: BookOpen },
-    { id: 2, title: "Информация о публикации", icon: BookOpen },
-    { id: 3, title: "Данные автора", icon: User },
-    { id: 4, title: "Название и аннотация", icon: FileText },
-    { id: 5, title: "Ключевые слова", icon: Target },
-    { id: 6, title: "Цель/задачи/методы", icon: Target },
-    { id: 7, title: "Файлы", icon: Upload },
-    { id: 8, title: "Подтверждение", icon: CheckSquare },
+    { id: 1, title: t("submission:step_journal", "Выбор журнала"), icon: BookOpen },
+    { id: 2, title: t("submission:step_publication_info", "Информация о публикации"), icon: BookOpen },
+    { id: 3, title: t("submission:step_author", "Данные автора"), icon: User },
+    { id: 4, title: t("submission:step_title_abstract", "Название и аннотация"), icon: FileText },
+    { id: 5, title: t("submission:step_keywords", "Ключевые слова"), icon: Target },
+    { id: 6, title: t("submission:step_methods", "Цель/задачи/методы"), icon: Target },
+    { id: 7, title: t("submission:step_files", "Файлы"), icon: Upload },
+    { id: 8, title: t("submission:step_confirmation", "Подтверждение"), icon: CheckSquare },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -309,7 +324,7 @@ export default function SubmitArticle() {
         const { data } = await http.get(API.JOURNALS);
         const items = (data?.results || []).map((j) => ({
           id: String(j.id),
-          title: j.title || "Без названия",
+          title: j.title || t("submission:untitled", "Без названия"),
           org: j.organization_title || "",
         }));
         setJournals(items);
@@ -337,10 +352,15 @@ export default function SubmitArticle() {
 
   // сабмит — создаём статью
   const handleSubmit = async () => {
-    if (!formData.selectedJournal) return alert("Выберите журнал");
-    if (!formData.titleRu?.trim()) return alert("Укажите название статьи (RU)");
+    if (!formData.selectedJournal) return alert(t("submission:alert_choose_journal", "Выберите журнал"));
+    if (!formData.titleRu?.trim()) return alert(t("submission:alert_title_ru", "Укажите название статьи (RU)"));
     if (!formData.articleFile)
-      return alert("Прикрепите файл рукописи (PDF/DOC/DOCX)");
+      return alert(
+          t(
+              "submission:alert_attach_file",
+              "Прикрепите файл рукописи (PDF/DOC/DOCX)"
+          )
+      );
     if (!formData.dataConsent || !formData.textConsent) return;
 
     try {
@@ -440,7 +460,10 @@ export default function SubmitArticle() {
     } catch (e) {
       console.error("submit failed", e);
       alert(
-        "Не удалось отправить статью. Проверьте поля и попробуйте ещё раз."
+          t(
+              "submission:alert_submit_failed",
+              "Не удалось отправить статью. Проверьте поля и попробуйте ещё раз."
+          )
       );
     } finally {
       setSubmitting(false);
@@ -458,10 +481,13 @@ export default function SubmitArticle() {
         </div>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Подача статьи
+            {t("submission:submit_article", "Подача статьи")}
           </h1>
           <p className="text-gray-600">
-            Заполните информацию и отправьте рукопись в журнал
+            {t(
+                "submission:fill_and_send",
+                "Заполните информацию и отправьте рукопись в журнал"
+            )}
           </p>
         </div>
       </div>
@@ -498,7 +524,7 @@ export default function SubmitArticle() {
               {steps[currentStep - 1].title}
             </h3>
             <p className="text-gray-600">
-              Шаг {currentStep} из {steps.length}
+              {t("submission:step_of_total", "Шаг")} {currentStep} {t("submission:step_of_total_from", "из")} {steps.length}
             </p>
           </div>
         </CardContent>
@@ -512,16 +538,19 @@ export default function SubmitArticle() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Выбор журнала
+                  {t("submission:step_journal", "Выбор журнала")}
                 </h2>
                 <p className="text-gray-600">
-                  Укажите, в какой журнал вы хотите отправить статью
+                  {t(
+                      "submission:journal_header",
+                      "Укажите, в какой журнал вы хотите отправить статью"
+                  )}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Журнал
+                  {t("submission:journal_label", "Журнал")}
                 </label>
                 <JournalCombobox
                   value={formData.selectedJournal}
@@ -529,17 +558,19 @@ export default function SubmitArticle() {
                   items={journals}
                 />
                 {loadingJournals && (
-                  <p className="text-xs text-gray-500">Загрузка журналов…</p>
+                  <p className="text-xs text-gray-500">{t("submission:journal_loading", "Загрузка журналов…")}</p>
                 )}
                 <p className="text-xs text-gray-500">
-                  Начните печатать, чтобы отфильтровать список (по названию и
-                  организации).
+                  {t(
+                      "submission:journal_hint",
+                      "Начните печатать, чтобы отфильтровать список (по названию и организации)."
+                  )}
                 </p>
               </div>
 
               {formData.selectedJournal && (
                 <div className="p-3 rounded-lg bg-blue-50 text-blue-800 text-sm">
-                  Вы выбрали:{" "}
+                  {t("submission:journal_selected", "Вы выбрали:")}{" "}
                   <strong>
                     {
                       journals.find(
@@ -557,16 +588,19 @@ export default function SubmitArticle() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Информация о публикации
+                  {t("submission:step_publication_info", "Информация о публикации")}
                 </h2>
                 <p className="text-gray-600">
-                  Выберите тематическую направленность вашей статьи
+                  {t(
+                      "submission:pub_info_header",
+                      "Выберите тематическую направленность вашей статьи"
+                  )}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <label className="text-sm font-medium text-gray-700">
-                  Тематическая направленность
+                  {t("submission:thematic_label", "Тематическая направленность")}
                 </label>
                 <Select
                   value={formData.thematicDirection || "__none__"}
@@ -578,24 +612,42 @@ export default function SubmitArticle() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите направление исследования" />
+                    <SelectValue placeholder={t(
+                        "submission:thematic_placeholder",
+                        "Выберите направление исследования"
+                    )} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">Не выбрано</SelectItem>
+                    <SelectItem value="__none__">{t("submission:thematic_none", "Не выбрано")}</SelectItem>
                     <SelectItem value="natural">
-                      Естественные и технические науки
+                      {t(
+                          "submission:thematic_natural",
+                          "Естественные и технические науки"
+                      )}
                     </SelectItem>
                     <SelectItem value="humanities">
-                      Гуманитарные и общественные дисциплины
+                      {t(
+                          "submission:thematic_humanities",
+                          "Гуманитарные и общественные дисциплины"
+                      )}
                     </SelectItem>
                     <SelectItem value="it">
-                      Информационные технологии и инженерия
+                      {t(
+                          "submission:thematic_it",
+                          "Информационные технологии и инженерия"
+                      )}
                     </SelectItem>
                     <SelectItem value="economics">
-                      Экономика, менеджмент, юриспруденция
+                      {t(
+                          "submission:thematic_economics",
+                          "Экономика, менеджмент, юриспруденция"
+                      )}
                     </SelectItem>
                     <SelectItem value="education">
-                      Образование, педагогика, психология
+                      {t(
+                          "submission:thematic_education",
+                          "Образование, педагогика, психология"
+                      )}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -604,11 +656,13 @@ export default function SubmitArticle() {
               <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Важная информация:</p>
+                  <p className="font-medium mb-1">{t("submission:important_info", "Важная информация:")}
+                  </p>
                   <p>
-                    Данный материал не был ранее опубликован и не подавался в
-                    другие издания. Текст соответствует всем требованиям для
-                    авторов.
+                    {t(
+                        "submission:important_text",
+                        "Данный материал не был ранее опубликован и не подавался в другие издания. Текст соответствует всем требованиям для авторов."
+                    )}
                   </p>
                 </div>
               </div>
@@ -620,18 +674,21 @@ export default function SubmitArticle() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Данные автора
+                  {t("submission:step_author", "Данные автора")}
                 </h2>
-                <p className="text-gray-600">Заполните информацию об авторе</p>
+                <p className="text-gray-600">{t("submission:author_header", "Заполните информацию об авторе")}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    ФИО
+                    {t("submission:author_name", "ФИО")}
                   </label>
                   <Input
-                    placeholder="Иванов Иван Иванович"
+                    placeholder={t(
+                        "submission:author_name_placeholder",
+                        "Иванов Иван Иванович"
+                    )}
                     value={formData.firstName}
                     onChange={(e) =>
                       handleInputChange("firstName", e.target.value)
@@ -640,7 +697,7 @@ export default function SubmitArticle() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    Ученое звание
+                    {t("submission:author_academic_degree", "Ученое звание")}
                   </label>
                   <Select
                     value={formData.academicDegree || "__none__"}
@@ -652,12 +709,21 @@ export default function SubmitArticle() {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Выберите ученое звание" />
+                      <SelectValue placeholder={t(
+                          "submission:author_degree_placeholder",
+                          "Выберите ученое звание"
+                      )} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">Не выбрано</SelectItem>
-                      <SelectItem value="professor">Профессор</SelectItem>
-                      <SelectItem value="docent">Доцент</SelectItem>
+                      <SelectItem value="__none__">
+                        {t("submission:author_degree_none", "Не выбрано")}
+                      </SelectItem>
+                      <SelectItem value="professor">
+                        {t("submission:author_professor", "Профессор")}
+                      </SelectItem>
+                      <SelectItem value="docent">
+                        {t("submission:author_docent", "Доцент")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -665,10 +731,13 @@ export default function SubmitArticle() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Должность
+                  {t("submission:author_position", "Должность")}
                 </label>
                 <Input
-                  placeholder="Кандидат наук"
+                  placeholder={t(
+                      "submission:author_position_placeholder",
+                      "Кандидат наук"
+                  )}
                   value={formData.position}
                   onChange={(e) =>
                     handleInputChange("position", e.target.value)
@@ -678,10 +747,13 @@ export default function SubmitArticle() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Организация
+                  {t("submission:author_organization", "Организация")}
                 </label>
                 <Input
-                  placeholder="КазНУ им. аль-Фараби"
+                  placeholder={t(
+                      "submission:author_organization_placeholder",
+                      "КазНУ им. аль-Фараби"
+                  )}
                   value={formData.organization}
                   onChange={(e) =>
                     handleInputChange("organization", e.target.value)
@@ -691,7 +763,7 @@ export default function SubmitArticle() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Электронная почта
+                  {t("submission:author_email", "Электронная почта")}
                 </label>
                 <Input
                   type="email"
@@ -708,20 +780,26 @@ export default function SubmitArticle() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Название и аннотация
+                  {t("submission:step_title_abstract", "Название и аннотация")}
                 </h2>
                 <p className="text-gray-600">
-                  Укажите названия и аннотацию на двух языках
+                  {t(
+                      "submission:title_and_abstract_header",
+                      "Укажите названия и аннотацию на двух языках"
+                  )}
                 </p>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Globe className="h-4 w-4" /> Название на русском языке
+                    <Globe className="h-4 w-4" /> {t("submission:title_ru", "Название на русском языке")}
                   </label>
                   <Input
-                    placeholder="Введите название статьи на русском языке"
+                    placeholder={t(
+                        "submission:title_ru_placeholder",
+                        "Введите название статьи на русском языке"
+                    )}
                     value={formData.titleRu}
                     onChange={(e) =>
                       handleInputChange("titleRu", e.target.value)
@@ -731,10 +809,13 @@ export default function SubmitArticle() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Globe className="h-4 w-4" /> Название на английском языке
+                    <Globe className="h-4 w-4" /> {t("submission:title_en", "Название на английском языке")}
                   </label>
                   <Input
-                    placeholder="Enter article title in English"
+                    placeholder={t(
+                        "submission:title_en_placeholder",
+                        "Enter article title in English"
+                    )}
                     value={formData.titleEn}
                     onChange={(e) =>
                       handleInputChange("titleEn", e.target.value)
@@ -744,15 +825,18 @@ export default function SubmitArticle() {
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Аннотация
+                    {t("submission:abstract", "Аннотация")}
                   </h3>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      На русском языке
+                      {t("submission:abstract_ru", "На русском языке")}
                     </label>
                     <Textarea
-                      placeholder="Краткое описание исследования на русском языке..."
+                      placeholder={t(
+                          "submission:abstract_ru_placeholder",
+                          "Краткое описание исследования на русском языке..."
+                      )}
                       className="min-h-[120px]"
                       value={formData.abstractRu}
                       onChange={(e) =>
@@ -763,10 +847,13 @@ export default function SubmitArticle() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      На английском языке
+                      {t("submission:abstract_en", "На английском языке")}
                     </label>
                     <Textarea
-                      placeholder="Brief description of the research in English..."
+                      placeholder={t(
+                          "submission:abstract_en_placeholder",
+                          "Brief description of the research in English..."
+                      )}
                       className="min-h-[120px]"
                       value={formData.abstractEn}
                       onChange={(e) =>
@@ -784,20 +871,26 @@ export default function SubmitArticle() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Ключевые слова
+                  {t("submission:step_keywords", "Ключевые слова")}
                 </h2>
                 <p className="text-gray-600">
-                  Укажите ключевые слова через запятую
+                  {t(
+                      "submission:keywords_header",
+                      "Укажите ключевые слова через запятую"
+                  )}
                 </p>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    На русском языке
+                    {t("submission:keywords_ru", "На русском языке")}
                   </label>
                   <Textarea
-                    placeholder="машинное обучение, искусственный интеллект, анализ данных..."
+                    placeholder={t(
+                        "submission:keywords_ru_placeholder",
+                        "машинное обучение, искусственный интеллект, анализ данных..."
+                    )}
                     className="min-h-[100px]"
                     value={formData.keywordsRu}
                     onChange={(e) =>
@@ -808,10 +901,13 @@ export default function SubmitArticle() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    На английском языке
+                    {t("submission:keywords_en", "На английском языке")}
                   </label>
                   <Textarea
-                    placeholder="machine learning, artificial intelligence, data analysis..."
+                    placeholder={t(
+                        "submission:keywords_en_placeholder",
+                        "machine learning, artificial intelligence, data analysis..."
+                    )}
                     className="min-h-[100px]"
                     value={formData.keywordsEn}
                     onChange={(e) =>
@@ -822,8 +918,11 @@ export default function SubmitArticle() {
 
                 <div className="p-4 bg-amber-50 rounded-lg">
                   <p className="text-sm text-amber-800">
-                    <strong>Подсказка:</strong> используйте 4–8 ключевых слов,
-                    отражающих суть работы.
+                    <strong>{t("submission:hint", "Подсказка:")}</strong>
+                    {t(
+                        "submission:keywords_hint",
+                        "используйте 4–8 ключевых слов, отражающих суть работы."
+                    )}
                   </p>
                 </div>
               </div>
@@ -835,18 +934,18 @@ export default function SubmitArticle() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Цель исследования
+                  {t("submission:research_goal", "Цель исследования")}
                 </h2>
-                <p className="text-gray-600">Опишите цель, задачи и методы</p>
+                <p className="text-gray-600">{t("submission:methods_header", "Опишите цель, задачи и методы")}</p>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    Цель исследования
+                    {t("submission:research_goal", "Цель исследования")}
                   </label>
                   <Textarea
-                    placeholder="Введите текст"
+                    placeholder={t("submission:placeholder_text", "Введите текст")}
                     className="min-h-[120px]"
                     value={formData.researchGoal}
                     onChange={(e) =>
@@ -857,10 +956,10 @@ export default function SubmitArticle() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    Задачи исследования
+                    {t("submission:research_tasks", "Задачи исследования")}
                   </label>
                   <Textarea
-                    placeholder="Введите текст"
+                    placeholder={t("submission:placeholder_text", "Введите текст")}
                     className="min-h-[120px]"
                     value={formData.researchTasks}
                     onChange={(e) =>
@@ -871,10 +970,10 @@ export default function SubmitArticle() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    Методы исследования
+                    {t("submission:research_methods", "Методы исследования")}
                   </label>
                   <Textarea
-                    placeholder="Введите текст"
+                    placeholder={t("submission:placeholder_text", "Введите текст")}
                     className="min-h-[120px]"
                     value={formData.researchMethods}
                     onChange={(e) =>
@@ -890,19 +989,28 @@ export default function SubmitArticle() {
           {currentStep === 7 && (
             <div className="space-y-6">
               <FileDropZone
-                label="Файл статьи (обязательно)"
+                label={t("submission:file_article", "Файл статьи (обязательно)")}
                 value={formData.articleFile}
                 onFileChange={(file) => handleInputChange("articleFile", file)}
               />
 
               <div className="space-y-4 rounded-lg border border-gray-200 p-4">
                 <h4 className="font-semibold text-gray-900 mb-2">
-                  Дополнительные документы (по необходимости)
+                  {t(
+                      "submission:extra_docs",
+                      "Дополнительные документы (по необходимости)"
+                  )}
                 </h4>
 
                 <Toggle
-                  label="Загрузить Экспертное заключение (ЗГС)"
-                  hint="Для организаций (НИИ, вузы, госструктуры)"
+                  label={t(
+                      "submission:upload_zgs",
+                      "Загрузить Экспертное заключение (ЗГС)"
+                  )}
+                  hint={t(
+                      "submission:upload_zgs_hint",
+                      "Для организаций (НИИ, вузы, госструктуры)"
+                  )}
                   checked={toggles.expertConclusion}
                   onChange={(v) => {
                     setToggle("expertConclusion", v);
@@ -912,7 +1020,7 @@ export default function SubmitArticle() {
                 {toggles.expertConclusion && (
                   <div className="pl-8 pt-2">
                     <FileDropZone
-                      label="Экспертное заключение"
+                      label={t("submission:zgs_label", "Экспертное заключение")}
                       value={formData.expertConclusion}
                       onFileChange={(file) =>
                         handleInputChange("expertConclusion", file)
@@ -922,8 +1030,14 @@ export default function SubmitArticle() {
                 )}
 
                 <Toggle
-                  label="Сертификат об оригинальности (антиплагиат)"
-                  hint="Отчёт/сертификат из системы проверки оригинальности"
+                  label={t(
+                      "submission:upload_antiplag",
+                      "Сертификат об оригинальности (антиплагиат)"
+                  )}
+                  hint={t(
+                      "submission:upload_antiplag_hint",
+                      "Отчёт/сертификат из системы проверки оригинальности"
+                  )}
                   checked={toggles.originalityCertificate}
                   onChange={(v) => {
                     setToggle("originalityCertificate", v);
@@ -933,7 +1047,10 @@ export default function SubmitArticle() {
                 {toggles.originalityCertificate && (
                   <div className="pl-8 pt-2">
                     <FileDropZone
-                      label="Сертификат об оригинальности"
+                      label={t(
+                          "submission:antiplag_label",
+                          "Сертификат об оригинальности"
+                      )}
                       value={formData.originalityCertificate}
                       onFileChange={(file) =>
                         handleInputChange("originalityCertificate", file)
@@ -943,7 +1060,10 @@ export default function SubmitArticle() {
                 )}
 
                 <Toggle
-                  label="Согласие авторов на публикацию"
+                  label={t(
+                      "submission:upload_authors_consent",
+                      "Согласие авторов на публикацию"
+                  )}
                   checked={toggles.authorsConsent}
                   onChange={(v) => {
                     setToggle("authorsConsent", v);
@@ -953,7 +1073,7 @@ export default function SubmitArticle() {
                 {toggles.authorsConsent && (
                   <div className="pl-8 pt-2">
                     <FileDropZone
-                      label="Согласие авторов"
+                      label={t("submission:authors_consent_label", "Согласие авторов")}
                       value={formData.authorsConsent}
                       onFileChange={(file) =>
                         handleInputChange("authorsConsent", file)
@@ -963,7 +1083,10 @@ export default function SubmitArticle() {
                 )}
 
                 <Toggle
-                  label="Заявление об отсутствии конфликта интересов"
+                  label={t(
+                      "submission:upload_conflict",
+                      "Заявление об отсутствии конфликта интересов"
+                  )}
                   checked={toggles.conflictOfInterest}
                   onChange={(v) => {
                     setToggle("conflictOfInterest", v);
@@ -973,7 +1096,7 @@ export default function SubmitArticle() {
                 {toggles.conflictOfInterest && (
                   <div className="pl-8 pt-2">
                     <FileDropZone
-                      label="Конфликт интересов"
+                      label={t("submission:conflict_label", "Конфликт интересов")}
                       value={formData.conflictOfInterest}
                       onFileChange={(file) =>
                         handleInputChange("conflictOfInterest", file)
@@ -983,8 +1106,14 @@ export default function SubmitArticle() {
                 )}
 
                 <Toggle
-                  label="Этическое одобрение (IRB/ЭКО)"
-                  hint="Для исследований с участием людей/животных"
+                  label={t(
+                      "submission:upload_ethics",
+                      "Этическое одобрение (IRB/ЭКО)"
+                  )}
+                  hint={t(
+                      "submission:upload_ethics_hint",
+                      "Для исследований с участием людей/животных"
+                  )}
                   checked={toggles.ethicsApproval}
                   onChange={(v) => {
                     setToggle("ethicsApproval", v);
@@ -994,7 +1123,7 @@ export default function SubmitArticle() {
                 {toggles.ethicsApproval && (
                   <div className="pl-8 pt-2">
                     <FileDropZone
-                      label="Этическое одобрение"
+                      label={t("submission:ethics_label", "Этическое одобрение")}
                       value={formData.ethicsApproval}
                       onFileChange={(file) =>
                         handleInputChange("ethicsApproval", file)
@@ -1011,20 +1140,23 @@ export default function SubmitArticle() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Подтверждение
+                  {t("submission:step_confirmation", "Подтверждение")}
                 </h2>
                 <p className="text-gray-600">
-                  Подтвердите согласие с условиями публикации
+                  {t(
+                      "submission:confirmation_header",
+                      "Подтвердите согласие с условиями публикации"
+                  )}
                 </p>
               </div>
 
               <div className="space-y-6">
                 <div className="p-6 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    Настоящим подтверждаю, что статья не была ранее опубликована
-                    и не находится на рассмотрении в других изданиях. Автор
-                    несёт ответственность за содержание и соблюдение авторских
-                    прав.
+                    {t(
+                        "submission:confirmation_text",
+                        "Настоящим подтверждаю, что статья не была ранее опубликована и не находится на рассмотрении в других изданиях. Автор несёт ответственность за содержание и соблюдение авторских прав."
+                    )}
                   </p>
                 </div>
 
@@ -1041,8 +1173,10 @@ export default function SubmitArticle() {
                       htmlFor="dataConsent"
                       className="text-sm text-gray-700 leading-relaxed cursor-pointer"
                     >
-                      Материал не публиковался ранее и не подан в другие
-                      издания.
+                      {t(
+                          "submission:consent_data",
+                          "Материал не публиковался ранее и не подан в другие издания."
+                      )}
                     </label>
                   </div>
 
@@ -1058,14 +1192,17 @@ export default function SubmitArticle() {
                       htmlFor="textConsent"
                       className="text-sm text-gray-700 leading-relaxed cursor-pointer"
                     >
-                      Текст соответствует требованиям для авторов.
+                      {t(
+                          "submission:consent_text",
+                          "Текст соответствует требованиям для авторов."
+                      )}
                     </label>
                   </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
                   <Button variant="outline" size="lg" onClick={prevStep}>
-                    Назад
+                    {t("submission:btn_back", "Назад")}
                   </Button>
                   <Button
                     size="lg"
@@ -1077,7 +1214,9 @@ export default function SubmitArticle() {
                     }
                     onClick={handleSubmit}
                   >
-                    {submitting ? "Отправляем…" : "Завершить отправку"}
+                    {submitting
+                        ? t("submission:btn_submitting", "Отправляем…")
+                        : t("submission:btn_finish", "Завершить отправку")}
                   </Button>
                 </div>
               </div>
@@ -1093,14 +1232,14 @@ export default function SubmitArticle() {
                 disabled={currentStep === 1}
                 className="w-full sm:w-auto bg-transparent"
               >
-                Назад
+                {t("submission:btn_back", "Назад")}
               </Button>
               <Button
                 onClick={nextStep}
                 className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                 disabled={currentStep === 1 && !formData.selectedJournal}
               >
-                Далее
+                {t("submission:btn_next", "Далее")}
               </Button>
             </div>
           )}
@@ -1111,9 +1250,12 @@ export default function SubmitArticle() {
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
-            <h2 className="text-2xl font-bold mb-4">Статья отправлена</h2>
+            <h2 className="text-2xl font-bold mb-4">{t("submission:success_draft_created", "Черновик создан")}</h2>
             <p className="text-gray-700 mb-6">
-              Вы можете открыть страницу стотьи и отслеживать статус рецензирования.
+              {t(
+                  "submission:success_draft_text",
+                  "Рукопись сохранена как черновик. Откройте статью и нажмите “Отправить в редакцию”, когда будете готовы."
+              )}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
@@ -1123,14 +1265,14 @@ export default function SubmitArticle() {
                   if (createdId) navigate(`/articles/${createdId}`);
                 }}
               >
-                Открыть статью
+                {t("submission:btn_open_article", "Открыть статью")}
               </Button>
               <Link to="/author-dashboard">
                 <Button
                   variant="outline"
                   onClick={() => setShowSuccessModal(false)}
                 >
-                  Вернуться в личный кабинет
+                  {t("submission:btn_return_dashboard", "Вернуться в личный кабинет")}
                 </Button>
               </Link>
             </div>

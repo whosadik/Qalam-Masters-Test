@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 /* ---------- helpers / labels ---------- */
 
@@ -60,6 +61,7 @@ function FilesWidget({
   allowUploadTypes = [],
   title = "Файлы статьи",
 }) {
+  const { t } = useTranslation();
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -90,21 +92,33 @@ function FilesWidget({
       await refresh();
     } catch (e) {
       console.error("upload failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось загрузить файл");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:manager_dashboard.files.upload_failed",
+              "Не удалось загрузить файл"
+          )
+      );
     } finally {
       setBusy(false);
     }
   }
 
   async function onDelete(fileId) {
-    if (!confirm("Удалить файл?")) return;
+    if (!confirm(
+        t("dashboards:manager_dashboard.files.confirm_delete", "Удалить файл?")
+    )) return;
     setBusy(true);
     try {
       await deleteArticleFile(articleId, fileId);
       await refresh();
     } catch (e) {
       console.error("delete failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось удалить файл");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:manager_dashboard.files.delete_failed",
+              "Не удалось удалить файл"
+          )
+      );
     } finally {
       setBusy(false);
     }
@@ -112,12 +126,17 @@ function FilesWidget({
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-medium">{title}</div>
+      <div className="text-sm font-medium">{title ||
+          t(
+          "dashboards:manager_dashboard.files.title_default",
+          "Файлы статьи"
+      )}
+      </div>
 
       {/* uploaders */}
       {allowUploadTypes.length > 0 && (
         <div className="flex flex-wrap gap-3">
-          {allowUploadTypes.map((t) => (
+          {allowUploadTypes.map((tType) => (
             <label
               key={t}
               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm cursor-pointer ${
@@ -125,7 +144,11 @@ function FilesWidget({
               }`}
             >
               <Upload className="h-4 w-4" />
-              Загрузить {FILE_TYPE_LABEL[t] || t}
+              {t("dashboards:manager_dashboard.files.upload", "Загрузить")}{" "}
+              {t(
+                  `dashboards:manager_dashboard.file_type.${tType}`,
+                  FILE_TYPE_LABEL[tType] || tType
+              )}
               <input
                 type="file"
                 className="hidden"
@@ -140,7 +163,11 @@ function FilesWidget({
       <div className="rounded-md border">
         {loading ? (
           <div className="p-3 text-gray-500 flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Загружаем файлы…
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t(
+                "dashboards:manager_dashboard.files.loading",
+                "Загружаем файлы…"
+            )}
           </div>
         ) : files.length ? (
           <ul className="divide-y">
@@ -157,11 +184,15 @@ function FilesWidget({
                       rel="noreferrer"
                       className="underline"
                     >
-                      {FILE_TYPE_LABEL[f.type] || f.type}
+                      {t(
+                          `dashboards:manager_dashboard.file_type.${f.type}`,
+                          FILE_TYPE_LABEL[f.type] || f.type
+                      )}
                     </a>
                   </div>
                   <div className="text-xs text-gray-500">
-                    ID: {f.id} • {fmt(f.uploaded_at)}
+                    {t("dashboards:manager_dashboard.files.id", "ID")}: {f.id} •{" "}
+                    {fmt(f.uploaded_at)}
                   </div>
                 </div>
                 <Button
@@ -171,13 +202,15 @@ function FilesWidget({
                   disabled={busy}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
-                  Удалить
+                  {t("dashboards:manager_dashboard.files.delete", "Удалить")}
                 </Button>
               </li>
             ))}
           </ul>
         ) : (
-          <div className="p-3 text-gray-500">Файлов пока нет.</div>
+          <div className="p-3 text-gray-500">
+            {t("dashboards:manager_dashboard.files.empty", "Файлов пока нет.")}
+          </div>
         )}
       </div>
     </div>
@@ -186,6 +219,7 @@ function FilesWidget({
 
 /** Read-only список назначений рецензентов */
 function AssignmentsList({ articleId }) {
+  const { t } = useTranslation();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -211,11 +245,20 @@ function AssignmentsList({ articleId }) {
 
   return (
     <div className="space-y-2">
-      <div className="text-sm font-medium">Назначения рецензентов</div>
+      <div className="text-sm font-medium">
+        {t(
+            "dashboards:manager_dashboard.assignments.title",
+            "Назначения рецензентов"
+        )}
+      </div>
       <div className="rounded-md border">
         {loading ? (
           <div className="p-3 text-gray-500 flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Загружаем назначения…
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t(
+                "dashboards:manager_dashboard.assignments.loading",
+                "Загружаем назначения…"
+            )}
           </div>
         ) : rows.length ? (
           <ul className="divide-y">
@@ -226,11 +269,23 @@ function AssignmentsList({ articleId }) {
               >
                 <div className="min-w-0">
                   <div className="text-sm font-medium">
-                    Reviewer #{r.reviewer} • {r.status}
+                    {t(
+                        "dashboards:manager_dashboard.assignments.reviewer",
+                        "Рецензент"
+                    )}{" "}
+                    #{r.reviewer} • {r.status}
                   </div>
                   <div className="text-xs text-gray-500">
-                    Назначено: {fmt(r.created_at)} • Дедлайн:{" "}
-                    {r.due_at ? fmt(r.due_at) : "—"}
+                    {t(
+                        "dashboards:manager_dashboard.assignments.assigned_at",
+                        "Назначено"
+                    )}
+                    : {fmt(r.created_at)} •{" "}
+                    {t(
+                        "dashboards:manager_dashboard.assignments.due_at",
+                        "Дедлайн"
+                    )}
+                    : {r.due_at ? fmt(r.due_at) : "—"}
                   </div>
                 </div>
                 {/* read-only; создание/редактирование — только у редакции */}
@@ -238,7 +293,12 @@ function AssignmentsList({ articleId }) {
             ))}
           </ul>
         ) : (
-          <div className="p-3 text-gray-500">Назначений пока нет.</div>
+          <div className="p-3 text-gray-500">
+            {t(
+                "dashboards:manager_dashboard.assignments.empty",
+                "Назначений пока нет."
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -247,6 +307,7 @@ function AssignmentsList({ articleId }) {
 
 /** Блок управления скринингом для одной статьи */
 function ScreeningControls({ article, onChanged }) {
+  const { t } = useTranslation();
   const [notes, setNotes] = useState("");
   const [checkAllOk, setCheckAllOk] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -270,7 +331,11 @@ function ScreeningControls({ article, onChanged }) {
               format_ok: false,
               zgs_ok: false,
               antiplag_ok: false,
-              notes: notes || "Требуются доработки по формату/документам",
+              notes: notes ||
+                  t(
+                      "dashboards:manager_dashboard.screening.default_return_note",
+                      "Требуются доработки по формату/документам"
+                  ),
               next_status: "submitted",
             };
 
@@ -280,7 +345,11 @@ function ScreeningControls({ article, onChanged }) {
       setCheckAllOk(true);
     } catch (e) {
       console.error("screening action failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Операция скрининга не удалась");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:manager_dashboard.screening.action_failed",
+              "Операция скрининга не удалась"
+          ));
     } finally {
       setBusy(false);
     }
@@ -289,13 +358,21 @@ function ScreeningControls({ article, onChanged }) {
   return (
     <div className="mt-3 grid gap-3 ">
       <div className="space-y-2">
-        <div className="text-sm font-medium">Заметки по скринингу</div>
+        <div className="text-sm font-medium">
+          {t(
+              "dashboards:manager_dashboard.screening.notes_title",
+              "Заметки по скринингу"
+          )}
+        </div>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           className="w-full border rounded-md p-2 text-sm"
-          placeholder="Кратко: что проверить/исправить или комментарий для редакции"
+          placeholder={t(
+              "dashboards:manager_dashboard.screening.notes_placeholder",
+              "Кратко: что проверить/исправить или комментарий для редакции"
+          )}
         />
         <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
@@ -303,7 +380,10 @@ function ScreeningControls({ article, onChanged }) {
             checked={checkAllOk}
             onChange={(e) => setCheckAllOk(e.target.checked)}
           />
-          Все пункты чек-листа ок (scope/format/zgs/antiplag)
+          {t(
+              "dashboards:manager_dashboard.screening.checklist_ok",
+              "Все пункты чек-листа ок (scope/format/zgs/antiplag)"
+          )}
         </label>
       </div>
 
@@ -312,11 +392,22 @@ function ScreeningControls({ article, onChanged }) {
           variant="outline"
           disabled={busy}
           onClick={() =>
-            checkAllOk ? finish("under_review") : alert("Отметь чек-лист")
+            checkAllOk ? finish("under_review") : alert(
+                t(
+                    "dashboards:manager_dashboard.screening.mark_checklist",
+                    "Отметь чек-лист"
+                )
+            )
           }
-          title="Отправить на рецензию"
+          title={t(
+              "dashboards:manager_dashboard.screening.send_to_review_title",
+              "Отправить на рецензию"
+          )}
         >
-          Завершить скрининг → На рецензию
+          {t(
+              "dashboards:manager_dashboard.screening.finish_to_review",
+              "Завершить скрининг → На рецензию"
+          )}
         </Button>
       </div>
     </div>
@@ -326,6 +417,7 @@ function ScreeningControls({ article, onChanged }) {
 /* ---------- main page ---------- */
 
 export default function ManagerDashboard() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [membershipsLoading, setMembershipsLoading] = useState(true);
 
@@ -452,7 +544,11 @@ export default function ManagerDashboard() {
   if (membershipsLoading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Проверяем права менеджера…
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {t(
+          "dashboards:manager_dashboard.memberships.loading",
+          "Проверяем права менеджера…"
+      )}
       </div>
     );
   }
@@ -460,7 +556,10 @@ export default function ManagerDashboard() {
   if (!managerJournals.length) {
     return (
       <div className="p-6">
-        Нет прав менеджера — доступных журналов не найдено.
+        {t(
+            "dashboards:manager_dashboard.memberships.none",
+            "Нет прав менеджера — доступных журналов не найдено."
+        )}
       </div>
     );
   }
@@ -469,16 +568,26 @@ export default function ManagerDashboard() {
     <div className="space-y-6 p-4 lg:p-6">
       {/* header */}
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Дашборд менеджера</h1>
+        <h1 className="text-2xl font-bold">
+          {t(
+              "dashboards:manager_dashboard.title",
+              "Дашборд менеджера"
+          )}
+        </h1>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Журнал:</span>
+          <span className="text-sm text-gray-600">
+            {t("dashboards:manager_dashboard.journal.label", "Журнал:")}
+          </span>
           <Select
             value={journalId ? String(journalId) : undefined}
             onValueChange={(v) => setJournalId(Number(v))}
           >
             <SelectTrigger className="w-72">
-              <SelectValue placeholder="Выберите журнал" />
+              <SelectValue placeholder={t(
+                  "dashboards:manager_dashboard.journal.placeholder",
+                  "Выберите журнал"
+              )} />
             </SelectTrigger>
             <SelectContent>
               {managerJournals.map((j) => (
@@ -493,14 +602,19 @@ export default function ManagerDashboard() {
 
       {currentJournal && (
         <div className="text-sm text-gray-600">
-          Организация: <b>{currentJournal.organization ?? "—"}</b>
+          {t("dashboards:manager_dashboard.org.label", "Организация:")}{" "}
+          <b>{currentJournal.organization ?? "—"}</b>
         </div>
       )}
 
       {/* queues */}
       {loading ? (
         <div className="p-6 text-gray-500 flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" /> Загрузка статей…
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {t(
+              "dashboards:manager_dashboard.queues.loading",
+              "Загрузка статей…"
+          )}
         </div>
       ) : (
         <>
@@ -508,7 +622,10 @@ export default function ManagerDashboard() {
           <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle>
-                Новые подачи (Submitted){" "}
+                {t(
+                    "dashboards:manager_dashboard.submitted.title",
+                    "Новые подачи (Submitted)"
+                )}{" "}
                 <span className="text-gray-400">({submitted.length})</span>
               </CardTitle>
             </CardHeader>
@@ -523,15 +640,31 @@ export default function ManagerDashboard() {
                       <div className="min-w-0">
                         <div className="font-medium truncate">{a.title}</div>
                         <div className="text-xs text-gray-500">
-                          Журнал #{a.journal} • Автор {a.author_email} •{" "}
-                          {fmt(a.created_at)}
+                          {t(
+                              "dashboards:manager_dashboard.common.journal_hash",
+                              "Журнал #"
+                          )}
+                          {a.journal} •{" "}
+                          {t(
+                              "dashboards:manager_dashboard.common.author",
+                              "Автор"
+                          )}{" "}
+                          {a.author_email} • {fmt(a.created_at)}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
+                        <Badge>
+                          {t(
+                              `dashboards:manager_dashboard.status.${a.status}`,
+                              STATUS_LABEL[a.status] || a.status
+                          )}
+                        </Badge>
                         <Link to={`/articles/${a.id}`}>
                           <Button variant="outline" className="bg-transparent">
-                            Открыть
+                            {t(
+                                "dashboards:manager_dashboard.common.open",
+                                "Открыть"
+                            )}
                           </Button>
                         </Link>
                         {/* Кнопок перевода в screening нет — это делает редакция */}
@@ -540,7 +673,12 @@ export default function ManagerDashboard() {
                   ))}
                 </ul>
               ) : (
-                <div className="p-6 text-gray-500">Заявок нет.</div>
+                <div className="p-6 text-gray-500">
+                  {t(
+                      "dashboards:manager_dashboard.submitted.empty",
+                      "Заявок нет."
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -549,7 +687,10 @@ export default function ManagerDashboard() {
           <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle>
-                Скрининг (Screening){" "}
+                {t(
+                    "dashboards:manager_dashboard.screening.title",
+                    "Скрининг (Screening)"
+                )}{" "}
                 <span className="text-gray-400">({screening.length})</span>
               </CardTitle>
             </CardHeader>
@@ -562,17 +703,29 @@ export default function ManagerDashboard() {
                         <div className="min-w-0">
                           <div className="font-medium truncate">{a.title}</div>
                           <div className="text-xs text-gray-500">
-                            Журнал #{a.journal} • {fmt(a.created_at)}
+                            {t(
+                                "dashboards:manager_dashboard.common.journal_hash",
+                                "Журнал #"
+                            )}
+                            {a.journal} • {fmt(a.created_at)}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
+                          <Badge>
+                            {t(
+                                `dashboards:manager_dashboard.status.${a.status}`,
+                                STATUS_LABEL[a.status] || a.status
+                            )}
+                          </Badge>
                           <Link to={`/articles/${a.id}`}>
                             <Button
                               variant="outline"
                               className="bg-transparent"
                             >
-                              Открыть
+                              {t(
+                                  "dashboards:manager_dashboard.common.open",
+                                  "Открыть"
+                              )}
                             </Button>
                           </Link>
                         </div>
@@ -587,7 +740,10 @@ export default function ManagerDashboard() {
                       {/* Файлы: на скрининге обычно zgs/antiplag/supplements */}
                       <FilesWidget
                         articleId={a.id}
-                        title="Файлы для скрининга"
+                        title={t(
+                          "dashboards:manager_dashboard.files.screening_title",
+                          "Файлы для скрининга"
+                        )}
                         allowUploadTypes={[
                           "zgs",
                           "antiplag_report",
@@ -602,7 +758,10 @@ export default function ManagerDashboard() {
                 </ul>
               ) : (
                 <div className="p-6 text-gray-500">
-                  Сейчас нет статей на скрининге.
+                  {t(
+                      "dashboards:manager_dashboard.screening.empty",
+                      "Сейчас нет статей на скрининге."
+                  )}
                 </div>
               )}
             </CardContent>
@@ -612,7 +771,10 @@ export default function ManagerDashboard() {
           <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle>
-                В производстве (In production){" "}
+                {t(
+                    "dashboards:manager_dashboard.production.title",
+                    "В производстве (In production)"
+                )}{" "}
                 <span className="text-gray-400">({inProd.length})</span>
               </CardTitle>
             </CardHeader>
@@ -625,17 +787,29 @@ export default function ManagerDashboard() {
                         <div className="min-w-0">
                           <div className="font-medium truncate">{a.title}</div>
                           <div className="text-xs text-gray-500">
-                            Журнал #{a.journal} • {fmt(a.created_at)}
+                            {t(
+                                "dashboards:manager_dashboard.common.journal_hash",
+                                "Журнал #"
+                            )}
+                            {a.journal} • {fmt(a.created_at)}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
+                          <Badge>
+                            {t(
+                                `dashboards:manager_dashboard.status.${a.status}`,
+                                STATUS_LABEL[a.status] || a.status
+                            )}
+                          </Badge>
                           <Link to={`/articles/${a.id}`}>
                             <Button
                               variant="outline"
                               className="bg-transparent"
                             >
-                              Открыть
+                              {t(
+                                  "dashboards:manager_dashboard.common.open",
+                                  "Открыть"
+                              )}
                             </Button>
                           </Link>
                           {/* Публикацию не показываем — смена статуса у редакции */}
@@ -644,7 +818,10 @@ export default function ManagerDashboard() {
 
                       <FilesWidget
                         articleId={a.id}
-                        title="Файлы продакшна"
+                        title={t(
+                            "dashboards:manager_dashboard.files.production_title",
+                            "Файлы продакшна"
+                        )}
                         allowUploadTypes={["production_pdf", "supplement"]}
                       />
 
@@ -655,7 +832,10 @@ export default function ManagerDashboard() {
                 </ul>
               ) : (
                 <div className="p-6 text-gray-500">
-                  Нет статей в производстве.
+                  {t(
+                      "dashboards:manager_dashboard.production.empty",
+                      "Нет статей в производстве."
+                  )}
                 </div>
               )}
             </CardContent>

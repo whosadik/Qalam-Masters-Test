@@ -1,0 +1,109 @@
+{
+  "edit": {
+    "action": {
+      "back": "Назад",
+      "cancel": "Отмена",
+      "done": "Готово",
+      "open_card": "Открыть карточку статьи",
+      "save": "Сохранить",
+      "saving": "Сохраняю…"
+    },
+    "alert": {
+      "delete_failed": "Не удалось удалить файл.",
+      "save_failed": "Не удалось сохранить изменения.",
+      "upload_failed": "Не удалось загрузить файл."
+    },
+    "confirm": {
+      "delete_file": "Удалить файл?"
+    },
+    "fields": {
+      "title": {
+        "label": "Название",
+        "placeholder": "Название статьи"
+      }
+    },
+    "files": {
+      "delete": "Удалить",
+      "empty": "Файлы не прикреплены.",
+      "hint": {
+        "auto": "После выбора файл загрузится автоматически."
+      },
+      "list": {
+        "subtitle": "Открыть / удалить",
+        "title": "Загруженные файлы"
+      },
+      "need_manuscript": "Для отправки в редакцию нужна рукопись типа ",
+      "open": "Открыть",
+      "type": {
+        "antiplag_label": "antiplag_report (антиплагиат)",
+        "label": "Тип файла",
+        "manuscript_label": "manuscript (рукопись)",
+        "production_pdf_label": "production_pdf",
+        "response_label": "response_to_review",
+        "supplement_label": "supplement (доп. материалы)",
+        "zgs_label": "zgs (экспертное заключение)"
+      },
+      "upload": "Загрузить",
+      "uploading": "Загрузка…"
+    },
+    "loading": "Загрузка…",
+    "not_found": "Статья не найдена.",
+    "section": {
+      "form_desc": "Измените метаданные и управляйте файлами",
+      "form_title": "Поля статьи"
+    },
+    "tabs": {
+      "files": "Файлы",
+      "meta": "Метаданные"
+    },
+    "title": "Редактирование статьи"
+  },
+  "view": {
+    "action": {
+      "back": "Назад",
+      "sending": "Отправляем…",
+      "submit_to_editorial": "Отправить в редакцию",
+      "to_list": "К списку статей"
+    },
+    "back": "Назад",
+    "files": {
+      "empty": "Файлы не прикреплены.",
+      "open": "Открыть",
+      "subtitle": "Загруженные материалы",
+      "title": "Файлы"
+    },
+    "journal_prefix": "Журнал:",
+    "loading": "Загрузка…",
+    "meta": {
+      "author": "Автор",
+      "created": "Создана",
+      "files": "Файлы"
+    },
+    "metadata": {
+      "abstract_en": "Аннотация (EN)",
+      "abstract_ru": "Аннотация (RU)",
+      "author_from_form": "Автор (из формы)",
+      "keywords_en": "Ключевые слова (EN)",
+      "keywords_ru": "Ключевые слова (RU)",
+      "organization": "Организация",
+      "research_goal": "Цель исследования",
+      "research_methods": "Методы исследования",
+      "research_tasks": "Задачи исследования",
+      "subtitle": "Название, аннотации, ключевые слова",
+      "thematic_direction": "Тематическое направление",
+      "title": "Метаданные",
+      "title_en": "Название (EN)",
+      "title_ru": "Название (RU)"
+    },
+    "no_manuscript": {
+      "desc": "Чтобы отправить в редакцию, прикрепите файл типа «Рукопись».",
+      "title": "Загрузите рукопись"
+    },
+    "not_found": "Статья не найдена.",
+    "submit_error": "Не удалось отправить в редакцию. Попробуйте позже.",
+    "timeline": {
+      "subtitle": "Как статья двигается по пайплайну",
+      "title": "Этапы процесса"
+    }
+  }
+}

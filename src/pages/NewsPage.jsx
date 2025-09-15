@@ -23,6 +23,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import { useTranslation } from "react-i18next";
 
 /* ---------------------------------- MOCK DATA ---------------------------------- */
 // Категории: platform (обновления), journals (новые журналы), events (встречи), memos (меморандумы/соглашения)
@@ -97,6 +98,7 @@ function Chip({ active, children, onClick }) {
 
 /* ---------------------------------- NEWS CARD ---------------------------------- */
 function NewsCard({ item }) {
+  const { t } = useTranslation("news");
   const CatIcon =
     CATEGORIES.find((c) => c.key === item.category)?.icon || Megaphone;
   return (
@@ -105,14 +107,15 @@ function NewsCard({ item }) {
         <div className="flex items-center gap-2 text-slate-500 text-xs">
           <CatIcon className="w-4 h-4" />
           <span>
-            {CATEGORIES.find((c) => c.key === item.category)?.label ||
-              "Новости"}
+            {
+              t(`categories.${item.category}`, CATEGORIES.find((c) => c.key === item.category)?.label || "Новости")
+            }
           </span>
           <span className="mx-1">•</span>
           <span>{formatDate(item.date)}</span>
           {isRecent(item.date) && (
             <Badge className="ml-2" variant="secondary">
-              New
+              {t("badges.new", "New")}
             </Badge>
           )}
         </div>
@@ -139,12 +142,12 @@ function NewsCard({ item }) {
           {item.link ? (
             <Button asChild size="sm" className="gap-2">
               <Link to={item.link}>
-                Подробнее
+                {t("actions.more", "Подробнее")}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
           ) : (
-            <span className="text-xs text-slate-400">Ссылка недоступна</span>
+            <span className="text-xs text-slate-400">{t("labels.link_unavailable", "Ссылка недоступна")}</span>
           )}
         </div>
       </CardContent>
@@ -154,6 +157,8 @@ function NewsCard({ item }) {
 
 /* ---------------------------------- TIMELINE ---------------------------------- */
 function Timeline({ items }) {
+  const { t } = useTranslation("news");
+
   return (
     <div className="relative pl-6 sm:pl-8">
       <div className="absolute left-2 sm:left-3 top-0 bottom-0 w-px bg-slate-200" />
@@ -181,7 +186,7 @@ function Timeline({ items }) {
                   to={it.link}
                   className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
                 >
-                  Подробнее <ArrowRight className="w-4 h-4" />
+                  {t("actions.more", "Подробнее")} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             )}
@@ -194,6 +199,8 @@ function Timeline({ items }) {
 
 /* ---------------------------------- PAGE ---------------------------------- */
 export default function NewsUpdatesPage() {
+  const { t } = useTranslation(["news", "common", "footer"])
+
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [year, setYear] = useState("all");
@@ -243,10 +250,13 @@ export default function NewsUpdatesPage() {
         {/* Header */}
         <div className="mb-5 sm:mb-8">
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight">
-            Новости
+            {t("page.title", "Новости")}
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-            Обновления платформы, добавление журналов, встречи, меморандумы.
+            {t(
+                "page.subtitle",
+                "Обновления платформы, добавление журналов, встречи, меморандумы."
+            )}
           </p>
         </div>
 
@@ -257,9 +267,12 @@ export default function NewsUpdatesPage() {
             <input
               value={q}
               onChange={(e) => resetAnd(() => setQ(e.target.value))}
-              placeholder="Поиск по заголовку и тегам…"
+              placeholder={t(
+                  "controls.search_placeholder",
+                  "Поиск по заголовку и тегам…"
+              )}
               className="w-full rounded-lg border px-9 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
-              aria-label="Поиск новостей"
+              aria-label={t("controls.search_aria", "Поиск новостей")}
             />
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           </div>
@@ -284,11 +297,11 @@ export default function NewsUpdatesPage() {
               value={year}
               onChange={(e) => resetAnd(() => setYear(e.target.value))}
               className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
-              title="Год"
+              title={t("controls.year_title", "Год")}
             >
               {years.map((y) => (
                 <option key={y} value={y}>
-                  {y === "all" ? "Все годы" : y}
+                  {y === "all" ? t("controls.all_years", "Все годы") : y}
                 </option>
               ))}
             </select>
@@ -300,11 +313,13 @@ export default function NewsUpdatesPage() {
                 setPage(1);
               }}
               className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
-              title="На странице"
+              title={t("controls.per_page_title", "На странице")}
             >
               {[6, 9, 12, 18].map((n) => (
                 <option key={n} value={n}>
-                  {n} на странице
+                  {t("controls.per_page_option", "{{count}} на странице", {
+                    count: n,
+                  })}
                 </option>
               ))}
             </select>
@@ -314,7 +329,10 @@ export default function NewsUpdatesPage() {
         {/* Grid */}
         {pageItems.length === 0 ? (
           <div className="rounded-xl border p-8 text-center text-muted-foreground">
-            Ничего не найдено по текущим фильтрам.
+            {t(
+                "empty.no_results",
+                "Ничего не найдено по текущим фильтрам."
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -327,7 +345,11 @@ export default function NewsUpdatesPage() {
         {/* Pagination */}
         <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 justify-between">
           <div className="text-xs sm:text-sm text-muted-foreground">
-            Найдено: {total} • Стр. {page} из {totalPages}
+            {t("pagination.summary", "Найдено: {{total}} • Стр. {{page}} из {{totalPages}}", {
+              total,
+              page,
+              totalPages,
+            })}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -337,7 +359,7 @@ export default function NewsUpdatesPage() {
               disabled={page <= 1}
               className="gap-1"
             >
-              ← Назад
+              {t("pagination.prev", "← Назад")}
             </Button>
             <Button
               variant="outline"
@@ -346,16 +368,19 @@ export default function NewsUpdatesPage() {
               disabled={page >= totalPages}
               className="gap-1"
             >
-              Вперёд →
+              {t("pagination.next", "Вперёд →")}
             </Button>
           </div>
         </div>
 
         {/* Timeline (сводка) */}
         <div className="mt-10 sm:mt-12">
-          <h2 className="text-lg sm:text-xl font-semibold">Лента событий</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">{t("timeline.title", "Лента событий")}</h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Сжатая хронология ключевых обновлений и событий.
+            {t(
+                "timeline.subtitle",
+                "Сжатая хронология ключевых обновлений и событий."
+            )}
           </p>
           <Separator className="my-4" />
           <Timeline

@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import { useTranslation } from "react-i18next";
 
 // --- маленькие утилиты ---
 const debounce = (fn, ms = 400) => {
@@ -45,7 +46,7 @@ function LetterAvatar({ name }) {
 function JournalCard({ j }) {
   // безопасные маппинги полей
   const id = j.id ?? j.pk ?? j.uuid ?? j.slug;
-  const title = j.title || "Без названия";
+  const title = j.title || t("journal_public:public_page.unknown_title", "Без названия");
   const description = j.description || j.short_description || "";
   const issn = j.issn || j.ISSN || null;
   const language = j.language || j.lang || "—";
@@ -90,7 +91,11 @@ function JournalCard({ j }) {
               </div>
 
               <div className="text-sm text-gray-600 mt-0.5">
-                Тема: {theme} • Язык: {language} • Периодичность: {frequency}
+                {t("journal_public:public_page.meta_line", "Тема: {{theme}} • Язык: {{language}} • Периодичность: {{frequency}}", {
+                  theme,
+                  language,
+                  frequency,
+                })}
               </div>
 
               {description && (
@@ -102,7 +107,7 @@ function JournalCard({ j }) {
                 {id && (
                   <Link to={`/journals/${id}`}>
                     <Button size="sm" className="w-40">
-                      <BookOpen className="w-4 h-4 mr-2" /> О журнале
+                      <BookOpen className="w-4 h-4 mr-2" /> {t("journal_public:public_page.btn_about", "О журнале")}
                     </Button>
                   </Link>
                 )}
@@ -140,6 +145,7 @@ function SkeletonCard() {
 
 export default function JournalsPublicPage() {
   const [params, setParams] = useSearchParams();
+  const { t } = useTranslation(["journal_public"]);
 
   // читаем состояние из URL
   const initial = useMemo(() => {
@@ -204,7 +210,7 @@ export default function JournalsPublicPage() {
           error:
             e?.response?.data?.detail ||
             e?.message ||
-            "Не удалось загрузить журналы.",
+              t("journal_public:public_page.load_error_fallback", "Не удалось загрузить журналы."),
           count: 0,
           results: [],
         });
@@ -234,10 +240,10 @@ export default function JournalsPublicPage() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Журналы
+              {t("journal_public:public_page.page_title", "Журналы")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Просматривайте каталог журналов до регистрации.
+              {t("journal_public:public_page.page_subtitle", "Просматривайте каталог журналов до регистрации.")}
             </p>
           </div>
 
@@ -248,7 +254,7 @@ export default function JournalsPublicPage() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Поиск по названию, ISSN…"
+                placeholder={t("journal_public:public_page.search_placeholder", "Поиск по названию, ISSN…")}
                 className="w-full sm:w-72 rounded-lg border px-10 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
               />
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -262,12 +268,12 @@ export default function JournalsPublicPage() {
                   setUrlParams({ ordering: e.target.value, page: 1 })
                 }
                 className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
-                title="Сортировка"
+                title={t("journal_public:public_page.ordering_title", "Сортировка")}
               >
-                <option value="-created">Сначала новые</option>
-                <option value="created">Сначала старые</option>
-                <option value="title">Название A–Z</option>
-                <option value="-title">Название Z–A</option>
+                <option value="-created">{t("journal_public:public_page.ordering_new_first", "Сначала новые")}</option>
+                <option value="created">{t("journal_public:public_page.ordering_old_first", "Сначала старые")}</option>
+                <option value="title">{t("journal_public:public_page.ordering_title_az", "Название A–Z")}</option>
+                <option value="-title">{t("journal_public:public_page.ordering_title_za", "Название Z–A")}</option>
               </select>
               <ArrowUpDown className="pointer-events-none absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
             </div>
@@ -279,11 +285,11 @@ export default function JournalsPublicPage() {
                 setUrlParams({ page_size: Number(e.target.value), page: 1 })
               }
               className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
-              title="На странице"
+              title={t("journal_public:public_page.pagesize_title", "На странице")}
             >
               {[12, 24, 36, 48].map((n) => (
                 <option key={n} value={n}>
-                  {n} на странице
+                  {t("journal_public:public_page.pagesize_option", "{{n}} на странице", { n })}
                 </option>
               ))}
             </select>
@@ -299,11 +305,11 @@ export default function JournalsPublicPage() {
           </div>
         ) : state.error ? (
           <div className="rounded-xl border p-6 text-red-600">
-            Ошибка: {state.error}
+            {t("journal_public:public_page.error_prefix", "Ошибка")}: {state.error}
           </div>
         ) : state.results.length === 0 ? (
           <div className="rounded-xl border p-10 text-center text-muted-foreground">
-            По вашему запросу ничего не найдено.
+            {t("journal_public:public_page.empty_results", "По вашему запросу ничего не найдено.")}
           </div>
         ) : (
           <>
@@ -317,7 +323,7 @@ export default function JournalsPublicPage() {
             {/* PAGINATION */}
             <div className="mt-8 flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Найдено: {state.count}
+                {t("journal_public:public_page.found_count", "Найдено: {{count}}", { count: state.count })}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -328,7 +334,7 @@ export default function JournalsPublicPage() {
                   className="gap-1"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Назад
+                  {t("journal_public:public_page.btn_prev", "Назад")}
                 </Button>
 
                 {/* короткая полоска страниц */}
@@ -366,7 +372,7 @@ export default function JournalsPublicPage() {
                   disabled={!canNext}
                   className="gap-1"
                 >
-                  Вперёд
+                  {t("journal_public:public_page.btn_next", "Вперёд")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -377,8 +383,10 @@ export default function JournalsPublicPage() {
         {/* подсказка снизу */}
         <div className="mt-10">
           <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-            Подсказка: нажмите на «О журнале», чтобы посмотреть описание,
-            выпуски и инструкции для авторов.
+            {t(
+                "journal_public:public_page.hint_open_about",
+                "Подсказка: нажмите на «О журнале», чтобы посмотреть описание, выпуски и инструкции для авторов."
+            )}
           </div>
         </div>
       </div>

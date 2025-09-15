@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
+import { useTranslation } from "react-i18next";
 
 const THEMES = [
   { value: "science", label: "Science" },
@@ -28,6 +29,7 @@ const FREQUENCIES = [
 export default function AddJournal() {
   const navigate = useNavigate();
   const { id } = useParams(); // id организации из урла: /moderator/organizations/:id/add-journal
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({
     title: "",
@@ -65,7 +67,12 @@ export default function AddJournal() {
     if (!file) return;
     // можно ограничить типы
     if (!file.type.startsWith("image/")) {
-      setErr("Допустимы только изображения (PNG/JPEG/WebP).");
+      setErr(
+          t(
+              "moderator_journals:add_journal.errors.only_images",
+              "Допустимы только изображения (PNG/JPEG/WebP)."
+          )
+      );
       return;
     }
     setLogoFile(file);
@@ -125,13 +132,21 @@ export default function AddJournal() {
       const data = resp?.data || {};
       if (typeof data === "object") {
         const nonField = data.detail || data.non_field_errors?.[0];
-        setErr(nonField ? String(nonField) : "Не удалось создать журнал.");
+        setErr(nonField ? String(nonField) :
+            t(
+                "moderator_journals:add_journal.errors.create_failed",
+                "Не удалось создать журнал."
+            )
+        );
         const perField = { ...data };
         delete perField.detail;
         delete perField.non_field_errors;
         setFieldErrors(perField);
       } else {
-        setErr("Не удалось создать журнал.");
+        setErr(t(
+            "moderator_journals:add_journal.errors.create_failed",
+            "Не удалось создать журнал."
+        ));
       }
     } finally {
       setBusy(false);
@@ -141,14 +156,22 @@ export default function AddJournal() {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Создать журнал</h1>
+        <h1 className="text-3xl font-bold">
+          {t("moderator_journals:add_journal.page_title", "Создать журнал")}
+        </h1>
         <div className="text-sm text-gray-500">
           {id ? (
             <>
-              Организация: <span className="font-medium">#{id}</span>
+              {t("moderator_journals:add_journal.org_prefix", "Организация:")}{" "}
+              <span className="font-medium">#{id}</span>
             </>
           ) : (
-            <span>Без привязки к организации</span>
+            <span>
+              {t(
+                  "moderator_journals:add_journal.org_none",
+                  "Без привязки к организации"
+              )}
+            </span>
           )}
         </div>
       </div>
@@ -164,12 +187,18 @@ export default function AddJournal() {
           <form onSubmit={onSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <Label className="mb-2 block">Название *</Label>
+                <Label className="mb-2 block">
+                  {t("moderator_journals:add_journal.title_label", "Название")}{" "}
+                  *
+                </Label>
                 <Input
                   name="title"
                   value={form.title}
                   onChange={onChange}
-                  placeholder="Вестник науки"
+                  placeholder={t(
+                      "moderator_journals:add_journal.title_ph",
+                      "Вестник науки"
+                  )}
                   required
                 />
                 {fieldErrors.title && (
@@ -180,7 +209,9 @@ export default function AddJournal() {
               </div>
 
               <div>
-                <Label className="mb-2 block">Тема *</Label>
+                <Label className="mb-2 block">
+                  {t("moderator_journals:add_journal.theme_label", "Тема")} *
+                </Label>
                 <select
                   name="theme"
                   value={form.theme}
@@ -201,7 +232,13 @@ export default function AddJournal() {
               </div>
 
               <div>
-                <Label className="mb-2 block">Периодичность *</Label>
+                <Label className="mb-2 block">
+                  {t(
+                      "moderator_journals:add_journal.frequency_label",
+                      "Периодичность"
+                  )}{" "}
+                  *
+                </Label>
                 <select
                   name="frequency"
                   value={form.frequency}
@@ -222,12 +259,15 @@ export default function AddJournal() {
               </div>
 
               <div>
-                <Label className="mb-2 block">Язык *</Label>
+                <Label className="mb-2 block">{t("moderator_journals:add_journal.language_label", "Язык")} *</Label>
                 <Input
                   name="language"
                   value={form.language}
                   onChange={onChange}
-                  placeholder="kz / ru / en …"
+                  placeholder={t(
+                      "moderator_journals:add_journal.language_ph",
+                      "kz / ru / en …"
+                  )}
                   required
                 />
                 {fieldErrors.language && (
@@ -238,7 +278,9 @@ export default function AddJournal() {
               </div>
 
               <div>
-                <Label className="mb-2 block">Телефон *</Label>
+                <Label className="mb-2 block">
+                  {t("moderator_journals:add_journal.phone_label", "Телефон")} *
+                </Label>
                 <Input
                   name="phone"
                   value={form.phone}
@@ -271,12 +313,20 @@ export default function AddJournal() {
               </div>
 
               <div className="md:col-span-2">
-                <Label className="mb-2 block">Описание</Label>
+                <Label className="mb-2 block">
+                  {t(
+                      "moderator_journals:add_journal.description_label",
+                      "Описание"
+                  )}
+                </Label>
                 <Textarea
                   name="description"
                   value={form.description}
                   onChange={onChange}
-                  placeholder="Коротко о журнале…"
+                  placeholder={t(
+                      "moderator_journals:add_journal.description_ph",
+                      "Коротко о журнале…"
+                  )}
                   rows={4}
                 />
                 {fieldErrors.description && (
@@ -303,7 +353,13 @@ export default function AddJournal() {
               </div>
 
               <div>
-                <Label className="mb-2 block">Год основания *</Label>
+                <Label className="mb-2 block">
+                  {t(
+                      "moderator_journals:add_journal.year_label",
+                      "Год основания"
+                  )}{" "}
+                  *
+                </Label>
                 <Input
                   type="number"
                   name="year"
@@ -321,12 +377,17 @@ export default function AddJournal() {
               </div>
 
               <div className="md:col-span-2">
-                <Label className="mb-2 block">Адрес</Label>
+                <Label className="mb-2 block">
+                  {t("moderator_journals:add_journal.address_label", "Адрес")}
+                </Label>
                 <Input
                   name="address"
                   value={form.address}
                   onChange={onChange}
-                  placeholder="Город, улица, дом…"
+                  placeholder={t(
+                      "moderator_journals:add_journal.address_ph",
+                      "Город, улица, дом…"
+                  )}
                 />
                 {fieldErrors.address && (
                   <p className="text-xs text-red-600 mt-1">
@@ -336,12 +397,20 @@ export default function AddJournal() {
               </div>
 
               <div className="md:col-span-2">
-                <Label className="mb-2 block">Целевая аудитория</Label>
+                <Label className="mb-2 block">
+                  {t(
+                      "moderator_journals:add_journal.target_audience_label",
+                      "Целевая аудитория"
+                  )}
+                </Label>
                 <Input
                   name="target_audience"
                   value={form.target_audience}
                   onChange={onChange}
-                  placeholder="Преподаватели, исследователи, аспиранты…"
+                  placeholder={t(
+                      "moderator_journals:add_journal.target_audience_ph",
+                      "Преподаватели, исследователи, аспиранты…"
+                  )}
                 />
                 {fieldErrors.target_audience && (
                   <p className="text-xs text-red-600 mt-1">
@@ -352,7 +421,10 @@ export default function AddJournal() {
 
               <div className="md:col-span-2">
                 <Label className="mb-2 block">
-                  Обложка (drag & drop или выбрать файл)
+                  {t(
+                      "moderator_journals:add_journal.logo_label",
+                      "Обложка (drag & drop или выбрать файл)"
+                  )}
                 </Label>
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -365,15 +437,24 @@ export default function AddJournal() {
                   {logoPreview ? (
                     <img
                       src={logoPreview}
-                      alt="Предпросмотр обложки"
+                      alt={t(
+                          "moderator_journals:add_journal.logo_preview_alt",
+                          "Предпросмотр обложки"
+                      )}
                       className="w-full max-w-sm h-48 object-contain"
                     />
                   ) : (
                     <div className="text-center">
-                      Перетащите файл сюда
+                      {t(
+                          "moderator_journals:add_journal.drop_here",
+                          "Перетащите файл сюда"
+                      )}
                       <br />
                       <span className="text-xs text-gray-500">
-                        PNG, JPG, WEBP • до ~10 МБ
+                        {t(
+                            "moderator_journals:add_journal.upload_hint",
+                            "PNG, JPG, WEBP • до ~10 МБ"
+                        )}
                       </span>
                     </div>
                   )}
@@ -391,10 +472,19 @@ export default function AddJournal() {
 
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={!canSubmit || busy}>
-                {busy ? "Создаём…" : "Создать журнал"}
+                {busy
+                    ? t(
+                        "moderator_journals:add_journal.btn_creating",
+                        "Создаём…"
+                    )
+                    : t(
+                        "moderator_journals:add_journal.btn_create",
+                        "Создать журнал"
+                    )
+                }
               </Button>
               <Link to={id ? `/moderator/organizations/${id}` : "/moderator"}>
-                <Button variant="outline">Отмена</Button>
+                <Button variant="outline">{t("moderator_journals:add_journal.btn_cancel", "Отмена")}</Button>
               </Link>
             </div>
           </form>

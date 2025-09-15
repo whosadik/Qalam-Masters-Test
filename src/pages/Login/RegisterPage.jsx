@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { signup as apiSignup } from "@/services/authService";
 import { useAuth } from "@/auth/AuthContext"; // <-- добавили
+import { useTranslation, Trans } from "react-i18next";
 
 // простая оценка силы пароля
 function scorePassword(pwd) {
@@ -50,6 +51,7 @@ function splitName(full) {
   };
 }
 export default function RegisterPage() {
+  const { t } = useTranslation(["auth", "common"]);
   const [intent, setIntent] = useState("individual"); // "individual" | "create-org" | "join-org"
   const [formData, setFormData] = useState({
     name: "",
@@ -124,8 +126,7 @@ export default function RegisterPage() {
         err?.response?.data?.email?.[0] ||
         err?.response?.data?.password?.[0] ||
         err?.response?.data?.error ||
-        err?.message ||
-        "Не удалось создать аккаунт. Попробуйте снова.";
+        err?.message || t("auth:errors.register_failed", "Не удалось создать аккаунт. Попробуйте снова.");
       setErrorMsg(String(msg));
     } finally {
       setLoading(false);
@@ -137,36 +138,36 @@ export default function RegisterPage() {
       <Card className="w-full max-w-sm sm:max-w-md shadow-xl">
         <CardHeader className="pb-2 sm:pb-4">
           <CardTitle className="text-center text-xl sm:text-2xl font-bold">
-            Регистрация
+            {t("auth:register.title", "Регистрация")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {/* ШАГ 0 — выбор пути */}
           <div className="mb-4">
             <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">
-              Как вы планируете использовать Qalam Masters?
+              {t("auth:register.intent.question", "Как вы планируете использовать Qalam Masters?")}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <ChoiceCard
                 active={intent === "individual"}
                 onClick={() => setIntent("individual")}
                 icon={<UserRound className="w-4 h-4" />}
-                title="Зарегистрироваться как автор"
-                desc="Только личный аккаунт"
+                title={t("auth:register.intent.individual.title", "Зарегистрироваться как автор")}
+                desc={t("auth:register.intent.individual.desc", "Только личный аккаунт")}
               />
               <ChoiceCard
                 active={intent === "create-org"}
                 onClick={() => setIntent("create-org")}
                 icon={<Building2 className="w-4 h-4" />}
-                title="Создать организацию"
-                desc="ВУЗ/журнал/компания"
+                title={t("auth:register.intent.create_org.title", "Создать организацию")}
+                desc={t("auth:register.intent.create_org.desc", "ВУЗ/журнал/компания")}
               />
               {/* <ChoiceCard
                 active={intent === "join-org"}
                 onClick={() => setIntent("join-org")}
                 icon={<UserPlus className="w-4 h-4" />}
-                title="Присоединиться"
-                desc="К существующей организации"
+                title={t("auth:register.intent.join_org.title", "Присоединиться")}
+                desc={t("auth:register.intent.join_org.desc", "К существующей организации")}
               /> */}
             </div>
           </div>
@@ -179,12 +180,12 @@ export default function RegisterPage() {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                Имя и фамилия
+                {t("auth:register.name", "Имя и фамилия")}
               </label>
               <Input
                 id="name"
                 name="name"
-                placeholder="Напр. Иван Иванов"
+                placeholder={t("auth:register.name_placeholder", "Напр. Иван Иванов")}
                 value={formData.name}
                 onChange={handleChange}
                 onBlur={onBlur}
@@ -193,7 +194,7 @@ export default function RegisterPage() {
                 disabled={loading}
               />
               {touched.name && !formData.name && (
-                <p className="text-xs text-red-600">Введите имя.</p>
+                <p className="text-xs text-red-600">{t("auth:errors.name_required", "Введите имя.")}</p>
               )}
             </div>
 
@@ -203,13 +204,13 @@ export default function RegisterPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                Email
+                {t("auth:register.email", "Email")}
               </label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("auth:register.email_placeholder", "you@example.com")}
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={onBlur}
@@ -219,7 +220,7 @@ export default function RegisterPage() {
               />
               {touched.email && !emailValid && (
                 <p className="text-xs text-red-600">
-                  Введите корректный email.
+                  {t("auth:errors.email_invalid", "Введите корректный email.")}
                 </p>
               )}
             </div>
@@ -230,14 +231,14 @@ export default function RegisterPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                Пароль
+                {t("auth:register.password", "Пароль")}
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
                   type={showPwd ? "text" : "password"}
-                  placeholder="Минимум 8 символов"
+                  placeholder={t("auth:register.password_placeholder", "Минимум 8 символов")}
                   value={formData.password}
                   onChange={handleChange}
                   onBlur={onBlur}
@@ -249,7 +250,11 @@ export default function RegisterPage() {
                   type="button"
                   className="absolute inset-y-0 right-0 px-3 inline-flex items-center rounded-r-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={() => setShowPwd((v) => !v)}
-                  aria-label={showPwd ? "Скрыть пароль" : "Показать пароль"}
+                  aria-label={
+                    showPwd
+                        ? t("auth:login.hide_password", "Скрыть пароль")
+                        : t("auth:login.show_password", "Показать пароль")
+                  }
                   disabled={loading}
                 >
                   {showPwd ? (
@@ -281,15 +286,17 @@ export default function RegisterPage() {
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-600">
-                  Сила пароля:{" "}
+                  {t("auth:password_strength.prefix", "Сила пароля:")}{" "}
                   <span className="font-medium">{strengthLabel(pwdScore)}</span>
                 </p>
               </div>
 
               {touched.password && pwdScore < 2 && (
                 <p className="text-xs text-red-600">
-                  Добавьте длину (8–12+), цифры, строчные/прописные буквы и
-                  символы.
+                  {t(
+                      "auth:errors.password_help",
+                      "Добавьте длину (8–12+), цифры, строчные/прописные буквы и символы."
+                  )}
                 </p>
               )}
             </div>
@@ -300,14 +307,14 @@ export default function RegisterPage() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                Подтвердите пароль
+                {t("auth:register.confirm_password", "Подтвердите пароль")}
               </label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type={showPwd2 ? "text" : "password"}
-                  placeholder="Повторите пароль"
+                  placeholder={t("auth:register.confirm_password_placeholder", "Повторите пароль")}
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   onBlur={onBlur}
@@ -319,7 +326,7 @@ export default function RegisterPage() {
                   type="button"
                   className="absolute inset-y-0 right-0 px-3 inline-flex items-center rounded-r-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={() => setShowPwd2((v) => !v)}
-                  aria-label={showPwd2 ? "Скрыть пароль" : "Показать пароль"}
+                  aria-label={showPwd2 ? t("auth:login.hide_password", "Скрыть пароль") : t("auth:login.show_password", "Показать пароль")}
                   disabled={loading}
                 >
                   {showPwd2 ? (
@@ -330,7 +337,7 @@ export default function RegisterPage() {
                 </button>
               </div>
               {touched.confirmPassword && !pwdMatch && (
-                <p className="text-xs text-red-600">Пароли не совпадают.</p>
+                <p className="text-xs text-red-600">{t("auth:errors.passwords_not_match", "Пароли не совпадают.")}</p>
               )}
             </div>
 
@@ -349,19 +356,19 @@ export default function RegisterPage() {
               disabled={loading}
             >
               {loading ? (
-                "Создаём аккаунт..."
+                  t("auth:register.loading", "Создаём аккаунт...")
               ) : (
                 <span className="inline-flex items-center justify-center gap-2">
-                  {intent === "individual" && "Зарегистрироваться"}
+                  {intent === "individual" && t("auth:register.submit", "Зарегистрироваться")}
                   {intent === "create-org" && (
                     <>
-                      Зарегистрироваться и перейти к организации{" "}
+                      {t("auth:register.submit_and_go_org", "Зарегистрироваться и перейти к организации")}{" "}
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                   {intent === "join-org" && (
                     <>
-                      Зарегистрироваться и присоединиться{" "}
+                      {t("auth:register.submit_and_join", "Зарегистрироваться и присоединиться")}{" "}
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -386,13 +393,13 @@ export default function RegisterPage() {
           {/* divider + link to login */}
           <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-500">или</span>
+            <span className="text-xs text-gray-500">{t("common:or", "или")}</span>
             <div className="h-px flex-1 bg-gray-200" />
           </div>
           <div className="text-center text-sm text-gray-600">
-            Уже есть аккаунт?{" "}
+            {t("auth:register.have_account", "Уже есть аккаунт?")}{" "}
             <Link to="/login" className="text-blue-600 hover:underline">
-              Войти
+              {t("auth:register.login_link", "Войти")}
             </Link>
           </div>
         </CardContent>

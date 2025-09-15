@@ -8,12 +8,15 @@ import { Button } from "@/components/ui/button";
 import { http, withParams } from "@/lib/apiClient";
 import { API, BASE_URL } from "@/constants/api";
 import { listIssues /*, createIssue*/ } from "@/services/issuesService";
+import { useTranslation } from "react-i18next";
 
 // аккуратный формат дат
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString("ru-RU") : "—";
 
 export default function IssuesList() {
+  const { t } = useTranslation(["journal_issues"]);
+
   const { jid } = useParams();
   const navigate = useNavigate();
 
@@ -112,28 +115,29 @@ export default function IssuesList() {
   // Ты писал, что публичная страница — только просмотр, поэтому кнопку убираем полностью.
   // Если захочешь вернуть: раскомментируй createIssue в импорте и этот хэндлер.
   // async function onCreateIssue() {
-  //   const label = window.prompt("Название выпуска (например: Август 2025):");
+  //   const label = window.prompt(t("create_issue.prompt_label", "Название выпуска (например: Август 2025):"));
   //   if (!label) return;
   //   try {
   //     const created = await createIssue(jid, label);
   //     navigate(`/proofreader/issues/${created.id}`);
   //   } catch (e) {
   //     console.error(e?.response?.data || e);
-  //     alert(e?.response?.data?.detail || "Не удалось создать выпуск");
+  //     alert(e?.response?.data?.detail || t("create_issue.error", "Не удалось создать выпуск"));
   //   }
   // }
 
   if (loading) {
-    return <div className="p-6 text-gray-500">Загрузка выпусков…</div>;
+    return <div className="p-6 text-gray-500">{t("loading", "Загрузка выпусков…")}</div>;
   }
 
   if (!visibleIssues.length) {
     return (
       <div className="p-6 space-y-4">
         <h1 className="text-2xl font-bold">
-          Выпуски {journal?.title ? `«${journal.title}»` : ""}
+          {t("issues_title", "Выпуски")}{" "}
+           {journal?.title ? `«${journal.title}»` : ""}
         </h1>
-        <div className="text-gray-600">Опубликованных выпусков пока нет.</div>
+        <div className="text-gray-600">{t("no_published_yet", "Опубликованных выпусков пока нет.")}</div>
       </div>
     );
   }
@@ -142,7 +146,7 @@ export default function IssuesList() {
     <div className="space-y-4 p-4 lg:p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
-          Выпуски {journal?.title ? `«${journal.title}»` : ""}
+          {t("issues_title", "Выпуски")}{" "} {journal?.title ? `«${journal.title}»` : ""}
         </h1>
         {/* Кнопки для корректора на этой странице скрываем умышленно,
             управление — через ProofreaderDashboard */}
@@ -159,7 +163,7 @@ export default function IssuesList() {
               {coverUrl ? (
                 <img
                   src={coverUrl}
-                  alt={journal?.title || "Обложка журнала"}
+                  alt={journal?.title || t("cover_alt", "Обложка журнала")}
                   className="h-full w-full object-cover"
                   loading="lazy"
                 />
@@ -174,25 +178,25 @@ export default function IssuesList() {
 
             <CardContent className="space-y-3">
               <div className="text-xs text-gray-500 space-y-1">
-                <div>Опубликован: {fmtDate(i.published_at)}</div>
+                <div>{t("published_on", "Опубликован:")} {fmtDate(i.published_at)}</div>
               </div>
 
               <div className="flex gap-2 flex-wrap">
                 {i.pdf ? (
                   <a href={i.pdf} target="_blank" rel="noreferrer">
                     <Button variant="outline" className="bg-transparent">
-                      Скачать PDF
+                      {t("download_pdf", "Скачать PDF")}
                     </Button>
                   </a>
                 ) : (
                   <Button variant="outline" className="bg-transparent" disabled>
-                    PDF не загружен
+                    {t("pdf_missing", "PDF не загружен")}
                   </Button>
                 )}
 
                 {/* Оглавление — доступно всем, т.к. показываем только published */}
                 <Link to={tocHref(i.id)}>
-                  <Button variant="ghost">Оглавление</Button>
+                  <Button variant="ghost">{t("toc_button", "Оглавление")}</Button>
                 </Link>
               </div>
             </CardContent>

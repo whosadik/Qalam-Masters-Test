@@ -1,0 +1,22 @@
+{
+  "cover_alt": "Обложка журнала",
+  "create_issue": {
+    "error": "Не удалось создать выпуск"
+  },
+  "download_pdf": "Скачать PDF",
+  "issues_title": "Выпуски",
+  "loading": "Загрузка выпусков…",
+  "no_published_yet": "Опубликованных выпусков пока нет.",
+  "pdf_missing": "PDF не загружен",
+  "published_on": "Опубликован:",
+  "toc": {
+    "back_to_all": "← Ко всем выпускам",
+    "empty": "Пока пусто.",
+    "issue_fallback": "Выпуск",
+    "journal_fallback": "Журнал",
+    "loading": "Загрузка оглавления…",
+    "title": "Оглавление",
+    "unavailable": "Оглавление недоступно."
+  },
+  "toc_button": "Оглавление"
+}

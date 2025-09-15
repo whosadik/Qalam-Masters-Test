@@ -18,6 +18,7 @@ import {
   ExternalLink,
   FilePlus2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function toUrl(url) {
   if (!url) return null;
@@ -48,26 +49,34 @@ function Initials({ text = "", className = "" }) {
 
 function FieldRow({ icon: Icon, label, value, href }) {
   const content = value ? String(value) : "—";
-  const Value =
-    href && value ? (
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className="font-medium break-all text-blue-600 hover:underline inline-flex items-center gap-1"
-      >
-        {content} <ExternalLink className="h-4 w-4" />
-      </a>
-    ) : (
-      <span className="font-medium break-all">{content}</span>
-    );
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 p-3 rounded-lg hover:bg-slate-50">
+  const common = (
+    <>
       <span className="inline-flex items-center gap-2 text-gray-500">
         <Icon className="h-4 w-4" />
         <span className="text-sm">{label}</span>
       </span>
-      {Value}
+      <span className="font-medium">{content}</span>
+    </>
+  );
+
+  if (href && value) {
+    return (
+      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50">
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1"
+        >
+          {content} <ExternalLink className="h-4 w-4" />
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg">
+      {common}
     </div>
   );
 }
@@ -89,6 +98,7 @@ function StatCard({ title, value, icon: Icon, className = "" }) {
 export default function OrganizationView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [org, setOrg] = useState(null);
   const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +138,7 @@ export default function OrganizationView() {
         const msg =
           e?.response?.data?.detail ||
           e?.response?.data?.error ||
-          "Не удалось загрузить организацию";
+            t("moderator_orgs:organization_view.load_failed", "Не удалось загрузить организацию");
         setErr(String(msg));
       } finally {
         setLoading(false);
@@ -148,20 +158,22 @@ export default function OrganizationView() {
       ? [org.social_link]
       : [];
 
-  if (loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
+  if (loading) return <div className="p-6 text-gray-500">{t("moderator_orgs:organization_view.loading", "Загрузка…")}</div>;
   if (err) return <div className="p-6 text-red-600">{err}</div>;
   if (!org)
-    return <div className="p-6 text-red-600">Организация не найдена</div>;
+    return <div className="p-6 text-red-600">
+      {t("moderator_orgs:organization_view.not_found", "Организация не найдена")}
+    </div>;
 
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
-      <div className="grid gap-3 sm:gap-4 sm:grid-cols-[1fr,auto] items-start">
-        <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
           {org.logo ? (
             <img
               src={org.logo}
-              alt={org.title || "Логотип"}
+              alt={org.title || t("moderator_orgs:organization_view.logo_alt", "Логотип")}
               className="h-16 w-16 object-cover rounded-xl border"
             />
           ) : (
@@ -169,28 +181,32 @@ export default function OrganizationView() {
           )}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {org.title || "Организация"}
+              {org.title ||
+                  t("moderator_orgs:organization_view.org_fallback", "Организация")}
             </h1>
-            <p className="text-gray-600">Профиль организации</p>
+            <p className="text-gray-600">
+              {t(
+                  "moderator_orgs:organization_view.subtitle",
+                  "Профиль организации • просмотр и быстрые действия"
+              )}
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:justify-end w-full sm:w-auto">
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto"
-            onClick={() => navigate(-1)}
-          >
-            Назад
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            {t("moderator_orgs:organization_view.back", "Назад")}
           </Button>
           <Link to={`/moderator/organizations/${id}/edit`}>
-            <Button className="gap-2 bg-[#3972FE] w-full sm:w-auto">
-              <Edit3 className="h-4 w-4" /> Редактировать
+            <Button className="gap-2 bg-[#3972FE]">
+              <Edit3 className="h-4 w-4" />
+              {t("moderator_orgs:organization_view.edit", "Редактировать")}
             </Button>
           </Link>
           <Link to={`/moderator/organizations/${id}/add-journal`}>
-            <Button className="gap-2 bg-[#3972FE] w-full sm:w-auto sm:whitespace-nowrap">
-              <FilePlus2 className="h-4 w-4" /> Добавить журнал
+            <Button className="gap-2 bg-[#3972FE]">
+              <FilePlus2 className="h-4 w-4" />
+              {t("moderator_orgs:organization_view.add_journal", "Добавить журнал")}
             </Button>
           </Link>
         </div>
@@ -200,22 +216,27 @@ export default function OrganizationView() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="border-0 shadow-sm lg:col-span-2">
           <CardContent className="p-5">
-            <h2 className="text-lg font-semibold mb-2">О организации</h2>
+            <h2 className="text-lg font-semibold mb-2">
+              {t("moderator_orgs:organization_view.about_org", "О организации")}
+            </h2>
             <p className="text-gray-700 whitespace-pre-line">
-              {org.description || "Описание не заполнено."}
+              {org.description || t(
+                  "moderator_orgs:organization_view.no_description",
+                  "Описание не заполнено."
+              )}
             </p>
           </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
           <StatCard
-            title="Журналов"
+            title={t("moderator_orgs:organization_view.stat_journals", "Журналов")}
             value={journals.length}
             icon={Building2}
             className="bg-blue-600 text-white"
           />
           <StatCard
-            title="Обновлено"
+            title={t("moderator_orgs:organization_view.stat_updated", "Обновлено")}
             value={updatedAt}
             icon={Calendar}
             className="bg-slate-800 text-white"
@@ -227,15 +248,20 @@ export default function OrganizationView() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="border-0 shadow-sm">
           <CardContent className="p-5 space-y-1">
-            <h3 className="text-lg font-semibold mb-3">Контакты и реквизиты</h3>
+            <h3 className="text-lg font-semibold mb-3">
+              {t(
+                  "moderator_orgs:organization_view.contacts_title",
+                  "Контакты и реквизиты"
+              )}
+            </h3>
             <FieldRow
               icon={Building2}
-              label="Руководитель"
+              label={t("moderator_orgs:organization_view.head", "Руководитель")}
               value={org.head_name}
             />
             <FieldRow
               icon={Phone}
-              label="Телефон"
+              label={t("moderator_orgs:organization_view.phone", "Телефон")}
               value={org.head_phone}
               href={org.head_phone ? `tel:${org.head_phone}` : undefined}
             />
@@ -245,25 +271,36 @@ export default function OrganizationView() {
               value={org.head_email}
               href={org.head_email ? `mailto:${org.head_email}` : undefined}
             />
-            <FieldRow icon={Hash} label="БИН" value={org.bin} />
+            <FieldRow icon={Hash} label={t("moderator_orgs:organization_view.bin", "БИН")} value={org.bin} />
           </CardContent>
         </Card>
 
         <Card className="border-0 shadow-sm">
           <CardContent className="p-5 space-y-1">
-            <h3 className="text-lg font-semibold mb-3">Адрес и веб-ресурсы</h3>
-            <FieldRow icon={MapPin} label="Адрес" value={org.address} />
+            <h3 className="text-lg font-semibold mb-3">
+              {t(
+                  "moderator_orgs:organization_view.address_title",
+                  "Адрес и веб-ресурсы"
+              )}
+            </h3>
+            <FieldRow icon={MapPin} label={t("moderator_orgs:organization_view.address", "Адрес")} value={org.address} />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 rounded-lg">
               <div className="space-y-1">
-                <div className="text-sm text-gray-500">Страна</div>
+                <div className="text-sm text-gray-500">
+                  {t("moderator_orgs:organization_view.country", "Страна")}
+                </div>
                 <div className="font-medium">{org.country || "—"}</div>
               </div>
               <div className="space-y-1">
-                <div className="text-sm text-gray-500">Город</div>
+                <div className="text-sm text-gray-500">
+                  {t("moderator_orgs:organization_view.city", "Город")}
+                </div>
                 <div className="font-medium">{org.city || "—"}</div>
               </div>
               <div className="space-y-1">
-                <div className="text-sm text-gray-500">Индекс</div>
+                <div className="text-sm text-gray-500">
+                  {t("moderator_orgs:organization_view.postal", "Индекс")}
+                </div>
                 <div className="font-medium">
                   {org.postal_code || org.postal_zip || "—"}
                 </div>
@@ -272,7 +309,7 @@ export default function OrganizationView() {
 
             <FieldRow
               icon={Globe}
-              label="Сайт"
+              label={t("moderator_orgs:organization_view.site", "Сайт")}
               value={websiteUrl || org.website}
               href={websiteUrl}
             />
@@ -281,7 +318,9 @@ export default function OrganizationView() {
             <div className="mt-2">
               <div className="inline-flex items-center gap-2 text-gray-500 mb-2">
                 <LinkIcon className="h-4 w-4" />
-                <span className="text-sm">Соцсети</span>
+                <span className="text-sm">
+                  {t("moderator_orgs:organization_view.socials", "Соцсети")}
+                </span>
               </div>
               {socials.length === 0 ? (
                 <div className="text-sm text-gray-700">—</div>
@@ -315,10 +354,13 @@ export default function OrganizationView() {
 
       {/* Journals */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Журналы организации</h2>
+        <h2 className="text-lg font-semibold">
+          {t("moderator_orgs:organization_view.org_journals", "Журналы организации")}
+        </h2>
         <Link to={`/moderator/organizations/${id}/add-journal`}>
           <Button className="gap-2 bg-[#3972FE]">
-            <FilePlus2 className="h-4 w-4" /> Создать журнал
+            <FilePlus2 className="h-4 w-4" />
+            {t("moderator_orgs:organization_view.create_journal", "Создать журнал")}
           </Button>
         </Link>
       </div>
@@ -326,7 +368,10 @@ export default function OrganizationView() {
       {journals.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6 text-gray-600">
-            Пока нет журналов. Добавьте первый.
+            {t(
+                "moderator_orgs:organization_view.no_journals_yet",
+                "Пока нет журналов. Добавьте первый."
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -338,10 +383,10 @@ export default function OrganizationView() {
             const cover = j.cover || j.cover_url;
             const lang = j.language ? String(j.language).toUpperCase() : "—";
             const periodicityMap = {
-              monthly: "Ежемесячно",
-              quarterly: "Ежеквартально",
-              biannual: "2 раза в год",
-              annual: "Ежегодно",
+              monthly: t("moderator_orgs:organization_view.period.monthly", "Ежемесячно"),
+              quarterly: t("moderator_orgs:organization_view.period.quarterly", "Ежеквартально"),
+              biannual: t("moderator_orgs:organization_view.period.biannual", "2 раза в год"),
+              annual: t("moderator_orgs:organization_view.period.annual", "Ежегодно"),
             };
             const period = periodicityMap[j.periodicity] || "—";
             return (
@@ -369,7 +414,8 @@ export default function OrganizationView() {
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold leading-tight line-clamp-2">
-                      {j.title || "Без названия"}
+                      {j.title ||
+                          t("moderator_orgs:organization_view.no_title", "Без названия")}
                     </h3>
                     {j.status && (
                       <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 shrink-0">
@@ -378,12 +424,14 @@ export default function OrganizationView() {
                     )}
                   </div>
                   <div className="text-sm text-gray-600">
-                    Язык: {lang} • Периодичность: {period} • Создан: {created}
+                    {t("moderator_orgs:organization_view.lang", "Язык")}: {lang} •{" "}
+                    {t("moderator_orgs:organization_view.periodicity", "Периодичность")}: {period} •{" "}
+                    {t("moderator_orgs:organization_view.created_at", "Создан")}: {created}
                   </div>
                   <div className="pt-2">
                     <Link to={`/moderator/journals/${j.id}`}>
                       <Button size="sm" className="w-full">
-                        Открыть
+                        {t("moderator_orgs:organization_view.open", "Открыть")}
                       </Button>
                     </Link>
                   </div>
