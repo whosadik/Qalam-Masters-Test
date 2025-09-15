@@ -22,6 +22,7 @@ import { listArticleFiles, updateArticle } from "@/services/articlesService";
 
 import { ACT } from "@/constants/permissions";
 import { makeUsePermissions } from "@/auth/permissions";
+import { useTranslation } from "react-i18next";
 
 /* ===== метки статусов (дополнил всеми из OpenAPI) ===== */
 const STATUS_LABEL = {
@@ -40,6 +41,8 @@ const STATUS_LABEL = {
 const usePermissions = makeUsePermissions(React);
 
 export default function ArticleAdmin() {
+  const { t } = useTranslation("review");
+
   const { jid, aid } = useParams();
   const journalId = Number(jid);
   const articleId = Number(aid);
@@ -67,7 +70,7 @@ export default function ArticleAdmin() {
         const msg =
           e?.response?.data?.detail ||
           e?.message ||
-          "Не удалось загрузить статью";
+            t("article_admin.errors.load_failed", "Не удалось загрузить статью");
         setError(String(msg));
       } finally {
         mounted && setLoading(false);
@@ -84,7 +87,7 @@ export default function ArticleAdmin() {
       setArticle(updated);
     } catch (e) {
       const msg =
-        e?.response?.data?.detail || e?.message || "Не удалось изменить статус";
+        e?.response?.data?.detail || e?.message || t("article_admin.errors.status_change_failed", "Не удалось изменить статус");
       alert(msg);
     }
   };
@@ -94,7 +97,7 @@ export default function ArticleAdmin() {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Загрузка…</span>
+        <span>{t("article_admin.loading", "Загрузка…")}</span>
       </div>
     );
   }
@@ -108,7 +111,7 @@ export default function ArticleAdmin() {
         <Link to={`/moderator/journals/${journalId}/articles`}>
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Назад к списку статей
+            {t("article_admin.back_to_list", "Назад к списку статей")}
           </Button>
         </Link>
       </div>
@@ -129,11 +132,13 @@ export default function ArticleAdmin() {
   return (
     <div className="space-y-6 p-3 sm:p-4 lg:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Статья #{articleId}</h1>
+        <h1 className="text-2xl font-bold">
+          {t("article_admin.title_n", "Статья #{{id}}").replace("{{id}}", articleId)}
+        </h1>
         <Link to={`/moderator/journals/${journalId}/articles`}>
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Назад
+            {t("article_admin.back", "Назад")}
           </Button>
         </Link>
       </div>
@@ -144,10 +149,20 @@ export default function ArticleAdmin() {
             <div>
               <div className="text-lg font-semibold">{article.title}</div>
               <div className="text-sm text-gray-600">
-                Автор: {article.author_email} • Журнал #{article.journal}
+                {t(
+                    "article_admin.meta_line",
+                    "Автор: {{email}} • Журнал #{{jid}}"
+                )
+                    .replace("{{email}}", article.author_email)
+                    .replace("{{jid}}", article.journal)}
               </div>
             </div>
-            <Badge>{STATUS_LABEL[article.status] || article.status}</Badge>
+            <Badge>
+              {t(
+                  `article_admin.status.${article.status}`,
+                  STATUS_LABEL[article.status] || article.status
+              )}
+            </Badge>
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
@@ -158,7 +173,7 @@ export default function ArticleAdmin() {
                 className="gap-1"
                 onClick={() => setStatus("screening")}
               >
-                <Shield className="w-4 h-4" /> Скрининг
+                <Shield className="w-4 h-4" /> {t("article_admin.actions.screening", "Скрининг")}
               </Button>
             )}
 
@@ -171,7 +186,7 @@ export default function ArticleAdmin() {
                   className="gap-1"
                   onClick={() => setStatus("under_review")}
                 >
-                  <Users className="w-4 h-4" /> На рецензию
+                  <Users className="w-4 h-4" /> {t("article_admin.actions.to_review", "На рецензию")}
                 </Button>
 
                 <Button
@@ -180,7 +195,7 @@ export default function ArticleAdmin() {
                   className="gap-1"
                   onClick={() => setStatus("revision_minor")}
                 >
-                  Minor
+                  {t("article_admin.actions.minor", "Minor")}
                 </Button>
 
                 <Button
@@ -189,7 +204,7 @@ export default function ArticleAdmin() {
                   className="gap-1"
                   onClick={() => setStatus("revision_major")}
                 >
-                  Major
+                  {t("article_admin.actions.major", "Major")}
                 </Button>
 
                 <Button
@@ -198,7 +213,7 @@ export default function ArticleAdmin() {
                   className="gap-1"
                   onClick={() => setStatus("accepted")}
                 >
-                  <CheckCircle2 className="w-4 h-4" /> Принять
+                  <CheckCircle2 className="w-4 h-4" /> {t("article_admin.actions.accept", "Принять")}
                 </Button>
 
                 <Button
@@ -207,7 +222,7 @@ export default function ArticleAdmin() {
                   className="gap-1"
                   onClick={() => setStatus("rejected")}
                 >
-                  <XCircle className="w-4 h-4" /> Отклонить
+                  <XCircle className="w-4 h-4" /> {t("article_admin.actions.reject", "Отклонить")}
                 </Button>
               </>
             )}
@@ -220,7 +235,7 @@ export default function ArticleAdmin() {
                 className="gap-1"
                 onClick={() => setStatus("published")}
               >
-                <Send className="w-4 h-4" /> Опубликовать
+                <Send className="w-4 h-4" /> {t("article_admin.actions.publish", "Опубликовать")}
               </Button>
             )}
           </div>
@@ -229,9 +244,9 @@ export default function ArticleAdmin() {
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-4">
-          <div className="font-semibold mb-2">Файлы</div>
+          <div className="font-semibold mb-2">{t("article_admin.files.title", "Файлы")}</div>
           {files.length === 0 ? (
-            <div className="text-gray-500">Файлы не загружены.</div>
+            <div className="text-gray-500">{t("article_admin.files.empty", "Файлы не загружены.")}</div>
           ) : (
             <ul className="list-disc pl-5">
               {files.map((f) => (
@@ -243,7 +258,7 @@ export default function ArticleAdmin() {
                     rel="noreferrer"
                     className="text-blue-600 underline"
                   >
-                    скачать
+                    {t("article_admin.files.download", "скачать")}
                   </a>
                 </li>
               ))}

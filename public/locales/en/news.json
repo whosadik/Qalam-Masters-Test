@@ -1,0 +1,36 @@
+{
+  "actions": {
+    "more": "Подробнее"
+  },
+  "badges": {
+    "new": "New"
+  },
+  "controls": {
+    "all_years": "Все годы",
+    "per_page_option_one": "{{count}} на странице",
+    "per_page_option_other": "{{count}} на странице",
+    "per_page_title": "На странице",
+    "search_aria": "Поиск новостей",
+    "search_placeholder": "Поиск по заголовку и тегам…",
+    "year_title": "Год"
+  },
+  "empty": {
+    "no_results": "Ничего не найдено по текущим фильтрам."
+  },
+  "labels": {
+    "link_unavailable": "Ссылка недоступна"
+  },
+  "page": {
+    "subtitle": "Обновления платформы, добавление журналов, встречи, меморандумы.",
+    "title": "Новости"
+  },
+  "pagination": {
+    "next": "Вперёд →",
+    "prev": "← Назад",
+    "summary": "Найдено: {{total}} • Стр. {{page}} из {{totalPages}}"
+  },
+  "timeline": {
+    "subtitle": "Сжатая хронология ключевых обновлений и событий.",
+    "title": "Лента событий"
+  }
+}

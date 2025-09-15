@@ -8,8 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Navbar from "../components/layout/Navbar";
+import { useTranslation } from "react-i18next";
 
 export default function AboutJournal() {
+  const { t } = useTranslation(["journal_public"]);
+
   const publicationTopics = [
     "Естественные и технические науки",
     "Гуманитарные и общественные дисциплины",
@@ -19,14 +22,23 @@ export default function AboutJournal() {
   ];
 
   const targetAudience =
-    "Редакторы научных журналов, авторы и исследователи, рецензенты и научные консультанты, администраторы академических платформ, учебные и научные учреждения";
+      t(
+        "journal_public:about.audience.text",
+        "Редакторы научных журналов, авторы и исследователи, рецензенты и научные консультанты, администраторы академических платформ, учебные и научные учреждения"
+);
 
   const journalInfo = {
-    title: 'Веб-платформа "Qalam Masters"',
+    title: t("journal_public:about.title", 'Веб-платформа "Qalam Masters"'),
     description:
-      "Платформа «Qalam Masters» — это цифровое решение для автоматизации всех процессов научного журнала: от подачи статьи и рецензирования до публикации и аналитики. Она объединяет авторов, рецензентов и редакторов в едином пространстве, обеспечивая удобство, прозрачность и высокие стандарты научной коммуникации.",
+        t(
+          "journal_public:about.description",
+          "Платформа «Qalam Masters» — это цифровое решение для автоматизации всех процессов научного журнала: от подачи статьи и рецензирования до публикации и аналитики. Она объединяет авторов, рецензентов и редакторов в едином пространстве, обеспечивая удобство, прозрачность и высокие стандарты научной коммуникации."
+),
     mission:
-      "Содействовать развитию научных исследований и академического диалога через современные цифровые инструменты, упрощая взаимодействие между участниками публикационного процесса и интегрируя науку с практикой.",
+        t(
+          "journal_public:about.mission.text",
+          "Содействовать развитию научных исследований и академического диалога через современные цифровые инструменты, упрощая взаимодействие между участниками публикационного процесса и интегрируя науку с практикой."
+),
   };
 
   return (
@@ -36,7 +48,7 @@ export default function AboutJournal() {
         href="#about-main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-white dark:focus:bg-slate-800 focus:px-3 focus:py-2 focus:shadow"
       >
-        Перейти к основному содержимому
+        {t("journal_public:about.a11y.skip_to_content", "Перейти к основному содержимому")}
       </a>
 
       {/* Header */}
@@ -45,11 +57,11 @@ export default function AboutJournal() {
       {/* Hero */}
       <section
         className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 py-14 sm:py-16 lg:py-20"
-        aria-label="О журнале — вступительный блок"
+        aria-label={t("journal_public:about.hero.aria", "О журнале — вступительный блок")}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Badge className="mb-4 sm:mb-6 bg-blue-100 text-blue-800 dark:bg-slate-700 dark:text-slate-100">
-            О журнале
+            {t("journal_public:about.badge", "О журнале")}
           </Badge>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
             {journalInfo.title}
@@ -64,7 +76,7 @@ export default function AboutJournal() {
         {/* Mission / Audience / Ethics */}
         <section
           className="py-14 sm:py-16 lg:py-20"
-          aria-label="Миссия, аудитория и рецензирование"
+          aria-label={t("journal_public:about.sections.overview.aria", "Миссия, аудитория и рецензирование")}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid gap-6 md:gap-8 lg:gap-10 lg:grid-cols-3">
@@ -74,7 +86,7 @@ export default function AboutJournal() {
                     <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
                   </div>
                   <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">
-                    Миссия платформы
+                    {t("journal_public:about.mission.title", "Миссия платформы")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -90,7 +102,7 @@ export default function AboutJournal() {
                     <Users className="h-6 w-6 text-green-600 dark:text-green-300" />
                   </div>
                   <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">
-                    Целевая аудитория
+                    {t("journal_public:about.audience.title", "Целевая аудитория")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -106,12 +118,15 @@ export default function AboutJournal() {
                     <Shield className="h-6 w-6 text-purple-600 dark:text-purple-300" />
                   </div>
                   <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">
-                    Рецензирование и этика
+                    {t("journal_public:about.ethics.title", "Рецензирование и этика")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-gray-600 dark:text-slate-300 leading-relaxed">
-                 Платформа поддерживает двустороннее слепое рецензирование, автоматизируя процесс назначения рецензентов и отслеживания статуса статей. Мы обеспечиваем соблюдение международных стандартов публикационной этики (COPE) и прозрачность всех этапов.
+                    {t(
+                        "journal_public:about.ethics.text",
+                        "Платформа поддерживает двустороннее слепое рецензирование, автоматизируя процесс назначения рецензентов и отслеживания статуса статей. Мы обеспечиваем соблюдение международных стандартов публикационной этики (COPE) и прозрачность всех этапов."
+                    )}
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -123,19 +138,21 @@ export default function AboutJournal() {
         <section
           id="topics"
           className="py-14 sm:py-16 lg:py-20 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800"
-          aria-label="Тематика публикаций"
+          aria-label={t("journal_public:about.topics.aria", "Тематика публикаций")}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center space-y-3 sm:space-y-4 mb-12 sm:mb-16">
               <Badge className="bg-green-100 text-green-800 dark:bg-slate-700 dark:text-slate-100">
-                Тематика публикаций
+                {t("journal_public:about.topics.badge", "Тематика публикаций")}
               </Badge>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-                Направления исследований
+                {t("journal_public:about.topics.title", "Направления исследований")}
               </h2>
               <p className="text-base sm:text-lg text-gray-600 dark:text-slate-300 max-w-3xl mx-auto">
-                Мы принимаем к публикации оригинальные научные работы по
-                широкому спектру дисциплин
+                {t(
+                    "journal_public:about.topics.subtitle",
+                    "Мы принимаем к публикации оригинальные научные работы по широкому спектру дисциплин"
+                )}
               </p>
             </div>
 
@@ -164,16 +181,19 @@ export default function AboutJournal() {
         {/* Additional Info */}
         <section
           className="py-14 sm:py-16 lg:py-20 bg-gray-50 dark:bg-slate-900"
-          aria-label="История и качество"
+          aria-label={t("journal_public:about.extra.aria", "История и качество")}
         >
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="space-y-6 sm:space-y-8">
               <div className="text-center">
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                  История и развитие
+                  {t("journal_public:about.history.title", "История и развитие")}
                 </h2>
                 <p className="text-gray-600 dark:text-slate-300 leading-relaxed">
-                  Платформа была создана как технологическая основа для современных научных журналов, стремящихся к качеству, эффективности и международному признанию. Мы поддерживаем высокие стандарты и способствуем развитию научного сообщества.
+                  {t(
+                      "journal_public:about.history.text",
+                      "Платформа была создана как технологическая основа для современных научных журналов, стремящихся к качеству, эффективности и международному признанию. Мы поддерживаем высокие стандарты и способствуем развитию научного сообщества."
+                  )}
                 </p>
               </div>
 
@@ -181,17 +201,15 @@ export default function AboutJournal() {
                 <Card className="border-0 shadow-lg dark:bg-slate-800">
                   <CardHeader>
                     <CardTitle className="text-gray-900 dark:text-white">
-                      Наши принципы
+                      {t("journal_public:about.principles.title", "Наши принципы")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 text-gray-600 dark:text-slate-300">
-                      <li>
-                        • Открытость и прозрачность процесса рецензирования
-                      </li>
-                      <li>• Соблюдение этических стандартов публикации</li>
-                      <li>• Поддержка молодых исследователей</li>
-                      <li>• Междисциплинарный подход к науке</li>
+                      <li>{t("journal_public:about.principles.items1", "• Открытость и прозрачность процесса рецензирования")}</li>
+                      <li>{t("journal_public:about.principles.items2", "• Соблюдение этических стандартов публикации")}</li>
+                      <li>{t("journal_public:about.principles.items3", "• Поддержка молодых исследователей")}</li>
+                      <li>{t("journal_public:about.principles.items4", "• Междисциплинарный подход к науке")}</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -199,15 +217,15 @@ export default function AboutJournal() {
                 <Card className="border-0 shadow-lg dark:bg-slate-800">
                   <CardHeader>
                     <CardTitle className="text-gray-900 dark:text-white">
-                      Качество публикаций
+                      {t("journal_public:about.quality.title", "Качество публикаций")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 text-gray-600 dark:text-slate-300">
-                      <li>• Строгий отбор рукописей</li>
-                      <li>• Квалифицированные рецензенты</li>
-                      <li>• Соответствие международным стандартам</li>
-                      <li>• Регулярное повышение качества</li>
+                      <li>{t("journal_public:about.quality.items1", "• Строгий отбор рукописей")}</li>
+                      <li>{t("journal_public:about.quality.items2", "• Квалифицированные рецензенты")}</li>
+                      <li>{t("journal_public:about.quality.items3", "• Соответствие международным стандартам")}</li>
+                      <li>{t("journal_public:about.quality.items4", "• Регулярное повышение качества")}</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -217,7 +235,7 @@ export default function AboutJournal() {
             {/* Back to top (мобилки) */}
             <div className="mt-10 text-center">
               <a href="#" className="text-sm text-blue-600 hover:underline">
-                Вернуться наверх
+                {t("journal_public:about.back_to_top", "Вернуться наверх")}
               </a>
             </div>
           </div>

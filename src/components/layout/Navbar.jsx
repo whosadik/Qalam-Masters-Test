@@ -9,9 +9,40 @@ import { User as UserIcon, Compass, ArrowRight } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { listMyJournalMemberships } from "@/services/journalMembershipsService";
 
+import { useTranslation } from "react-i18next";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+function LanguageSwitcher({ className = "" }) {
+  const { i18n } = useTranslation();
+  const value = i18n.resolvedLanguage || i18n.language || "ru";
+
+  return (
+      <Select
+          value={value}
+          onValueChange={(lng) => {
+            i18n.changeLanguage(lng);
+            // детектор сам кэширует в localStorage (если настроен), но можно продублировать
+            try { localStorage.setItem("i18nextLng", lng); } catch {}
+          }}
+      >
+        <SelectTrigger className={`w-[110px] ${className}`}>
+          {/* показываем текущий код языка */}
+          <SelectValue placeholder={value.toUpperCase()} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="kk">Қаз</SelectItem>
+          <SelectItem value="ru">Рус</SelectItem>
+          <SelectItem value="en">Eng</SelectItem>
+        </SelectContent>
+      </Select>
+  );
+}
+
+
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, isAuthenticated, isOrgAdmin, logout, booted } = useAuth();
+  const { t, i18n } = useTranslation();
 
   // Mobile sheet open/close
   const [open, setOpen] = useState(false);
@@ -154,7 +185,7 @@ export default function Navbar() {
       return { to: "/proofreafer-dashboard", label: "Корректор" };
     if (r.reviewer) return { to: "/reviewer-dashboard", label: "Рецензент" };
     // отдельная кнопка модератора ниже; основной — личный кабинет автора
-    return { to: "/author-dashboard", label: "Личный кабинет" };
+    return { to: "/author-dashboard", label: t("navbar:dashboard") };
   }
 
   const primary = useMemo(
@@ -202,7 +233,7 @@ export default function Navbar() {
                     : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
-                Главная
+                {t("navbar:about")}
               </NavLink>
               <NavLink
                 to="/author-info"
@@ -212,7 +243,7 @@ export default function Navbar() {
                     : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
-                Для авторов
+                {t("navbar:author_info")}
               </NavLink>
               <NavLink
                 to="/for-journals"
@@ -222,7 +253,7 @@ export default function Navbar() {
                     : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
-                Для журналов
+                {t("navbar:journals")}
               </NavLink>
               <NavLink
                 to="/contacts"
@@ -232,7 +263,7 @@ export default function Navbar() {
                     : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
-                Контакты
+                {t("navbar:contacts")}
               </NavLink>
               <NavLink
                 to="/news"
@@ -242,20 +273,21 @@ export default function Navbar() {
                     : "text-gray-600 hover:text-[#3972FE]"
                 }
               >
-                Новости
+                {t("navbar:news")}
               </NavLink>
             </nav>
 
             {/* Правый блок (десктоп) */}
             <div className="hidden md:flex items-center gap-3">
+              <LanguageSwitcher />
               {!isAuthenticated ? (
                 <>
                   <Link to="/login">
-                    <Button variant="outline">Войти</Button>
+                    <Button variant="outline">{t("navbar:login")}</Button>
                   </Link>
                   <Link to="/register">
                     <Button className="bg-[#3972FE] hover:bg-[#2f62df] text-white">
-                      Зарегистрироваться
+                      {t("navbar:register")}
                     </Button>
                   </Link>
                 </>
@@ -296,6 +328,8 @@ export default function Navbar() {
 
             {/* Правый блок (мобилка) */}
             <div className="md:hidden flex items-center gap-1">
+              <LanguageSwitcher className="h-8 w-[88px]" />
+
               <button
                 onClick={() => setOpen(true)}
                 className="p-2 rounded-lg hover:bg-gray-100"
@@ -309,11 +343,11 @@ export default function Navbar() {
                 <>
                   <Link to="/login">
                     <Button variant="outline" size="sm">
-                      Войти
+                      {t("navbar:login")}
                     </Button>
                   </Link>
                   <Link to="/register">
-                    <Button size="sm">Регистрация</Button>
+                    <Button size="sm">{t("navbar:register")}</Button>
                   </Link>
                 </>
               ) : (
@@ -415,28 +449,28 @@ export default function Navbar() {
                 onClick={closeMenu}
                 className="py-2 text-base text-gray-700 hover:text-gray-900"
               >
-                О платформе
+                {t("navbar:about")}
               </Link>
               <Link
                 to="/editorial-board"
                 onClick={closeMenu}
                 className="py-2 text-base text-gray-700 hover:text-gray-900"
               >
-                Редколлегия
+                {t("navbar:editorial_board")}
               </Link>
               <Link
                 to="/author-info"
                 onClick={closeMenu}
                 className="py-2 text-base text-gray-700 hover:text-gray-900"
               >
-                Информация для авторов
+                {t("navbar:author_info")}
               </Link>
               <Link
                 to="/publication-terms"
                 onClick={closeMenu}
                 className="py-2 text-base text-gray-700 hover:text-gray-900"
               >
-                Условия публикации
+                {t("navbar:publication_terms")}
               </Link>
             </nav>
           ) : (
@@ -470,7 +504,7 @@ export default function Navbar() {
                 onClick={closeMenu}
                 className="py-2 text-base text-gray-700 hover:text-gray-900"
               >
-                Архив
+                {t("navbar:archive")}
               </Link>
             </nav>
           )}

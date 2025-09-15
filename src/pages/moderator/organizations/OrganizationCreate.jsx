@@ -9,9 +9,11 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function OrganizationCreate() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
   const [serverFieldErrors, setServerFieldErrors] = useState({});
@@ -31,7 +33,10 @@ export default function OrganizationCreate() {
       navigate(`/moderator/organizations/${org.id}`, { replace: true });
     } catch (e) {
       setServerError(
-        e.displayMessage || e.message || "Не удалось создать организацию"
+        e.displayMessage || e.message ||  t(
+              "moderator_orgs:organization_create.create_failed",
+              "Не удалось создать организацию"
+          )
       );
       const data = e?.response?.data;
       if (data && typeof data === "object") {
@@ -63,7 +68,7 @@ export default function OrganizationCreate() {
               className="pl-2"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Назад
+              {t("moderator_orgs:organization_create.back", "Назад")}
             </Button>
           </div>
         </div>

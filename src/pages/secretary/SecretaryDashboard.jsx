@@ -41,6 +41,7 @@ import {
   uploadArticleFile,
   deleteArticleFile,
 } from "@/services/articlesService";
+import { useTranslation } from "react-i18next";
 
 /* ---------- helpers ---------- */
 const STATUS_LABEL = {
@@ -69,18 +70,37 @@ const STATUS_TW = {
   in_production: "bg-cyan-100 text-cyan-700",
   published: "bg-green-100 text-green-700",
 };
-const StatusPill = ({ status }) => (
-  <span
-    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_TW[status] || "bg-slate-100 text-slate-700"}`}
-  >
-    {STATUS_LABEL[status] || status}
-  </span>
-);
+const StatusPill = ({ status }) => {
+  const { t } = useTranslation();
+
+  const label =
+      {
+        draft: t("dashboards:secretary_dashboard.status.draft", "Черновик"),
+        submitted: t("dashboards:secretary_dashboard.status.submitted", "Отправлена"),
+        screening: t("dashboards:secretary_dashboard.status.screening", "Скрининг"),
+        under_review: t("dashboards:secretary_dashboard.status.under_review", "На рецензии"),
+        revision_minor: t("dashboards:secretary_dashboard.status.revision_minor", "Minor revision"),
+        revision_major: t("dashboards:secretary_dashboard.status.revision_major", "Major revision"),
+        accepted: t("dashboards:secretary_dashboard.status.accepted", "Принята"),
+        rejected: t("dashboards:secretary_dashboard.status.rejected", "Отклонена"),
+        in_production: t("dashboards:secretary_dashboard.status.in_production", "В производстве"),
+        published: t("dashboards:secretary_dashboard.status.published", "Опубликована"),
+      }[status] || status;
+
+  return (
+      <span
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_TW[status] || "bg-slate-100 text-slate-700"}`}
+      >
+      {label}
+    </span>
+  );
+};
 
 /* ============================================================
    FILES
 ============================================================ */
 function ArticleFiles({ articleId }) {
+  const { t } = useTranslation();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
@@ -103,7 +123,9 @@ function ArticleFiles({ articleId }) {
 
   async function onUpload() {
     const file = fileRef.current?.files?.[0];
-    if (!file) return alert("Выберите файл");
+    if (!file) return alert(
+        t("dashboards:secretary_dashboard.files.pick_file", "Выберите файл")
+    );
     setUploadBusy(true);
     try {
       await uploadArticleFile(articleId, file, type);
@@ -111,20 +133,24 @@ function ArticleFiles({ articleId }) {
       await load();
     } catch (e) {
       console.error("upload failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось загрузить файл");
+      alert(e?.response?.data?.detail ||
+          t("dashboards:secretary_dashboard.files.upload_failed", "Не удалось загрузить файл")
+      );
     } finally {
       setUploadBusy(false);
     }
   }
 
   async function onDelete(fileId) {
-    if (!confirm("Удалить файл?")) return;
+    if (!confirm(t("dashboards:secretary_dashboard.files.confirm_delete", "Удалить файл?"))) return;
     try {
       await deleteArticleFile(articleId, fileId);
       await load();
     } catch (e) {
       console.error("delete failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось удалить файл");
+      alert(e?.response?.data?.detail ||
+          t("dashboards:secretary_dashboard.files.delete_failed", "Не удалось удалить файл")
+      );
     }
   }
 
@@ -136,12 +162,14 @@ function ArticleFiles({ articleId }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <div className="font-medium text-slate-800">Файлы</div>
+        <div className="font-medium text-slate-800">
+          {t("dashboards:secretary_dashboard.files.title", "Файлы")}
+        </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={load}
-          title="Обновить файлы"
+          title={t("dashboards:secretary_dashboard.files.refresh_title", "Обновить файлы")}
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
@@ -150,14 +178,16 @@ function ArticleFiles({ articleId }) {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <Select value={type} onValueChange={setType}>
           <SelectTrigger className="w-full sm:w-56 bg-white">
-            <SelectValue placeholder="Тип файла" />
+            <SelectValue placeholder={t("dashboards:secretary_dashboard.files.type_placeholder", "Тип файла")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="zgs">Допуск ЗГС</SelectItem>
-            <SelectItem value="antiplag_report">
-              Отчет об оригинальности
+            <SelectItem value="zgs">
+              {t("dashboards:secretary_dashboard.files.type.zgs", "Допуск ЗГС")}
             </SelectItem>
-            <SelectItem value="supplement">Дополнительно</SelectItem>
+            <SelectItem value="antiplag_report">
+              {t("dashboards:secretary_dashboard.files.type.antiplag_report", "Отчет об оригинальности")}
+            </SelectItem>
+            <SelectItem value="supplement">{t("dashboards:secretary_dashboard.files.type.supplement", "Дополнительно")}</SelectItem>
           </SelectContent>
         </Select>
         <Input type="file" ref={fileRef} className="flex-1 bg-white" />
@@ -166,7 +196,8 @@ function ArticleFiles({ articleId }) {
       <div className="space-y-1.5">
         {loading ? (
           <div className="text-sm text-slate-500 flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Загрузка файлов…
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t("dashboards:secretary_dashboard.files.loading", "Загрузка файлов…")}
           </div>
         ) : files.length ? (
           files.map((f) => (
@@ -179,7 +210,9 @@ function ArticleFiles({ articleId }) {
                   {f.type} • {f.file?.split("/").pop() || "file"}
                 </div>
                 <div className="text-xs text-slate-500">
-                  Загружено: {fmt(f.uploaded_at)}
+                  {t("dashboards:secretary_dashboard.files.uploaded_at", "Загружено: {{date}}", {
+                    date: fmt(f.uploaded_at),
+                  })}
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -190,14 +223,14 @@ function ArticleFiles({ articleId }) {
                     rel="noreferrer"
                     className="text-sm underline"
                   >
-                    Открыть
+                    {t("dashboards:secretary_dashboard.files.open", "Открыть")}
                   </a>
                 ) : null}
                 <Button
                   size="icon"
                   variant="outline"
                   onClick={() => onDelete(f.id)}
-                  title="Удалить"
+                  title={t("dashboards:secretary_dashboard.files.delete", "Удалить")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -205,19 +238,21 @@ function ArticleFiles({ articleId }) {
             </div>
           ))
         ) : (
-          <div className="text-sm text-slate-500">Файлов нет.</div>
+          <div className="text-sm text-slate-500">
+            {t("dashboards:secretary_dashboard.files.empty", "Файлов нет.")}
+          </div>
         )}
       </div>
       <Button onClick={onUpload} disabled={uploadBusy} className="sm:w-44">
         {uploadBusy ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Загрузка…
+            {t("dashboards:secretary_dashboard.files.uploading", "Загрузка…")}
           </>
         ) : (
           <>
             <Upload className="h-4 w-4 mr-2" />
-            Загрузить
+            {t("dashboards:secretary_dashboard.files.upload", "Загрузить")}
           </>
         )}
       </Button>
@@ -229,6 +264,7 @@ function ArticleFiles({ articleId }) {
    SCREENING
 ============================================================ */
 function InlineScreeningForm({ articleId, onDone }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
   const [scopeOk, setScopeOk] = useState(false);
   const [formatOk, setFormatOk] = useState(false);
@@ -253,7 +289,7 @@ function InlineScreeningForm({ articleId, onDone }) {
     } catch (e) {
       console.error(e?.response?.data || e);
       alert(
-        e?.response?.data?.detail || "Не удалось сохранить результаты скрининга"
+        e?.response?.data?.detail || t("dashboards:secretary_dashboard.screening.save_failed", "Не удалось сохранить результаты скрининга")
       );
     } finally {
       setBusy(false);
@@ -266,7 +302,9 @@ function InlineScreeningForm({ articleId, onDone }) {
         className="w-full flex items-center justify-between px-3 py-2 text-left"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="font-medium text-slate-800">Скрининг</span>
+        <span className="font-medium text-slate-800">
+          {t("dashboards:secretary_dashboard.screening.title", "Скрининг")}
+        </span>
         {open ? (
           <ChevronUp className="h-4 w-4" />
         ) : (
@@ -282,7 +320,7 @@ function InlineScreeningForm({ articleId, onDone }) {
                 checked={scopeOk}
                 onChange={(e) => setScopeOk(e.target.checked)}
               />{" "}
-              Соответствует тематике
+              {t("dashboards:secretary_dashboard.screening.scope_ok", "Соответствует тематике")}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -290,7 +328,7 @@ function InlineScreeningForm({ articleId, onDone }) {
                 checked={formatOk}
                 onChange={(e) => setFormatOk(e.target.checked)}
               />{" "}
-              Оформление корректно
+              {t("dashboards:secretary_dashboard.screening.format_ok", "Оформление корректно")}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -298,7 +336,7 @@ function InlineScreeningForm({ articleId, onDone }) {
                 checked={zgsOk}
                 onChange={(e) => setZgsOk(e.target.checked)}
               />{" "}
-              Допуск ЗГС получен
+              {t("dashboards:secretary_dashboard.screening.zgs_ok", "Допуск ЗГС получен")}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -306,14 +344,14 @@ function InlineScreeningForm({ articleId, onDone }) {
                 checked={antiplagOk}
                 onChange={(e) => setAntiplagOk(e.target.checked)}
               />{" "}
-              Антиплагиат пройден
+              {t("dashboards:secretary_dashboard.screening.antiplag_ok", "Антиплагиат пройден")}
             </label>
           </div>
 
           <textarea
             className="w-full border rounded-md p-2 text-sm"
             rows={3}
-            placeholder="Заметки/комментарии (необязательно)"
+            placeholder={t("dashboards:secretary_dashboard.screening.notes_placeholder", "Заметки/комментарии (необязательно)")}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -323,10 +361,10 @@ function InlineScreeningForm({ articleId, onDone }) {
               disabled={busy}
               onClick={() => submit("under_review")}
               className="bg-blue-600 hover:bg-blue-700"
-              title="Все ОК → на рецензию"
+              title={t("dashboards:secretary_dashboard.screening.finish_to_review_title", "Все ОК → на рецензию")}
             >
               {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-              Завершить → На рецензию
+              {t("dashboards:secretary_dashboard.screening.finish_to_review", "Завершить → На рецензию")}
             </Button>
           </div>
         </div>
@@ -339,6 +377,8 @@ function InlineScreeningForm({ articleId, onDone }) {
    MAIN
 ============================================================ */
 export default function SecretaryDashboard() {
+  const { t } = useTranslation();
+
   // layout / UI state
   const [dense, setDense] = useState(
     () => (localStorage.getItem("sec_dense") ?? "1") === "1"
@@ -441,13 +481,17 @@ export default function SecretaryDashboard() {
             const { data: j } = await http.get(API.JOURNAL_ID(jid));
             fetched.push({
               id: Number(j.id),
-              title: j.title || `Журнал #${jid}`,
+              title: j.title || t("dashboards:secretary_dashboard.journal.fallback_title", "Журнал #{{id}}", {
+                id: jid,
+              }),
               organization: j.organization,
             });
           } catch {
             fetched.push({
               id: Number(jid),
-              title: `Журнал #${jid}`,
+              title: t("dashboards:secretary_dashboard.journal.fallback_title", "Журнал #{{id}}", {
+                id: jid,
+              }),
               organization: null,
             });
           }
@@ -487,13 +531,15 @@ export default function SecretaryDashboard() {
   async function moveToScreening(articleId) {
     await updateArticleStatus(articleId, "screening").catch((e) => {
       console.error("submitted → screening failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось перевести на скрининг");
+      alert(e?.response?.data?.detail ||
+          t("dashboards:secretary_dashboard.actions.move_to_screening_failed", "Не удалось перевести на скрининг"));
     });
   }
   async function returnToDraft(articleId) {
     await updateArticleStatus(articleId, "draft").catch((e) => {
       console.error("return to draft failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось вернуть в черновик");
+      alert(e?.response?.data?.detail ||
+          t("dashboards:secretary_dashboard.actions.return_to_draft_failed", "Не удалось вернуть в черновик"));
     });
   }
   async function bulkMoveToScreening(ids) {
@@ -564,14 +610,14 @@ export default function SecretaryDashboard() {
   if (membershipsLoading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Проверяем права секретаря…
+        <Loader2 className="h-4 w-4 animate-spin" /> {t("dashboards:secretary_dashboard.loading_rights", "Проверяем права секретаря…")}
       </div>
     );
   }
   if (!journals.length) {
     return (
       <div className="p-6">
-        Нет прав секретаря — доступных журналов не найдено.
+        {t("dashboards:secretary_dashboard.no_rights", "Нет прав секретаря — доступных журналов не найдено.")}
       </div>
     );
   }
@@ -584,10 +630,14 @@ export default function SecretaryDashboard() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Дашборд секретаря
+                {t("dashboards:secretary_dashboard.title", "Дашборд секретаря")}
               </h1>
               <div className="mt-1 text-xs sm:text-sm text-slate-500">
-                {lastUpdated ? `Обновлено: ${fmt(lastUpdated)}` : "—"}
+                {lastUpdated
+                    ? t("dashboards:secretary_dashboard.updated_at", "Обновлено: {{date}}", {
+                      date: fmt(lastUpdated),
+                    })
+                    : "—"}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -596,7 +646,7 @@ export default function SecretaryDashboard() {
                 onValueChange={(v) => setJournalId(Number(v))}
               >
                 <SelectTrigger className="w-64 bg-white">
-                  <SelectValue placeholder="Выберите журнал" />
+                  <SelectValue placeholder={t("dashboards:secretary_dashboard.pick_journal", "Выберите журнал")} />
                 </SelectTrigger>
                 <SelectContent>
                   {journals.map((j) => (
@@ -609,13 +659,21 @@ export default function SecretaryDashboard() {
 
               <Select value={ordering} onValueChange={setOrdering}>
                 <SelectTrigger className="w-44 bg-white">
-                  <SelectValue placeholder="Сортировка" />
+                  <SelectValue placeholder={t("dashboards:secretary_dashboard.sort.placeholder", "Сортировка")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="-created_at">Новее → старее</SelectItem>
-                  <SelectItem value="created_at">Старее → новее</SelectItem>
-                  <SelectItem value="title">Заголовок A→Z</SelectItem>
-                  <SelectItem value="-title">Заголовок Z→A</SelectItem>
+                  <SelectItem value="-created_at">
+                    {t("dashboards:secretary_dashboard.sort.new_old", "Новее → старее")}
+                  </SelectItem>
+                  <SelectItem value="created_at">
+                    {t("dashboards:secretary_dashboard.sort.old_new", "Старее → новее")}
+                  </SelectItem>
+                  <SelectItem value="title">
+                    {t("dashboards:secretary_dashboard.sort.title_az", "Заголовок A→Z")}
+                  </SelectItem>
+                  <SelectItem value="-title">
+                    {t("dashboards:secretary_dashboard.sort.title_za", "Заголовок Z→A")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -624,12 +682,12 @@ export default function SecretaryDashboard() {
                 onValueChange={(v) => setPageSize(Number(v))}
               >
                 <SelectTrigger className="w-28 bg-white">
-                  <SelectValue placeholder="Порог" />
+                  <SelectValue placeholder={t("dashboards:secretary_dashboard.page_size.placeholder", "Порог")} />
                 </SelectTrigger>
                 <SelectContent>
                   {[10, 20, 50, 100].map((n) => (
                     <SelectItem key={n} value={String(n)}>
-                      {n}/стр
+                      {t("dashboards:secretary_dashboard.page_size.option", "{{n}}/стр", { n })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -640,7 +698,7 @@ export default function SecretaryDashboard() {
                 onClick={() => journalId && loadArticlesForJournal(journalId)}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Обновить
+                {t("dashboards:secretary_dashboard.refresh", "Обновить")}
               </Button>
 
               <Button
@@ -652,20 +710,25 @@ export default function SecretaryDashboard() {
                   })
                 }
               >
-                {dense ? "Плотно" : "Обычно"}
+                {dense
+                    ? t("dashboards:secretary_dashboard.density.compact", "Плотно")
+                    : t("dashboards:secretary_dashboard.density.normal", "Обычно")}
               </Button>
 
               <Button
                 variant="outline"
                 onClick={() => setShowRight((v) => !v)}
-                title={showRight ? "Скрыть панель" : "Показать панель"}
+                title={showRight
+                    ? t("dashboards:secretary_dashboard.panel.hide", "Скрыть панель")
+                    : t("dashboards:secretary_dashboard.panel.show", "Показать панель")
+              }
               >
                 {showRight ? (
                   <PanelRightClose className="h-4 w-4 mr-2" />
                 ) : (
                   <PanelRightOpen className="h-4 w-4 mr-2" />
                 )}
-                Панель
+                {t("dashboards:secretary_dashboard.panel.title", "Панель")}
               </Button>
             </div>
           </div>
@@ -675,7 +738,10 @@ export default function SecretaryDashboard() {
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <Input
                 id="sec_global_search"
-                placeholder="Поиск по заголовку/автору…  (нажмите / чтобы перейти к поиску)"
+                placeholder={t(
+                    "dashboards:secretary_dashboard.search.placeholder",
+                    "Поиск по заголовку/автору…  (нажмите / чтобы перейти к поиску)"
+                )}
                 className="pl-9 bg-white"
                 value={globalQuery}
                 onChange={(e) => onGlobalSearch(e.target.value)}
@@ -684,11 +750,14 @@ export default function SecretaryDashboard() {
 
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              Быстрые фильтры
+              {t("dashboards:secretary_dashboard.quick_filters", "Быстрые фильтры")}
             </Button>
             <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 px-2">
-              <KeyboardIcon className="h-3.5 w-3.5" /> / — поиск, R — обновить,
-              O — открыть, S — на скрининг
+              <KeyboardIcon className="h-3.5 w-3.5" />
+              {t(
+                  "dashboards:secretary_dashboard.hotkeys_hint",
+                  "/ — поиск, R — обновить, O — открыть, S — на скрининг"
+              )}
             </span>
           </div>
         </div>
@@ -699,7 +768,7 @@ export default function SecretaryDashboard() {
         {/* LEFT: queues */}
         <aside className="rounded-xl border border-slate-200 bg-white p-2 sticky top-[68px] h-fit">
           <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-slate-500">
-            Очереди
+            {t("dashboards:secretary_dashboard.queues.title", "Очереди")}
           </div>
           <nav className="p-1 space-y-1">
             <button
@@ -709,14 +778,14 @@ export default function SecretaryDashboard() {
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  Подачи
+                  {t("dashboards:secretary_dashboard.queues.submitted.title", "Подачи")}
                 </span>
                 <span className="text-xs rounded-full bg-blue-100 text-blue-700 px-2 py-0.5">
                   {submitted.length}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Новые подачи авторов
+                {t("dashboards:secretary_dashboard.queues.submitted.desc", "Новые подачи авторов")}
               </div>
             </button>
 
@@ -727,20 +796,22 @@ export default function SecretaryDashboard() {
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4" />
-                  Скрининг
+                  {t("dashboards:secretary_dashboard.queues.screening.title", "Скрининг")}
                 </span>
                 <span className="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
                   {screening.length}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Формальная проверка
+                {t("dashboards:secretary_dashboard.queues.screening.desc", "Формальная проверка")}
               </div>
             </button>
           </nav>
 
           <div className="mt-2 border-t border-slate-200 pt-2 px-2">
-            <div className="text-xs text-slate-500 mb-1">Батч-операции</div>
+            <div className="text-xs text-slate-500 mb-1">
+              {t("dashboards:secretary_dashboard.batch.title", "Батч-операции")}
+            </div>
             {queue === "submitted" ? (
               <div className="grid grid-cols-1 gap-1.5">
                 <Button
@@ -750,12 +821,12 @@ export default function SecretaryDashboard() {
                   onClick={() => bulkMoveToScreening(selectedIds)}
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
-                  На скрининг ({selectedIds.size})
+                  {t("dashboards:secretary_dashboard.batch.to_screening", "На скрининг")} ({selectedIds.size})
                 </Button>
               </div>
             ) : (
               <div className="text-xs text-slate-400">
-                Нет групповых действий
+                {t("dashboards:secretary_dashboard.batch.none", "Нет групповых действий")}
               </div>
             )}
           </div>
@@ -777,8 +848,8 @@ export default function SecretaryDashboard() {
                       }
                       title={
                         selectedIds.size === visibleRows.length
-                          ? "Снять все"
-                          : "Выбрать все"
+                            ? t("dashboards:secretary_dashboard.table.select_none", "Снять все")
+                            : t("dashboards:secretary_dashboard.table.select_all", "Выбрать все")
                       }
                     >
                       {selectedIds.size === visibleRows.length &&
@@ -789,16 +860,26 @@ export default function SecretaryDashboard() {
                       )}
                     </button>
                   </th>
-                  <th className="px-3 py-2 text-left">Статья</th>
-                  <th className="px-3 py-2 text-left w-[160px]">Автор</th>
-                  <th className="px-3 py-2 text-left w-[160px]">Создана</th>
-                  <th className="px-3 py-2 text-left w-[140px]">Статус</th>
-                  <th className="px-3 py-2 text-right w-[260px]">Действия</th>
+                  <th className="px-3 py-2 text-left">
+                    {t("dashboards:secretary_dashboard.table.col_article", "Статья")}
+                  </th>
+                  <th className="px-3 py-2 text-left w-[160px]">
+                    {t("dashboards:secretary_dashboard.table.col_author", "Автор")}
+                  </th>
+                  <th className="px-3 py-2 text-left w-[160px]">
+                    {t("dashboards:secretary_dashboard.table.col_created", "Создана")}
+                  </th>
+                  <th className="px-3 py-2 text-left w-[140px]">
+                    {t("dashboards:secretary_dashboard.table.col_status", "Статус")}
+                  </th>
+                  <th className="px-3 py-2 text-right w-[260px]">
+                    {t("dashboards:secretary_dashboard.table.col_actions", "Действия")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
-                  Array.from({ length: 8 }).map((_, i) => (
+              {loading ? (
+                  Array.from({length: 8}).map((_, i) => (
                     <tr
                       key={i}
                       className="border-b border-slate-200 animate-pulse"
@@ -831,7 +912,7 @@ export default function SecretaryDashboard() {
                           className="h-4 w-4"
                           checked={selectedIds.has(a.id)}
                           onChange={() => toggleSelect(a.id)}
-                          aria-label="Выбрать строку"
+                          aria-label={t("dashboards:secretary_dashboard.table.row_select_aria", "Выбрать строку")}
                         />
                       </td>
                       <td className={`px-3 ${rowPad}`}>
@@ -839,7 +920,7 @@ export default function SecretaryDashboard() {
                           {a.title}
                         </div>
                         <div className="text-xs text-slate-500">
-                          Журнал #{a.journal}
+                          {t("dashboards:secretary_dashboard.table.journal_id", "Журнал #{{id}}", { id: a.journal })}
                         </div>
                       </td>
                       <td className={`px-3 ${rowPad}`}>
@@ -859,7 +940,7 @@ export default function SecretaryDashboard() {
                               setShowRight(true);
                             }}
                           >
-                            Детали
+                            {t("dashboards:secretary_dashboard.actions.details", "Детали")}
                           </Button>
 
                           {queue === "submitted" ? (
@@ -872,13 +953,13 @@ export default function SecretaryDashboard() {
                                   await loadArticlesForJournal(journalId);
                                 }}
                               >
-                                На скрининг
+                                {t("dashboards:secretary_dashboard.actions.to_screening", "На скрининг")}
                               </Button>
                             </>
                           ) : (
                             <Link to={`/articles/${a.id}`}>
                               <Button size="sm" variant="outline">
-                                Открыть
+                                {t("dashboards:secretary_dashboard.actions.open", "Открыть")}
                               </Button>
                             </Link>
                           )}
@@ -890,13 +971,17 @@ export default function SecretaryDashboard() {
                   <tr>
                     <td colSpan={6} className="py-16 text-center">
                       <div className="mx-auto w-full max-w-md">
-                        <div className="text-2xl font-semibold">Пока пусто</div>
+                        <div className="text-2xl font-semibold">
+                          {t("dashboards:secretary_dashboard.empty.title", "Пока пусто")}
+                        </div>
                         <p className="mt-2 text-slate-500">
-                          В очереди{" "}
+                          {t("dashboards:secretary_dashboard.empty.desc_prefix", "В очереди")}{" "}
                           <b>
-                            {queue === "submitted" ? "Submitted" : "Скрининг"}
+                            {queue === "submitted"
+                                ? t("dashboards:secretary_dashboard.empty.queue_submitted", "Submitted")
+                                : t("dashboards:secretary_dashboard.empty.queue_screening", "Скрининг")}
                           </b>{" "}
-                          нет статей под текущие фильтры.
+                          {t("dashboards:secretary_dashboard.empty.desc_suffix", "нет статей под текущие фильтры.")}
                         </p>
                         <div className="mt-4">
                           <Button
@@ -906,7 +991,7 @@ export default function SecretaryDashboard() {
                               journalId && loadArticlesForJournal(journalId);
                             }}
                           >
-                            Сбросить поиск
+                            {t("dashboards:secretary_dashboard.empty.reset_search", "Сбросить поиск")}
                           </Button>
                         </div>
                       </div>
@@ -922,7 +1007,9 @@ export default function SecretaryDashboard() {
             <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm text-slate-600">
-                  Выбрано: <b>{selectedIds.size}</b>
+                  {t("dashboards:secretary_dashboard.selection.count", "Выбрано: {{count}}", {
+                    count: selectedIds.size,
+                  })}
                 </div>
                 <div className="flex items-center gap-2">
                   {queue === "submitted" && (
@@ -932,13 +1019,13 @@ export default function SecretaryDashboard() {
                         className="bg-blue-600 hover:bg-blue-700"
                         onClick={() => bulkMoveToScreening(selectedIds)}
                       >
-                        На скрининг
+                        {t("dashboards:secretary_dashboard.actions.to_screening", "На скрининг")}
                       </Button>
                     </>
                   )}
                   <Button size="sm" variant="ghost" onClick={clearSelection}>
                     <X className="h-4 w-4 mr-1" />
-                    Снять выделение
+                    {t("dashboards:secretary_dashboard.selection.clear", "Снять выделение")}
                   </Button>
                 </div>
               </div>
@@ -952,7 +1039,9 @@ export default function SecretaryDashboard() {
         >
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
-              <div className="font-semibold">Панель деталей</div>
+              <div className="font-semibold">
+                {t("dashboards:secretary_dashboard.details_panel.title", "Панель деталей")}
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -965,13 +1054,17 @@ export default function SecretaryDashboard() {
             {detailArticle ? (
               <div className="p-3 space-y-4">
                 <div>
-                  <div className="text-sm text-slate-500">Статья</div>
+                  <div className="text-sm text-slate-500">
+                    {t("dashboards:secretary_dashboard.details.article", "Статья")}
+                  </div>
                   <div className="font-medium break-words">
                     {detailArticle.title}
                   </div>
                   <div className="text-xs text-slate-500 mt-0.5">
-                    Автор: {detailArticle.author_email ?? "—"} • Создана:{" "}
-                    {fmt(detailArticle.created_at)}
+                    {t("dashboards:secretary_dashboard.details.author_created", "Автор: {{author}} • Создана: {{date}}", {
+                      author: detailArticle.author_email ?? "—",
+                      date: fmt(detailArticle.created_at),
+                    })}
                   </div>
                   <div className="mt-1">
                     <StatusPill status={detailArticle.status} />
@@ -992,15 +1085,17 @@ export default function SecretaryDashboard() {
                 <div className="pt-1">
                   <Link to={`/articles/${detailArticle.id}`} className="w-full">
                     <Button variant="outline" className="w-full">
-                      Открыть страницу статьи
+                      {t("dashboards:secretary_dashboard.details.open_article_page", "Открыть страницу статьи")}
                     </Button>
                   </Link>
                 </div>
               </div>
             ) : (
               <div className="p-6 text-sm text-slate-500">
-                Выберите строку и нажмите <b>Детали</b>, чтобы посмотреть файлы
-                и скрининг.
+                {t(
+                    "dashboards:secretary_dashboard.details.empty_hint",
+                    "Выберите строку и нажмите Детали, чтобы посмотреть файлы и скрининг."
+                )}
               </div>
             )}
           </div>

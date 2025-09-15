@@ -1,0 +1,9 @@
+{
+  "actions": {
+    "go_home": "На главную страницу"
+  },
+  "dashboard": "",
+  "files_count": "{{count}} file",
+  "files_count_plural": "{{count}} files",
+  "or": ""
+}

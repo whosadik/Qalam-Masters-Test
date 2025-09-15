@@ -1,0 +1,719 @@
+{
+  "author_dashboard": {
+    "actions": {
+      "edit": "Редактировать",
+      "new_article": "Новая статья",
+      "open": "Открыть",
+      "send_corrections": "Отправить исправления",
+      "sending": "Отправка…"
+    },
+    "activity": {
+      "all_desc": "Лента последних действий по вашим статьям.",
+      "all_title": "Все события",
+      "close": "Закрыть",
+      "empty": "Пока нет новых событий.",
+      "loading": "Загрузка событий…",
+      "new_file_title": "Новый файл",
+      "new_review_title": "Новая рецензия",
+      "status_title": "Статус статьи",
+      "title": "Лента событий"
+    },
+    "alert": {
+      "submit_failed": "Не удалось отправить. Попробуйте ещё раз.",
+      "upload_manuscript": "Загрузите обновлённую рукопись (manuscript) в «Файлы».",
+      "upload_response": "Загрузите ответ рецензенту (response_to_review) в «Файлы»."
+    },
+    "article": "Статья",
+    "assignment": {
+      "accepted": "Рецензент принял назначение",
+      "assigned": "Назначен рецензент",
+      "cancelled": "Назначение отменено",
+      "completed": "Рецензирование завершено",
+      "deadline": "срок до {{date}}",
+      "declined": "Рецензент отклонил назначение",
+      "default": "Назначение рецензента"
+    },
+    "badges": {
+      "manuscript_loaded": "манускрипт загружен"
+    },
+    "chat": {
+      "msg_received": "Здравствуйте! Получили вашу статью.",
+      "msg_thanks": "Спасибо за сообщение! Мы рассмотрим.",
+      "msg_two_weeks": "Обычно в течение двух недель.",
+      "msg_when_review": "Здравствуйте! Когда ждать рецензию?"
+    },
+    "filetype": {
+      "antiplag_report": "Отчёт антиплагиата",
+      "manuscript": "Рукопись",
+      "production_pdf": "Верстка (PDF)",
+      "response_to_review": "Ответ рецензенту",
+      "supplement": "Приложение",
+      "zgs": "Справка ЗГС"
+    },
+    "filters": {
+      "journal": {
+        "all": "Все журналы",
+        "placeholder": "Фильтр по журналу"
+      },
+      "status": {
+        "all": "Все статусы",
+        "placeholder": "Фильтр по статусу"
+      }
+    },
+    "header": {
+      "subtitle": "Управляйте своими научными публикациями",
+      "title": "Личный кабинет автора"
+    },
+    "journal_fallback": "Журнал #{{id}}",
+    "journals": {
+      "frequency": "Периодичность",
+      "language": "Язык",
+      "not_found": "Журналы не найдены.",
+      "open": "Открыть",
+      "search_placeholder": "Введите название журнала...",
+      "send_article": "Отправить статью",
+      "theme": "Тема",
+      "title": "Поиск журналов"
+    },
+    "loading": "Загрузка…",
+    "loading_reviews": "Загрузка отзывов…",
+    "meta": {
+      "author": "Автор",
+      "created": "Создана"
+    },
+    "modal": {
+      "ok": "Ок",
+      "open_article": "Открыть статью",
+      "sent_desc": "Статья «{{title}}» успешно отправлена в редакцию.",
+      "sent_title": "Отправлено!",
+      "success": "Успех",
+      "success_desc": "Действие выполнено успешно."
+    },
+    "my_articles": {
+      "empty": "У вас пока нет статей. Нажмите “Новая статья”, чтобы создать черновик.",
+      "title": "Мои статьи"
+    },
+    "reviews": {
+      "deadline": "срок: {{date}}",
+      "empty": "Пока нет статей, возвращённых на доработку.",
+      "no_reviews": "Отзывов пока нет. Загляните позже.",
+      "recommendation": "Рекомендация:",
+      "title": "Рецензии / Требуются правки",
+      "upload_fixes": "Загрузить правки"
+    },
+    "stats": {
+      "accepted": "Принято",
+      "published": "Опубликовано",
+      "total": "Всего статей",
+      "under_review": "На рецензии"
+    },
+    "tabs": {
+      "activity": "События",
+      "journals_short": "Журналы",
+      "my_articles_full": "Мои статьи",
+      "my_articles_short": "Статьи",
+      "reviews": "Рецензии",
+      "search_journals_full": "Поиск журналов"
+    }
+  },
+  "author_profile": {
+    "academic_degree_label": "Академическая степень",
+    "academic_degree_ph": "PhD / MSc / ... ",
+    "academic_title_label": "Академическое звание",
+    "academic_title_ph": "Кандидат наук / Профессор",
+    "avatar_url_label": "URL аватара",
+    "bio_label": "О себе",
+    "bio_ph": "Краткая информация об исследованиях, интересах…",
+    "cancel_btn": "Отмена",
+    "city_label": "Город",
+    "city_ph": "Алматы",
+    "country_label": "Страна",
+    "country_ph": "Казахстан",
+    "delete_account_btn": "Удалить аккаунт",
+    "delete_account_title": "Удалить аккаунт навсегда",
+    "delete_confirm": "Удалить аккаунт безвозвратно?",
+    "delete_failed": "Не удалось удалить аккаунт.",
+    "edit_profile_btn": "Редактировать профиль",
+    "first_name_label": "Имя",
+    "first_name_ph": "Имя",
+    "last_name_label": "Фамилия",
+    "last_name_ph": "Фамилия",
+    "my_orgs_admin": "Мои организации (админ)",
+    "no_admin_orgs": "Вы не являетесь администратором ни одной организации.",
+    "org_title_tooltip": "Организация #{{id}}",
+    "organization_fallback": "Организация #{{id}}",
+    "orgs_load_error": "Не удалось загрузить организации пользователя",
+    "phone_label": "Телефон",
+    "profile_updated": "Профиль обновлён",
+    "registered_label": "Регистрация",
+    "save_btn": "Сохранить",
+    "save_failed": "Не удалось сохранить профиль.",
+    "saving": "Сохраняем…",
+    "title": "Профиль автора",
+    "website": "Веб-сайт",
+    "website_link_label": "Ссылка на сайт",
+    "website_link_ph": "https://…"
+  },
+  "chief_editor_dashboard": {
+    "actions": {
+      "refresh": "Обновить",
+      "reset_search": "Сбросить поиск",
+      "send_to_proofreader": "Отправить корректору",
+      "send_to_proofreader_count": "Отправить корректору"
+    },
+    "batch": {
+      "none": "Нет групповых действий",
+      "title": "Батч-операции"
+    },
+    "buttons": {
+      "details": "Детали",
+      "open": "Открыть"
+    },
+    "dash": "—",
+    "details_panel": {
+      "article": "Статья",
+      "author": "Автор:",
+      "created": "Создана:",
+      "helper": "Выберите строку и нажмите ",
+      "helper_tail": ", чтобы принять решение и перейти к статье.",
+      "open_article": "Открыть страницу статьи",
+      "title": "Панель деталей"
+    },
+    "empty": {
+      "desc_prefix": "В очереди",
+      "desc_suffix": "нет статей под текущие фильтры.",
+      "title": "Пока пусто"
+    },
+    "errors": {
+      "send_to_proofreader": "Не удалось отправить корректору"
+    },
+    "hints": {
+      "shortcuts": " / — поиск, R — обновить, O — детали, S — отправить корректору"
+    },
+    "journal_fallback": "",
+    "loading": {
+      "memberships": "Проверяем права главреда…"
+    },
+    "no_rights": "Нет прав главреда — доступных журналов не найдено.",
+    "panel": "Панель",
+    "per_page": "/стр",
+    "placeholders": {
+      "limit": "Порог",
+      "search": "Поиск по заголовку/автору…  (нажмите /)",
+      "select_journal": "Выберите журнал",
+      "sort": "Сортировка"
+    },
+    "queues": {
+      "chief": "Ожидают решения",
+      "chief_desc": "UR с accepted/completed отзывами",
+      "production": "В производстве",
+      "production_desc": "Этап корректора/верстки",
+      "published": "Опубликовано",
+      "published_desc": "Для обзора",
+      "title": "Очереди"
+    },
+    "selection": {
+      "clear": "Снять выделение",
+      "selected": "Выбрано:"
+    },
+    "sort": {
+      "new_old": "Новее → старее",
+      "old_new": "Старее → новее",
+      "title_az": "Заголовок A→Z",
+      "title_za": "Заголовок Z→A"
+    },
+    "table": {
+      "actions": "Действия",
+      "aria": {
+        "select_row": "Выбрать строку"
+      },
+      "article": "Статья",
+      "author": "Автор",
+      "created": "Создана",
+      "deselect_all": "Снять все",
+      "journal_author": "Журнал",
+      "select_all": "Выбрать все",
+      "status": "Статус"
+    },
+    "title": "Дашборд главного редактора",
+    "titles": {
+      "hide_panel": "Скрыть панель",
+      "show_panel": "Показать панель"
+    },
+    "updated": "Обновлено:",
+    "view": {
+      "compact": "Плотно",
+      "normal": "Обычно"
+    }
+  },
+  "editor_dashboard": {
+    "actions": {
+      "details": "Детали",
+      "open": "Открыть",
+      "return_to_author": "Вернуть автору"
+    },
+    "active_assignments_count": "Активных назначений: ",
+    "batch_ops": {
+      "none": "Нет групповых действий",
+      "return_to_author_count_one": "Вернуть автору ({{count}})",
+      "return_to_author_count_few": "Вернуть автору ({{count}})",
+      "return_to_author_count_many": "Вернуть автору ({{count}})",
+      "return_to_author_count_other": "Вернуть автору ({{count}})",
+      "title": "Батч-операции"
+    },
+    "clear_selection": "Снять выделение",
+    "common": {
+      "cancel": "Отмена"
+    },
+    "density": {
+      "compact": "Плотно",
+      "normal": "Обычно"
+    },
+    "detail": {
+      "article": "Статья",
+      "assignments": "Назначения",
+      "author_created": "Автор: {{author}} • Создана: {{date}}",
+      "due_by": "срок до",
+      "empty_hint": "Выберите строку и нажмите Детали, чтобы назначить рецензента, посмотреть назначения и перейти к статье.",
+      "no_active_assignments": "Активных назначений нет.",
+      "open_article_page": "Открыть страницу статьи",
+      "reviewer": "Рецензент",
+      "status": "статус"
+    },
+    "empty": {
+      "in_queue": "В очереди",
+      "no_articles": "нет статей под текущие фильтры.",
+      "reset_search": "Сбросить поиск",
+      "title": "Пока пусто"
+    },
+    "errors": {
+      "back_to_review": "Не удалось вернуть на рецензию",
+      "request_revision": "Не удалось запросить ревизию"
+    },
+    "journal_fallback": "Журнал #{{id}}",
+    "loading_permissions": "Проверяем права редактора…",
+    "no_rights": "Нет прав редактора — доступных журналов не найдено.",
+    "page_limit": "Порог",
+    "panel": {
+      "button": "Панель",
+      "details_title": "Панель деталей",
+      "hide_title": "Скрыть панель",
+      "show_title": "Показать панель"
+    },
+    "per_page_one": "{{count}}/стр",
+    "per_page_few": "{{count}}/стр",
+    "per_page_many": "{{count}}/стр",
+    "per_page_other": "{{count}}/стр",
+    "queues": {
+      "active_assignments": "С активными назначениями",
+      "assigned": "Назначено",
+      "major": "Крупные правки",
+      "minor": "Небольшие правки",
+      "no_assignees": "Без назначенных рецензентов",
+      "return_to_author": "Вернуть автору",
+      "title": "Очереди",
+      "under_review": "На рецензии",
+      "waiting_fixes": "Ждут корректировок"
+    },
+    "quick_filters": "Быстрые фильтры",
+    "refresh": "Обновить",
+    "reviewer": {
+      "add_to_team": "Добавить его в команду журнала как",
+      "already_assigned": "уже назначен",
+      "assign_button": "Назначить рецензента",
+      "assign_failed": "Не удалось назначить рецензента",
+      "assigned": "Рецензент назначен",
+      "assigning": "Назначаем...",
+      "before_assign": "перед назначением",
+      "blind": "Blind",
+      "create_assignment": "Создать назначение",
+      "empty": "Ничего не найдено.",
+      "from_journal": "Выберите из рецензентов журнала",
+      "from_org": "Выберите из организации",
+      "hide_assign": "Скрыть назначение",
+      "not_in_team": "Пользователь не является рецензентом журнала.",
+      "placeholder": "",
+      "search_placeholder": "Поиск: имя, email…",
+      "select_required": "Выберите пользователя-рецензента",
+      "show_all_from_org": "Показать всех из организации"
+    },
+    "search_placeholder": "Поиск по заголовку/автору…  (нажмите / чтобы перейти к поиску)",
+    "select_journal": "Выберите журнал",
+    "selected": "Выбрано:",
+    "shortcuts_hint": "/ — поиск, R — обновить, O — детали, M — Вернуть автору",
+    "sort": {
+      "new_old": "Новее → старее",
+      "old_new": "Старее → новее",
+      "title_az": "Заголовок A→Z",
+      "title_za": "Заголовок Z→A"
+    },
+    "sorting": "Сортировка",
+    "status": {
+      "accepted": "Принята",
+      "draft": "Черновик",
+      "in_production": "В производстве",
+      "published": "Опубликована",
+      "rejected": "Отклонена",
+      "revision_major": "Major revision",
+      "revision_minor": "Minor revision",
+      "screening": "Скрининг",
+      "submitted": "Отправлена",
+      "under_review": "На рецензии"
+    },
+    "table": {
+      "actions": "Действия",
+      "article": "Статья",
+      "author": "Автор",
+      "created": "Создана",
+      "journal_id": "Журнал #{{id}}",
+      "select_all": "Выбрать все",
+      "select_row": "Выбрать строку",
+      "status": "Статус",
+      "unselect_all": "Снять все"
+    },
+    "title": "Дашборд редактора",
+    "updated_at": "Обновлено: {{time}}"
+  },
+  "manager_dashboard": {
+    "assignments": {
+      "assigned_at": "Назначено",
+      "due_at": "Дедлайн",
+      "empty": "Назначений пока нет.",
+      "loading": "Загружаем назначения…",
+      "reviewer": "Рецензент",
+      "title": "Назначения рецензентов"
+    },
+    "common": {
+      "author": "Автор",
+      "journal_hash": "Журнал #",
+      "open": "Открыть"
+    },
+    "files": {
+      "confirm_delete": "Удалить файл?",
+      "delete": "Удалить",
+      "delete_failed": "Не удалось удалить файл",
+      "empty": "Файлов пока нет.",
+      "id": "ID",
+      "loading": "Загружаем файлы…",
+      "production_title": "Файлы продакшна",
+      "screening_title": "Файлы для скрининга",
+      "title_default": "Файлы статьи",
+      "upload": "Загрузить",
+      "upload_failed": "Не удалось загрузить файл"
+    },
+    "journal": {
+      "label": "Журнал:",
+      "placeholder": "Выберите журнал"
+    },
+    "memberships": {
+      "loading": "Проверяем права менеджера…",
+      "none": "Нет прав менеджера — доступных журналов не найдено."
+    },
+    "org": {
+      "label": "Организация:"
+    },
+    "production": {
+      "empty": "Нет статей в производстве.",
+      "title": "В производстве (In production)"
+    },
+    "queues": {
+      "loading": "Загрузка статей…"
+    },
+    "screening": {
+      "action_failed": "Операция скрининга не удалась",
+      "checklist_ok": "Все пункты чек-листа ок (scope/format/zgs/antiplag)",
+      "default_return_note": "Требуются доработки по формату/документам",
+      "empty": "Сейчас нет статей на скрининге.",
+      "finish_to_review": "Завершить скрининг → На рецензию",
+      "mark_checklist": "Отметь чек-лист",
+      "notes_placeholder": "Кратко: что проверить/исправить или комментарий для редакции",
+      "notes_title": "Заметки по скринингу",
+      "send_to_review_title": "Отправить на рецензию",
+      "title": "Скрининг (Screening)"
+    },
+    "submitted": {
+      "empty": "Заявок нет.",
+      "title": "Новые подачи (Submitted)"
+    },
+    "title": "Дашборд менеджера"
+  },
+  "proofreader_dashboard": {
+    "actions": {
+      "add_to_issue": "Добавить в выпуск",
+      "add_to_issue_count": "Добавить в выпуск",
+      "clear_selection": "Снять выделение",
+      "create_and_add": "+ Создать выпуск и добавить",
+      "create_issue": "Создать выпуск",
+      "delete_pdf": "Удалить",
+      "details": "Детали",
+      "open": "Открыть",
+      "open_card": "Открыть карточку",
+      "publish": "Опубликовать",
+      "refresh": "Обновить",
+      "remove_from_prod": "Снять из прод.",
+      "start_production": "Начать производство"
+    },
+    "alert": {
+      "add_article_to_issue_failed_prefix": "Не удалось добавить",
+      "add_at_least_one_article": "Добавьте в выпуск хотя бы одну статью.",
+      "add_to_issue_failed": "Не удалось добавить статьи.",
+      "added_to_issue": "Статьи добавлены в выпуск.",
+      "back_to_accepted_failed": "Не удалось вернуть в 'Принята'",
+      "choose_articles": "Выберите статьи чекбоксами.",
+      "choose_issue": "Выберите выпуск.",
+      "create_issue_failed": "Не удалось создать выпуск",
+      "delete_pdf_failed": "Не удалось удалить файл",
+      "issue_publish_failed": "Не удалось опубликовать выпуск",
+      "issue_published": "Выпуск опубликован",
+      "need_production_pdf": "Перед публикацией загрузите production PDF.",
+      "publish_article_failed": "Не удалось опубликовать статью",
+      "to_production_failed": "Не удалось перевести в производство",
+      "upload_issue_pdf_failed": "Не удалось загрузить PDF выпуска",
+      "upload_issue_pdf_first": "Сначала загрузите PDF выпуска.",
+      "upload_pdf_failed": "Не удалось загрузить PDF",
+      "upload_pdf_only": "Загрузите PDF."
+    },
+    "badge": {
+      "issue_published": "Опубликован",
+      "published": "Опубликована"
+    },
+    "batch": {
+      "title": "Групповые действия"
+    },
+    "confirm": {
+      "delete_pdf": "Удалить PDF?"
+    },
+    "density": {
+      "compact": "Плотно",
+      "normal": "Обычно"
+    },
+    "detail": {
+      "article": "Статья",
+      "author": "Автор:",
+      "created": "Создан:",
+      "pick_row": "Выберите строку и нажмите",
+      "status": "Статус:"
+    },
+    "empty": {
+      "no_articles_for_journal": "Нет статей под выбранный журнал.",
+      "no_journals": "Нет прав корректуры — доступных журналов не найдено.",
+      "queue_or_search_empty": "Пусто в этой очереди или ничего не найдено."
+    },
+    "hotkeys": {
+      "hint": "/ — поиск, R — обновить, A — добавить в выпуск, C — создать выпуск и добавить"
+    },
+    "issue": {
+      "pick_left": "Выберите выпуск слева, чтобы загрузить PDF и опубликовать."
+    },
+    "issues": {
+      "none": "Выпусков нет",
+      "title": "Выпуски"
+    },
+    "journal": {
+      "fallback_title": "Журнал",
+      "label": "Журнал:"
+    },
+    "loading": {
+      "issues": "Загрузка…",
+      "membership": "Проверяем права корректуры…"
+    },
+    "organization": {
+      "label": "Организация:"
+    },
+    "panel": {
+      "title": "Панель"
+    },
+    "pdf": {
+      "download": "Скачать PDF",
+      "none": "нет",
+      "not_uploaded": "PDF не загружен",
+      "upload": "Загрузить PDF"
+    },
+    "per_page": "стр",
+    "placeholders": {
+      "choose_issue": "Выберите выпуск…",
+      "page_size": "Порог",
+      "select_journal": "Выберите журнал",
+      "sort": "Сортировка"
+    },
+    "prompt": {
+      "issue_title": "Название выпуска (например: Август 2025):"
+    },
+    "queues": {
+      "accepted": "Приняты",
+      "accepted_desc": "Готовы к старту производства",
+      "in_production": "В производстве",
+      "in_production_desc": "PDF, корректура, добавление в выпуск",
+      "published": "Опубликовано",
+      "published_desc": "Готово, для обзора",
+      "title": "Очереди"
+    },
+    "row": {
+      "author": "Автор",
+      "journal": "Журнал"
+    },
+    "search": {
+      "placeholder": "Поиск по заголовку/автору…  (нажмите /)"
+    },
+    "selected": "Выбрано:",
+    "sort": {
+      "new_old": "Новее → старее",
+      "old_new": "Старее → новее",
+      "title_az": "Заголовок A→Z",
+      "title_za": "Заголовок Z→A"
+    },
+    "table": {
+      "actions": "Действия",
+      "article": "Статья",
+      "created": "Создана",
+      "status": "Статус"
+    },
+    "title": "Дашборд корректуры",
+    "tooltip": {
+      "delete_pdf": "Удалить PDF",
+      "hide_panel": "Скрыть панель",
+      "select_all": "Выбрать все",
+      "show_panel": "Показать панель",
+      "unselect_all": "Снять все"
+    },
+    "updated": "Обновлено:"
+  },
+  "secretary_dashboard": {
+    "actions": {
+      "details": "Детали",
+      "move_to_screening_failed": "Не удалось перевести на скрининг",
+      "open": "Открыть",
+      "return_to_draft_failed": "Не удалось вернуть в черновик",
+      "to_screening": "На скрининг"
+    },
+    "batch": {
+      "none": "Нет групповых действий",
+      "title": "Батч-операции",
+      "to_screening": "На скрининг"
+    },
+    "density": {
+      "compact": "Плотно",
+      "normal": "Обычно"
+    },
+    "details": {
+      "article": "Статья",
+      "author_created": "Автор: {{author}} • Создана: {{date}}",
+      "empty_hint": "Выберите строку и нажмите Детали, чтобы посмотреть файлы и скрининг.",
+      "open_article_page": "Открыть страницу статьи"
+    },
+    "details_panel": {
+      "title": "Панель деталей"
+    },
+    "empty": {
+      "desc_prefix": "В очереди",
+      "desc_suffix": "нет статей под текущие фильтры.",
+      "queue_screening": "Скрининг",
+      "queue_submitted": "Submitted",
+      "reset_search": "Сбросить поиск",
+      "title": "Пока пусто"
+    },
+    "files": {
+      "confirm_delete": "Удалить файл?",
+      "delete": "Удалить",
+      "delete_failed": "Не удалось удалить файл",
+      "empty": "Файлов нет.",
+      "loading": "Загрузка файлов…",
+      "open": "Открыть",
+      "pick_file": "Выберите файл",
+      "refresh_title": "Обновить файлы",
+      "title": "Файлы",
+      "type": {
+        "antiplag_report": "Отчет об оригинальности",
+        "supplement": "Дополнительно",
+        "zgs": "Допуск ЗГС"
+      },
+      "type_placeholder": "Тип файла",
+      "upload": "Загрузить",
+      "upload_failed": "Не удалось загрузить файл",
+      "uploaded_at": "Загружено: {{date}}",
+      "uploading": "Загрузка…"
+    },
+    "hotkeys_hint": "/ — поиск, R — обновить, O — открыть, S — на скрининг",
+    "journal": {
+      "fallback_title": "Журнал #{{id}}"
+    },
+    "loading_rights": "Проверяем права секретаря…",
+    "no_rights": "Нет прав секретаря — доступных журналов не найдено.",
+    "page_size": {
+      "option": "{{n}}/стр",
+      "placeholder": "Порог"
+    },
+    "panel": {
+      "hide": "Скрыть панель",
+      "show": "Показать панель",
+      "title": "Панель"
+    },
+    "pick_journal": "Выберите журнал",
+    "queues": {
+      "screening": {
+        "desc": "Формальная проверка",
+        "title": "Скрининг"
+      },
+      "submitted": {
+        "desc": "Новые подачи авторов",
+        "title": "Подачи"
+      },
+      "title": "Очереди"
+    },
+    "quick_filters": "Быстрые фильтры",
+    "refresh": "Обновить",
+    "screening": {
+      "antiplag_ok": "Антиплагиат пройден",
+      "finish_to_review": "Завершить → На рецензию",
+      "finish_to_review_title": "Все ОК → на рецензию",
+      "format_ok": "Оформление корректно",
+      "notes_placeholder": "Заметки/комментарии (необязательно)",
+      "save_failed": "Не удалось сохранить результаты скрининга",
+      "scope_ok": "Соответствует тематике",
+      "title": "Скрининг",
+      "zgs_ok": "Допуск ЗГС получен"
+    },
+    "search": {
+      "placeholder": "Поиск по заголовку/автору…  (нажмите / чтобы перейти к поиску)"
+    },
+    "selection": {
+      "clear": "Снять выделение",
+      "count_one": "Выбрано: {{count}}",
+      "count_few": "Выбрано: {{count}}",
+      "count_many": "Выбрано: {{count}}",
+      "count_other": "Выбрано: {{count}}"
+    },
+    "sort": {
+      "new_old": "Новее → старее",
+      "old_new": "Старее → новее",
+      "placeholder": "Сортировка",
+      "title_az": "Заголовок A→Z",
+      "title_za": "Заголовок Z→A"
+    },
+    "status": {
+      "accepted": "Принята",
+      "draft": "Черновик",
+      "in_production": "В производстве",
+      "published": "Опубликована",
+      "rejected": "Отклонена",
+      "revision_major": "Major revision",
+      "revision_minor": "Minor revision",
+      "screening": "Скрининг",
+      "submitted": "Отправлена",
+      "under_review": "На рецензии"
+    },
+    "table": {
+      "col_actions": "Действия",
+      "col_article": "Статья",
+      "col_author": "Автор",
+      "col_created": "Создана",
+      "col_status": "Статус",
+      "journal_id": "Журнал #{{id}}",
+      "row_select_aria": "Выбрать строку",
+      "select_all": "Выбрать все",
+      "select_none": "Снять все"
+    },
+    "title": "Дашборд секретаря",
+    "updated_at": "Обновлено: {{date}}"
+  }
+}
