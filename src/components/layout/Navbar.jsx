@@ -305,7 +305,7 @@ export default function Navbar() {
                       {/* Отдельно модератор (если нужен параллельно) */}
                       {isOrgAdmin && (
                         <Link to="/moderator">
-                          <Button variant="outline">Модератор</Button>
+                          <Button variant="outline">{t("navbar:moderator", "Модератор")}</Button>
                         </Link>
                       )}
                     </>

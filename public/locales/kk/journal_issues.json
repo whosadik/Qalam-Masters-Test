@@ -1,22 +1,22 @@
 {
-  "cover_alt": "Обложка журнала",
+  "cover_alt": "Журнал мұқабасы",
   "create_issue": {
-    "error": "Не удалось создать выпуск"
+    "error": "Санды құру мүмкін болмады"
   },
-  "download_pdf": "Скачать PDF",
-  "issues_title": "Выпуски",
-  "loading": "Загрузка выпусков…",
-  "no_published_yet": "Опубликованных выпусков пока нет.",
-  "pdf_missing": "PDF не загружен",
-  "published_on": "Опубликован:",
+  "download_pdf": "PDF жүктеп алу",
+  "issues_title": "Шығарылымдар",
+  "loading": "Шығарылымдар жүктелуде…",
+  "no_published_yet": "Әзірге жарияланған шығарылымдар жоқ.",
+  "pdf_missing": "PDF жүктелмеген",
+  "published_on": "Жарияланған күні:",
   "toc": {
-    "back_to_all": "← Ко всем выпускам",
-    "empty": "Пока пусто.",
-    "issue_fallback": "Выпуск",
+    "back_to_all": "← Барлық сандарға оралу",
+    "empty": "Әзірге бос.",
+    "issue_fallback": "Шығарылым",
     "journal_fallback": "Журнал",
-    "loading": "Загрузка оглавления…",
-    "title": "Оглавление",
-    "unavailable": "Оглавление недоступно."
+    "loading": "Мазмұн жүктелуде…",
+    "title": "Мазмұны",
+    "unavailable": "Мазмұн қолжетімсіз."
   },
-  "toc_button": "Оглавление"
+  "toc_button": "Мазмұны"
 }

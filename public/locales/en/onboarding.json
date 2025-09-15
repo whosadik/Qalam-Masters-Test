@@ -1,20 +1,20 @@
 {
   "create_org": {
-    "lead": "Заполните основные поля сейчас. Реквизиты и детали можно будет завершить позже в профиле.",
-    "title": "Создание организации"
+    "lead": "Fill in the main fields now. Requisites and details can be completed later in the profile.",
+    "title": "Create Organization"
   },
   "join_org": {
     "actions": {
-      "join": "Присоединиться",
-      "later": "Позже"
+      "join": "Join",
+      "later": "Later"
     },
     "alerts": {
-      "not_implemented": "Здесь будет вызов join-by-code. Вставь сервис и редирект."
+      "not_implemented": "Here will be the join-by-code call. Insert service and redirect."
     },
     "input": {
-      "code_placeholder": "Код приглашения"
+      "code_placeholder": "Invitation code"
     },
-    "subtitle": "Введите код приглашения от администратора. Если у вас корпоративный email, можно настроить авто-подтверждение по домену.",
-    "title": "Присоединиться к организации"
+    "subtitle": "Enter the invitation code from the administrator. If you have a corporate email, auto-confirmation by domain can be set up.",
+    "title": "Join Organization"
   }
 }

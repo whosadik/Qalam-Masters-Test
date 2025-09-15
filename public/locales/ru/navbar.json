@@ -7,7 +7,14 @@
   "editorial_board": "Редколлегия",
   "journals": "Для журналов",
   "login": "Войти",
+  "moderator": "Модератор",
   "news": "Новости",
+  "profile_menu": {
+    "logout": "Выйти",
+    "open_profile_menu": "Открыть меню профиля",
+    "profile": "Профиль",
+    "profile_menu": "Меню профиля"
+  },
   "publication_terms": "Условия публикации",
   "register": "Регистрация"
 }

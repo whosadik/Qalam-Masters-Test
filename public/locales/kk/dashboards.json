@@ -1,713 +1,713 @@
 {
   "author_dashboard": {
     "actions": {
-      "edit": "Редактировать",
-      "new_article": "Новая статья",
-      "open": "Открыть",
-      "send_corrections": "Отправить исправления",
-      "sending": "Отправка…"
+      "edit": "Өңдеу",
+      "new_article": "Жаңа мақала",
+      "open": "Ашу",
+      "send_corrections": "Түзетулерді жіберу",
+      "sending": "Жіберілуде…"
     },
     "activity": {
-      "all_desc": "Лента последних действий по вашим статьям.",
-      "all_title": "Все события",
-      "close": "Закрыть",
-      "empty": "Пока нет новых событий.",
-      "loading": "Загрузка событий…",
-      "new_file_title": "Новый файл",
-      "new_review_title": "Новая рецензия",
-      "status_title": "Статус статьи",
-      "title": "Лента событий"
+      "all_desc": "Мақалаларыңыз бойынша соңғы әрекеттердің лентасы.",
+      "all_title": "Барлық оқиғалар",
+      "close": "Жабу",
+      "empty": "Әзірге жаңа оқиғалар жоқ.",
+      "loading": "Оқиғалар жүктелуде…",
+      "new_file_title": "Жаңа файл",
+      "new_review_title": "Жаңа рецензия",
+      "status_title": "Мақаланың мәртебесі",
+      "title": "Оқиғалар лентасы"
     },
     "alert": {
-      "submit_failed": "Не удалось отправить. Попробуйте ещё раз.",
-      "upload_manuscript": "Загрузите обновлённую рукопись (manuscript) в «Файлы».",
-      "upload_response": "Загрузите ответ рецензенту (response_to_review) в «Файлы»."
+      "submit_failed": "Жіберу мүмкін болмады. Қайтадан байқап көріңіз.",
+      "upload_manuscript": "Жаңартылған қолжазбаны (manuscript) «Файлдарға» жүктеңіз.",
+      "upload_response": "Рецензентке жауапты (response_to_review) «Файлдарға» жүктеңіз."
     },
-    "article": "Статья",
+    "article": "Мақала",
     "assignment": {
-      "accepted": "Рецензент принял назначение",
-      "assigned": "Назначен рецензент",
-      "cancelled": "Назначение отменено",
-      "completed": "Рецензирование завершено",
-      "deadline": "срок до {{date}}",
-      "declined": "Рецензент отклонил назначение",
-      "default": "Назначение рецензента"
+      "accepted": "Рецензент тағайындауды қабылдады",
+      "assigned": "Рецензент тағайындалды",
+      "cancelled": "Тағайындаудан бас тартылды",
+      "completed": "Рецензиялау аяқталды",
+      "deadline": "{{date}} дейін мерзімі",
+      "declined": "Рецензент тағайындаудан бас тартты",
+      "default": "Рецензентті тағайындау"
     },
     "badges": {
-      "manuscript_loaded": "манускрипт загружен"
+      "manuscript_loaded": "қолжазба жүктелді"
     },
     "chat": {
-      "msg_received": "Здравствуйте! Получили вашу статью.",
-      "msg_thanks": "Спасибо за сообщение! Мы рассмотрим.",
-      "msg_two_weeks": "Обычно в течение двух недель.",
-      "msg_when_review": "Здравствуйте! Когда ждать рецензию?"
+      "msg_received": "Сәлеметсіз бе! Мақалаңызды алдық.",
+      "msg_thanks": "Хабарламаңызға рақмет! Қарастырамыз.",
+      "msg_two_weeks": "Әдетте екі апта ішінде.",
+      "msg_when_review": "Сәлеметсіз бе! Рецензияны қашан күтуге болады?"
     },
     "filetype": {
-      "antiplag_report": "Отчёт антиплагиата",
-      "manuscript": "Рукопись",
-      "production_pdf": "Верстка (PDF)",
-      "response_to_review": "Ответ рецензенту",
-      "supplement": "Приложение",
-      "zgs": "Справка ЗГС"
+      "antiplag_report": "Антиплагиат есебі",
+      "manuscript": "Қолжазба",
+      "production_pdf": "Беттеу (PDF)",
+      "response_to_review": "Рецензентке жауап",
+      "supplement": "Қосымша",
+      "zgs": "ЗГС анықтамасы"
     },
     "filters": {
       "journal": {
-        "all": "Все журналы",
-        "placeholder": "Фильтр по журналу"
+        "all": "Барлық журналдар",
+        "placeholder": "Журнал бойынша сүзгі"
       },
       "status": {
-        "all": "Все статусы",
-        "placeholder": "Фильтр по статусу"
+        "all": "Барлық мәртебелер",
+        "placeholder": "Мәртебе бойынша сүзгі"
       }
     },
     "header": {
-      "subtitle": "Управляйте своими научными публикациями",
-      "title": "Личный кабинет автора"
+      "subtitle": "Ғылыми жарияланымдарыңызды басқарыңыз",
+      "title": "Автордың жеке кабинеті"
     },
-    "journal_fallback": "Журнал #{{id}}",
+    "journal_fallback": "#{{id}} журналы",
     "journals": {
-      "frequency": "Периодичность",
-      "language": "Язык",
-      "not_found": "Журналы не найдены.",
-      "open": "Открыть",
-      "search_placeholder": "Введите название журнала...",
-      "send_article": "Отправить статью",
-      "theme": "Тема",
-      "title": "Поиск журналов"
+      "frequency": "Мерзімділік",
+      "language": "Тіл",
+      "not_found": "Журналдар табылмады.",
+      "open": "Ашу",
+      "search_placeholder": "Журнал атауын енгізіңіз...",
+      "send_article": "Мақаланы жіберу",
+      "theme": "Тақырып",
+      "title": "Журналдарды іздеу"
     },
-    "loading": "Загрузка…",
-    "loading_reviews": "Загрузка отзывов…",
+    "loading": "Жүктелуде…",
+    "loading_reviews": "Пікірлер жүктелуде…",
     "meta": {
       "author": "Автор",
-      "created": "Создана"
+      "created": "Жасалды"
     },
     "modal": {
       "ok": "Ок",
-      "open_article": "Открыть статью",
-      "sent_desc": "Статья «{{title}}» успешно отправлена в редакцию.",
-      "sent_title": "Отправлено!",
-      "success": "Успех",
-      "success_desc": "Действие выполнено успешно."
+      "open_article": "Мақаланы ашу",
+      "sent_desc": "«{{title}}» мақаласы редакцияға сәтті жіберілді.",
+      "sent_title": "Жіберілді!",
+      "success": "Табыс",
+      "success_desc": "Әрекет сәтті орындалды."
     },
     "my_articles": {
-      "empty": "У вас пока нет статей. Нажмите “Новая статья”, чтобы создать черновик.",
-      "title": "Мои статьи"
+      "empty": "Сізде әлі мақалалар жоқ. Жобаны жасау үшін “Жаңа мақала” түймесін басыңыз.",
+      "title": "Менің мақалаларым"
     },
     "reviews": {
-      "deadline": "срок: {{date}}",
-      "empty": "Пока нет статей, возвращённых на доработку.",
-      "no_reviews": "Отзывов пока нет. Загляните позже.",
-      "recommendation": "Рекомендация:",
-      "title": "Рецензии / Требуются правки",
-      "upload_fixes": "Загрузить правки"
+      "deadline": "мерзімі: {{date}}",
+      "empty": "Әзірге өңдеуге қайтарылған мақалалар жоқ.",
+      "no_reviews": "Әзірге пікірлер жоқ. Кейінірек қарап шығыңыз.",
+      "recommendation": "Ұсыныс:",
+      "title": "Рецензиялар / Түзетулер қажет",
+      "upload_fixes": "Түзетулерді жүктеу"
     },
     "stats": {
-      "accepted": "Принято",
-      "published": "Опубликовано",
-      "total": "Всего статей",
-      "under_review": "На рецензии"
+      "accepted": "Қабылданды",
+      "published": "Жарияланды",
+      "total": "Барлығы мақалалар",
+      "under_review": "Рецензияда"
     },
     "tabs": {
-      "activity": "События",
-      "journals_short": "Журналы",
-      "my_articles_full": "Мои статьи",
-      "my_articles_short": "Статьи",
-      "reviews": "Рецензии",
-      "search_journals_full": "Поиск журналов"
+      "activity": "Оқиғалар",
+      "journals_short": "Журналдар",
+      "my_articles_full": "Менің мақалаларым",
+      "my_articles_short": "Мақалалар",
+      "reviews": "Рецензиялар",
+      "search_journals_full": "Журналдарды іздеу"
     }
   },
   "author_profile": {
-    "academic_degree_label": "Академическая степень",
+    "academic_degree_label": "Академиялық дәреже",
     "academic_degree_ph": "PhD / MSc / ... ",
-    "academic_title_label": "Академическое звание",
-    "academic_title_ph": "Кандидат наук / Профессор",
-    "avatar_url_label": "URL аватара",
-    "bio_label": "О себе",
-    "bio_ph": "Краткая информация об исследованиях, интересах…",
-    "cancel_btn": "Отмена",
-    "city_label": "Город",
+    "academic_title_label": "Академиялық атақ",
+    "academic_title_ph": "Ғылым кандидаты / Профессор",
+    "avatar_url_label": "Аватар URL",
+    "bio_label": "Өзіңіз туралы",
+    "bio_ph": "Зерттеулер, қызығушылықтар туралы қысқаша ақпарат…",
+    "cancel_btn": "Бас тарту",
+    "city_label": "Қала",
     "city_ph": "Алматы",
-    "country_label": "Страна",
-    "country_ph": "Казахстан",
-    "delete_account_btn": "Удалить аккаунт",
-    "delete_account_title": "Удалить аккаунт навсегда",
-    "delete_confirm": "Удалить аккаунт безвозвратно?",
-    "delete_failed": "Не удалось удалить аккаунт.",
-    "edit_profile_btn": "Редактировать профиль",
-    "first_name_label": "Имя",
-    "first_name_ph": "Имя",
-    "last_name_label": "Фамилия",
-    "last_name_ph": "Фамилия",
-    "my_orgs_admin": "Мои организации (админ)",
-    "no_admin_orgs": "Вы не являетесь администратором ни одной организации.",
-    "org_title_tooltip": "Организация #{{id}}",
-    "organization_fallback": "Организация #{{id}}",
-    "orgs_load_error": "Не удалось загрузить организации пользователя",
+    "country_label": "Ел",
+    "country_ph": "Қазақстан",
+    "delete_account_btn": "Аккаунтты жою",
+    "delete_account_title": "Аккаунтты біржола жою",
+    "delete_confirm": "Аккаунтты қайтарымсыз жою керек пе?",
+    "delete_failed": "Аккаунтты жою мүмкін болмады.",
+    "edit_profile_btn": "Профильді өңдеу",
+    "first_name_label": "Аты",
+    "first_name_ph": "Аты",
+    "last_name_label": "Тегі",
+    "last_name_ph": "Тегі",
+    "my_orgs_admin": "Менің ұйымдарым (админ)",
+    "no_admin_orgs": "Сіз ешбір ұйымның әкімшісі емессіз.",
+    "org_title_tooltip": "#{{id}} ұйымы",
+    "organization_fallback": "#{{id}} ұйымы",
+    "orgs_load_error": "Пайдаланушы ұйымдарын жүктеу мүмкін болмады",
     "phone_label": "Телефон",
-    "profile_updated": "Профиль обновлён",
-    "registered_label": "Регистрация",
-    "save_btn": "Сохранить",
-    "save_failed": "Не удалось сохранить профиль.",
-    "saving": "Сохраняем…",
-    "title": "Профиль автора",
+    "profile_updated": "Профиль жаңартылды",
+    "registered_label": "Тіркелу",
+    "save_btn": "Сақтау",
+    "save_failed": "Профильді сақтау мүмкін болмады.",
+    "saving": "Сақталуда…",
+    "title": "Автор профилі",
     "website": "Веб-сайт",
-    "website_link_label": "Ссылка на сайт",
+    "website_link_label": "Сайтқа сілтеме",
     "website_link_ph": "https://…"
   },
   "chief_editor_dashboard": {
     "actions": {
-      "refresh": "Обновить",
-      "reset_search": "Сбросить поиск",
-      "send_to_proofreader": "Отправить корректору",
-      "send_to_proofreader_count": "Отправить корректору"
+      "refresh": "Жаңарту",
+      "reset_search": "Іздеуді ысыру",
+      "send_to_proofreader": "Корректорға жіберу",
+      "send_to_proofreader_count": "Корректорға жіберу"
     },
     "batch": {
-      "none": "Нет групповых действий",
-      "title": "Батч-операции"
+      "none": "Топтық әрекеттер жоқ",
+      "title": "Пакеттік операциялар"
     },
     "buttons": {
-      "details": "Детали",
-      "open": "Открыть"
+      "details": "Толық ақпарат",
+      "open": "Ашу"
     },
     "dash": "—",
     "details_panel": {
-      "article": "Статья",
+      "article": "Мақала",
       "author": "Автор:",
-      "created": "Создана:",
-      "helper": "Выберите строку и нажмите ",
-      "helper_tail": ", чтобы принять решение и перейти к статье.",
-      "open_article": "Открыть страницу статьи",
-      "title": "Панель деталей"
+      "created": "Жасалды:",
+      "helper": "Жолды таңдап, шешім қабылдау және мақалаға өту үшін ",
+      "helper_tail": " түймесін басыңыз.",
+      "open_article": "Мақала бетін ашу",
+      "title": "Толық ақпарат панелі"
     },
     "empty": {
-      "desc_prefix": "В очереди",
-      "desc_suffix": "нет статей под текущие фильтры.",
-      "title": "Пока пусто"
+      "desc_prefix": "Кезекте",
+      "desc_suffix": "ағымдағы сүзгілер бойынша мақалалар жоқ.",
+      "title": "Әзірше бос"
     },
     "errors": {
-      "send_to_proofreader": "Не удалось отправить корректору"
+      "send_to_proofreader": "Корректорға жіберу мүмкін болмады"
     },
     "hints": {
-      "shortcuts": " / — поиск, R — обновить, O — детали, S — отправить корректору"
+      "shortcuts": " / — іздеу, R — жаңарту, O — толық ақпарат, S — корректорға жіберу"
     },
     "journal_fallback": "",
     "loading": {
-      "memberships": "Проверяем права главреда…"
+      "memberships": "Бас редактор құқықтары тексерілуде…"
     },
-    "no_rights": "Нет прав главреда — доступных журналов не найдено.",
+    "no_rights": "Бас редактор құқықтары жоқ — қолжетімді журналдар табылмады.",
     "panel": "Панель",
-    "per_page": "/стр",
+    "per_page": "/бет",
     "placeholders": {
-      "limit": "Порог",
-      "search": "Поиск по заголовку/автору…  (нажмите /)",
-      "select_journal": "Выберите журнал",
-      "sort": "Сортировка"
+      "limit": "Шектеу",
+      "search": "Тақырыбы/авторы бойынша іздеу…  (/ басыңыз)",
+      "select_journal": "Журналды таңдаңыз",
+      "sort": "Сұрыптау"
     },
     "queues": {
-      "chief": "Ожидают решения",
-      "chief_desc": "UR с accepted/completed отзывами",
-      "production": "В производстве",
-      "production_desc": "Этап корректора/верстки",
-      "published": "Опубликовано",
-      "published_desc": "Для обзора",
-      "title": "Очереди"
+      "chief": "Шешімді күтуде",
+      "chief_desc": "UR қабылданған/аяқталған пікірлері бар",
+      "production": "Өндірісте",
+      "production_desc": "Корректор/беттеу кезеңі",
+      "published": "Жарияланды",
+      "published_desc": "Қарап шығу үшін",
+      "title": "Кезектер"
     },
     "selection": {
-      "clear": "Снять выделение",
-      "selected": "Выбрано:"
+      "clear": "Таңдауды алып тастау",
+      "selected": "Таңдалды:"
     },
     "sort": {
-      "new_old": "Новее → старее",
-      "old_new": "Старее → новее",
-      "title_az": "Заголовок A→Z",
-      "title_za": "Заголовок Z→A"
+      "new_old": "Жаңа → ескі",
+      "old_new": "Ескі → жаңа",
+      "title_az": "Тақырып A→Z",
+      "title_za": "Тақырып Z→A"
     },
     "table": {
-      "actions": "Действия",
+      "actions": "Әрекеттер",
       "aria": {
-        "select_row": "Выбрать строку"
+        "select_row": "Жолды таңдау"
       },
-      "article": "Статья",
+      "article": "Мақала",
       "author": "Автор",
-      "created": "Создана",
-      "deselect_all": "Снять все",
+      "created": "Жасалды",
+      "deselect_all": "Барлығын алып тастау",
       "journal_author": "Журнал",
-      "select_all": "Выбрать все",
-      "status": "Статус"
+      "select_all": "Барлығын таңдау",
+      "status": "Мәртебе"
     },
-    "title": "Дашборд главного редактора",
+    "title": "Бас редактор дашборды",
     "titles": {
-      "hide_panel": "Скрыть панель",
-      "show_panel": "Показать панель"
+      "hide_panel": "Панельді жасыру",
+      "show_panel": "Панельді көрсету"
     },
-    "updated": "Обновлено:",
+    "updated": "Жаңартылды:",
     "view": {
-      "compact": "Плотно",
-      "normal": "Обычно"
+      "compact": "Тығыз",
+      "normal": "Әдеттегі"
     }
   },
   "editor_dashboard": {
     "actions": {
-      "details": "Детали",
-      "open": "Открыть",
-      "return_to_author": "Вернуть автору"
+      "details": "Толық ақпарат",
+      "open": "Ашу",
+      "return_to_author": "Авторға қайтару"
     },
-    "active_assignments_count": "Активных назначений: ",
+    "active_assignments_count": "Белсенді тағайындаулар: ",
     "batch_ops": {
-      "none": "Нет групповых действий",
-      "return_to_author_count_one": "Вернуть автору ({{count}})",
-      "return_to_author_count_other": "Вернуть автору ({{count}})",
-      "title": "Батч-операции"
+      "none": "Топтық әрекеттер жоқ",
+      "return_to_author_count_one": "Авторға қайтару ({{count}})",
+      "return_to_author_count_other": "Авторға қайтару ({{count}})",
+      "title": "Пакеттік операциялар"
     },
-    "clear_selection": "Снять выделение",
+    "clear_selection": "Таңдауды алып тастау",
     "common": {
-      "cancel": "Отмена"
+      "cancel": "Бас тарту"
     },
     "density": {
-      "compact": "Плотно",
-      "normal": "Обычно"
+      "compact": "Тығыз",
+      "normal": "Әдеттегі"
     },
     "detail": {
-      "article": "Статья",
-      "assignments": "Назначения",
-      "author_created": "Автор: {{author}} • Создана: {{date}}",
-      "due_by": "срок до",
-      "empty_hint": "Выберите строку и нажмите Детали, чтобы назначить рецензента, посмотреть назначения и перейти к статье.",
-      "no_active_assignments": "Активных назначений нет.",
-      "open_article_page": "Открыть страницу статьи",
+      "article": "Мақала",
+      "assignments": "Тағайындаулар",
+      "author_created": "Автор: {{author}} • Жасалды: {{date}}",
+      "due_by": "мерзімі",
+      "empty_hint": "Жолды таңдап, рецензентті тағайындау, тағайындауларды қарау және мақалаға өту үшін Толық ақпарат түймесін басыңыз.",
+      "no_active_assignments": "Белсенді тағайындаулар жоқ.",
+      "open_article_page": "Мақала бетін ашу",
       "reviewer": "Рецензент",
-      "status": "статус"
+      "status": "мәртебе"
     },
     "empty": {
-      "in_queue": "В очереди",
-      "no_articles": "нет статей под текущие фильтры.",
-      "reset_search": "Сбросить поиск",
-      "title": "Пока пусто"
+      "in_queue": "Кезекте",
+      "no_articles": "ағымдағы сүзгілер бойынша мақалалар жоқ.",
+      "reset_search": "Іздеуді ысыру",
+      "title": "Әзірше бос"
     },
     "errors": {
-      "back_to_review": "Не удалось вернуть на рецензию",
-      "request_revision": "Не удалось запросить ревизию"
+      "back_to_review": "Рецензияға қайтару мүмкін болмады",
+      "request_revision": "Ревизияны сұрау мүмкін болмады"
     },
-    "journal_fallback": "Журнал #{{id}}",
-    "loading_permissions": "Проверяем права редактора…",
-    "no_rights": "Нет прав редактора — доступных журналов не найдено.",
-    "page_limit": "Порог",
+    "journal_fallback": "#{{id}} журналы",
+    "loading_permissions": "Редактор құқықтары тексерілуде…",
+    "no_rights": "Редактор құқықтары жоқ — қолжетімді журналдар табылмады.",
+    "page_limit": "Шектеу",
     "panel": {
       "button": "Панель",
-      "details_title": "Панель деталей",
-      "hide_title": "Скрыть панель",
-      "show_title": "Показать панель"
+      "details_title": "Толық ақпарат панелі",
+      "hide_title": "Панельді жасыру",
+      "show_title": "Панельді көрсету"
     },
-    "per_page_one": "{{count}}/стр",
-    "per_page_other": "{{count}}/стр",
+    "per_page_one": "{{count}}/бет",
+    "per_page_other": "{{count}}/бет",
     "queues": {
-      "active_assignments": "С активными назначениями",
-      "assigned": "Назначено",
-      "major": "Крупные правки",
-      "minor": "Небольшие правки",
-      "no_assignees": "Без назначенных рецензентов",
-      "return_to_author": "Вернуть автору",
-      "title": "Очереди",
-      "under_review": "На рецензии",
-      "waiting_fixes": "Ждут корректировок"
+      "active_assignments": "Белсенді тағайындаулармен",
+      "assigned": "Тағайындалды",
+      "major": "Үлкен түзетулер",
+      "minor": "Шағын түзетулер",
+      "no_assignees": "Тағайындалған рецензенттер жоқ",
+      "return_to_author": "Авторға қайтару",
+      "title": "Кезектер",
+      "under_review": "Рецензияда",
+      "waiting_fixes": "Түзетулерді күтуде"
     },
-    "quick_filters": "Быстрые фильтры",
-    "refresh": "Обновить",
+    "quick_filters": "Жылдам сүзгілер",
+    "refresh": "Жаңарту",
     "reviewer": {
-      "add_to_team": "Добавить его в команду журнала как",
-      "already_assigned": "уже назначен",
-      "assign_button": "Назначить рецензента",
-      "assign_failed": "Не удалось назначить рецензента",
-      "assigned": "Рецензент назначен",
-      "assigning": "Назначаем...",
-      "before_assign": "перед назначением",
+      "add_to_team": "Оны журнал командасына қосу",
+      "already_assigned": "тағайындалған",
+      "assign_button": "Рецензентті тағайындау",
+      "assign_failed": "Рецензентті тағайындау мүмкін болмады",
+      "assigned": "Рецензент тағайындалды",
+      "assigning": "Тағайындалуда...",
+      "before_assign": "тағайындау алдында",
       "blind": "Blind",
-      "create_assignment": "Создать назначение",
-      "empty": "Ничего не найдено.",
-      "from_journal": "Выберите из рецензентов журнала",
-      "from_org": "Выберите из организации",
-      "hide_assign": "Скрыть назначение",
-      "not_in_team": "Пользователь не является рецензентом журнала.",
+      "create_assignment": "Тағайындауды жасау",
+      "empty": "Ештеңе табылмады.",
+      "from_journal": "Журнал рецензенттерінен таңдаңыз",
+      "from_org": "Ұйымнан таңдаңыз",
+      "hide_assign": "Тағайындауды жасыру",
+      "not_in_team": "Пайдаланушы журнал рецензенті емес.",
       "placeholder": "",
-      "search_placeholder": "Поиск: имя, email…",
-      "select_required": "Выберите пользователя-рецензента",
-      "show_all_from_org": "Показать всех из организации"
+      "search_placeholder": "Іздеу: аты, email…",
+      "select_required": "Пайдаланушы-рецензентті таңдаңыз",
+      "show_all_from_org": "Ұйымдағы барлығын көрсету"
     },
-    "search_placeholder": "Поиск по заголовку/автору…  (нажмите / чтобы перейти к поиску)",
-    "select_journal": "Выберите журнал",
-    "selected": "Выбрано:",
-    "shortcuts_hint": "/ — поиск, R — обновить, O — детали, M — Вернуть автору",
+    "search_placeholder": "Тақырыбы/авторы бойынша іздеу…  (іздеуге өту үшін / басыңыз)",
+    "select_journal": "Журналды таңдаңыз",
+    "selected": "Таңдалды:",
+    "shortcuts_hint": "/ — іздеу, R — жаңарту, O — толық ақпарат, M — Авторға қайтару",
     "sort": {
-      "new_old": "Новее → старее",
-      "old_new": "Старее → новее",
-      "title_az": "Заголовок A→Z",
-      "title_za": "Заголовок Z→A"
+      "new_old": "Жаңа → ескі",
+      "old_new": "Ескі → жаңа",
+      "title_az": "Тақырып A→Z",
+      "title_za": "Тақырып Z→A"
     },
-    "sorting": "Сортировка",
+    "sorting": "Сұрыптау",
     "status": {
-      "accepted": "Принята",
-      "draft": "Черновик",
-      "in_production": "В производстве",
-      "published": "Опубликована",
-      "rejected": "Отклонена",
+      "accepted": "Қабылданды",
+      "draft": "Жоба",
+      "in_production": "Өндірісте",
+      "published": "Жарияланды",
+      "rejected": "Қабылданбады",
       "revision_major": "Major revision",
       "revision_minor": "Minor revision",
       "screening": "Скрининг",
-      "submitted": "Отправлена",
-      "under_review": "На рецензии"
+      "submitted": "Жіберілді",
+      "under_review": "Рецензияда"
     },
     "table": {
-      "actions": "Действия",
-      "article": "Статья",
+      "actions": "Әрекеттер",
+      "article": "Мақала",
       "author": "Автор",
-      "created": "Создана",
-      "journal_id": "Журнал #{{id}}",
-      "select_all": "Выбрать все",
-      "select_row": "Выбрать строку",
-      "status": "Статус",
-      "unselect_all": "Снять все"
+      "created": "Жасалды",
+      "journal_id": "#{{id}} журналы",
+      "select_all": "Барлығын таңдау",
+      "select_row": "Жолды таңдау",
+      "status": "Мәртебе",
+      "unselect_all": "Барлығын алып тастау"
     },
-    "title": "Дашборд редактора",
-    "updated_at": "Обновлено: {{time}}"
+    "title": "Редактор дашборды",
+    "updated_at": "Жаңартылды: {{time}}"
   },
   "manager_dashboard": {
     "assignments": {
-      "assigned_at": "Назначено",
+      "assigned_at": "Тағайындалды",
       "due_at": "Дедлайн",
-      "empty": "Назначений пока нет.",
-      "loading": "Загружаем назначения…",
+      "empty": "Тағайындаулар әзірге жоқ.",
+      "loading": "Тағайындаулар жүктелуде…",
       "reviewer": "Рецензент",
-      "title": "Назначения рецензентов"
+      "title": "Рецензенттерді тағайындау"
     },
     "common": {
       "author": "Автор",
       "journal_hash": "Журнал #",
-      "open": "Открыть"
+      "open": "Ашу"
     },
     "files": {
-      "confirm_delete": "Удалить файл?",
-      "delete": "Удалить",
-      "delete_failed": "Не удалось удалить файл",
-      "empty": "Файлов пока нет.",
+      "confirm_delete": "Файлды жою керек пе?",
+      "delete": "Жою",
+      "delete_failed": "Файлды жою мүмкін болмады",
+      "empty": "Файлдар әзірге жоқ.",
       "id": "ID",
-      "loading": "Загружаем файлы…",
-      "production_title": "Файлы продакшна",
-      "screening_title": "Файлы для скрининга",
-      "title_default": "Файлы статьи",
-      "upload": "Загрузить",
-      "upload_failed": "Не удалось загрузить файл"
+      "loading": "Файлдар жүктелуде…",
+      "production_title": "Продакшн файлдары",
+      "screening_title": "Скринингке арналған файлдар",
+      "title_default": "Мақала файлдары",
+      "upload": "Жүктеу",
+      "upload_failed": "Файлды жүктеу мүмкін болмады"
     },
     "journal": {
       "label": "Журнал:",
-      "placeholder": "Выберите журнал"
+      "placeholder": "Журналды таңдаңыз"
     },
     "memberships": {
-      "loading": "Проверяем права менеджера…",
-      "none": "Нет прав менеджера — доступных журналов не найдено."
+      "loading": "Менеджер құқықтары тексерілуде…",
+      "none": "Менеджер құқықтары жоқ — қолжетімді журналдар табылмады."
     },
     "org": {
-      "label": "Организация:"
+      "label": "Ұйым:"
     },
     "production": {
-      "empty": "Нет статей в производстве.",
-      "title": "В производстве (In production)"
+      "empty": "Өндірісте мақалалар жоқ.",
+      "title": "Өндірісте (In production)"
     },
     "queues": {
-      "loading": "Загрузка статей…"
+      "loading": "Мақалалар жүктелуде…"
     },
     "screening": {
-      "action_failed": "Операция скрининга не удалась",
-      "checklist_ok": "Все пункты чек-листа ок (scope/format/zgs/antiplag)",
-      "default_return_note": "Требуются доработки по формату/документам",
-      "empty": "Сейчас нет статей на скрининге.",
-      "finish_to_review": "Завершить скрининг → На рецензию",
-      "mark_checklist": "Отметь чек-лист",
-      "notes_placeholder": "Кратко: что проверить/исправить или комментарий для редакции",
-      "notes_title": "Заметки по скринингу",
-      "send_to_review_title": "Отправить на рецензию",
+      "action_failed": "Скрининг операциясы сәтсіз аяқталды",
+      "checklist_ok": "Чек-листтің барлық пункттері орындалды (scope/format/zgs/antiplag)",
+      "default_return_note": "Формат/құжаттар бойынша өңдеу қажет",
+      "empty": "Қазір скринингте мақалалар жоқ.",
+      "finish_to_review": "Скринингті аяқтау → Рецензияға",
+      "mark_checklist": "Чек-листті белгілеңіз",
+      "notes_placeholder": "Қысқаша: не тексеру/түзету керек немесе редакцияға түсініктеме",
+      "notes_title": "Скрининг бойынша ескертулер",
+      "send_to_review_title": "Рецензияға жіберу",
       "title": "Скрининг (Screening)"
     },
     "submitted": {
-      "empty": "Заявок нет.",
-      "title": "Новые подачи (Submitted)"
+      "empty": "Өтінімдер жоқ.",
+      "title": "Жаңа өтінімдер (Submitted)"
     },
-    "title": "Дашборд менеджера"
+    "title": "Менеджер дашборды"
   },
   "proofreader_dashboard": {
     "actions": {
-      "add_to_issue": "Добавить в выпуск",
-      "add_to_issue_count": "Добавить в выпуск",
-      "clear_selection": "Снять выделение",
-      "create_and_add": "+ Создать выпуск и добавить",
-      "create_issue": "Создать выпуск",
-      "delete_pdf": "Удалить",
-      "details": "Детали",
-      "open": "Открыть",
-      "open_card": "Открыть карточку",
-      "publish": "Опубликовать",
-      "refresh": "Обновить",
-      "remove_from_prod": "Снять из прод.",
-      "start_production": "Начать производство"
+      "add_to_issue": "Шығарылымға қосу",
+      "add_to_issue_count": "Шығарылымға қосу",
+      "clear_selection": "Таңдауды алып тастау",
+      "create_and_add": "+ Шығарылым жасау және қосу",
+      "create_issue": "Шығарылым жасау",
+      "delete_pdf": "Жою",
+      "details": "Толық ақпарат",
+      "open": "Ашу",
+      "open_card": "Карточканы ашу",
+      "publish": "Жариялау",
+      "refresh": "Жаңарту",
+      "remove_from_prod": "Өндірістен алып тастау",
+      "start_production": "Өндірісті бастау"
     },
     "alert": {
-      "add_article_to_issue_failed_prefix": "Не удалось добавить",
-      "add_at_least_one_article": "Добавьте в выпуск хотя бы одну статью.",
-      "add_to_issue_failed": "Не удалось добавить статьи.",
-      "added_to_issue": "Статьи добавлены в выпуск.",
-      "back_to_accepted_failed": "Не удалось вернуть в 'Принята'",
-      "choose_articles": "Выберите статьи чекбоксами.",
-      "choose_issue": "Выберите выпуск.",
-      "create_issue_failed": "Не удалось создать выпуск",
-      "delete_pdf_failed": "Не удалось удалить файл",
-      "issue_publish_failed": "Не удалось опубликовать выпуск",
-      "issue_published": "Выпуск опубликован",
-      "need_production_pdf": "Перед публикацией загрузите production PDF.",
-      "publish_article_failed": "Не удалось опубликовать статью",
-      "to_production_failed": "Не удалось перевести в производство",
-      "upload_issue_pdf_failed": "Не удалось загрузить PDF выпуска",
-      "upload_issue_pdf_first": "Сначала загрузите PDF выпуска.",
-      "upload_pdf_failed": "Не удалось загрузить PDF",
-      "upload_pdf_only": "Загрузите PDF."
+      "add_article_to_issue_failed_prefix": "Қосу мүмкін болмады",
+      "add_at_least_one_article": "Шығарылымға кем дегенде бір мақала қосыңыз.",
+      "add_to_issue_failed": "Мақалаларды қосу мүмкін болмады.",
+      "added_to_issue": "Мақалалар шығарылымға қосылды.",
+      "back_to_accepted_failed": "'Қабылданды' күйіне қайтару мүмкін болмады",
+      "choose_articles": "Чекбокспен мақалаларды таңдаңыз.",
+      "choose_issue": "Шығарылымды таңдаңыз.",
+      "create_issue_failed": "Шығарылым жасау мүмкін болмады",
+      "delete_pdf_failed": "Файлды жою мүмкін болмады",
+      "issue_publish_failed": "Шығарылымды жариялау мүмкін болмады",
+      "issue_published": "Шығарылым жарияланды",
+      "need_production_pdf": "Жариялау алдында production PDF-ті жүктеңіз.",
+      "publish_article_failed": "Мақаланы жариялау мүмкін болмады",
+      "to_production_failed": "Өндіріске ауыстыру мүмкін болмады",
+      "upload_issue_pdf_failed": "Шығарылым PDF-ін жүктеу мүмкін болмады",
+      "upload_issue_pdf_first": "Алдымен шығарылым PDF-ін жүктеңіз.",
+      "upload_pdf_failed": "PDF-ті жүктеу мүмкін болмады",
+      "upload_pdf_only": "PDF-ті жүктеңіз."
     },
     "badge": {
-      "issue_published": "Опубликован",
-      "published": "Опубликована"
+      "issue_published": "Жарияланды",
+      "published": "Жарияланды"
     },
     "batch": {
-      "title": "Групповые действия"
+      "title": "Топтық әрекеттер"
     },
     "confirm": {
-      "delete_pdf": "Удалить PDF?"
+      "delete_pdf": "PDF-ті жою керек пе?"
     },
     "density": {
-      "compact": "Плотно",
-      "normal": "Обычно"
+      "compact": "Тығыз",
+      "normal": "Әдеттегі"
     },
     "detail": {
-      "article": "Статья",
+      "article": "Мақала",
       "author": "Автор:",
-      "created": "Создан:",
-      "pick_row": "Выберите строку и нажмите",
-      "status": "Статус:"
+      "created": "Жасалды:",
+      "pick_row": "Жолды таңдап, ",
+      "status": "Мәртебе:"
     },
     "empty": {
-      "no_articles_for_journal": "Нет статей под выбранный журнал.",
-      "no_journals": "Нет прав корректуры — доступных журналов не найдено.",
-      "queue_or_search_empty": "Пусто в этой очереди или ничего не найдено."
+      "no_articles_for_journal": "Таңдалған журнал бойынша мақалалар жоқ.",
+      "no_journals": "Корректура құқықтары жоқ — қолжетімді журналдар табылмады.",
+      "queue_or_search_empty": "Бұл кезекте бос немесе ештеңе табылмады."
     },
     "hotkeys": {
-      "hint": "/ — поиск, R — обновить, A — добавить в выпуск, C — создать выпуск и добавить"
+      "hint": "/ — іздеу, R — жаңарту, A — шығарылымға қосу, C — шығарылым жасау және қосу"
     },
     "issue": {
-      "pick_left": "Выберите выпуск слева, чтобы загрузить PDF и опубликовать."
+      "pick_left": "PDF жүктеу және жариялау үшін сол жақтағы шығарылымды таңдаңыз."
     },
     "issues": {
-      "none": "Выпусков нет",
-      "title": "Выпуски"
+      "none": "Шығарылымдар жоқ",
+      "title": "Шығарылымдар"
     },
     "journal": {
       "fallback_title": "Журнал",
       "label": "Журнал:"
     },
     "loading": {
-      "issues": "Загрузка…",
-      "membership": "Проверяем права корректуры…"
+      "issues": "Жүктелуде…",
+      "membership": "Корректура құқықтары тексерілуде…"
     },
     "organization": {
-      "label": "Организация:"
+      "label": "Ұйым:"
     },
     "panel": {
       "title": "Панель"
     },
     "pdf": {
-      "download": "Скачать PDF",
-      "none": "нет",
-      "not_uploaded": "PDF не загружен",
-      "upload": "Загрузить PDF"
+      "download": "PDF-ті жүктеу",
+      "none": "жоқ",
+      "not_uploaded": "PDF жүктелмеген",
+      "upload": "PDF-ті жүктеу"
     },
-    "per_page": "стр",
+    "per_page": "бет",
     "placeholders": {
-      "choose_issue": "Выберите выпуск…",
-      "page_size": "Порог",
-      "select_journal": "Выберите журнал",
-      "sort": "Сортировка"
+      "choose_issue": "Шығарылымды таңдаңыз…",
+      "page_size": "Шектеу",
+      "select_journal": "Журналды таңдаңыз",
+      "sort": "Сұрыптау"
     },
     "prompt": {
-      "issue_title": "Название выпуска (например: Август 2025):"
+      "issue_title": "Шығарылым атауы (мысалы: Тамыз 2025):"
     },
     "queues": {
-      "accepted": "Приняты",
-      "accepted_desc": "Готовы к старту производства",
-      "in_production": "В производстве",
-      "in_production_desc": "PDF, корректура, добавление в выпуск",
-      "published": "Опубликовано",
-      "published_desc": "Готово, для обзора",
-      "title": "Очереди"
+      "accepted": "Қабылданды",
+      "accepted_desc": "Өндірісті бастауға дайын",
+      "in_production": "Өндірісте",
+      "in_production_desc": "PDF, корректура, шығарылымға қосу",
+      "published": "Жарияланды",
+      "published_desc": "Дайын, қарау үшін",
+      "title": "Кезектер"
     },
     "row": {
       "author": "Автор",
       "journal": "Журнал"
     },
     "search": {
-      "placeholder": "Поиск по заголовку/автору…  (нажмите /)"
+      "placeholder": "Тақырыбы/авторы бойынша іздеу…  (/ басыңыз)"
     },
-    "selected": "Выбрано:",
+    "selected": "Таңдалды:",
     "sort": {
-      "new_old": "Новее → старее",
-      "old_new": "Старее → новее",
-      "title_az": "Заголовок A→Z",
-      "title_za": "Заголовок Z→A"
+      "new_old": "Жаңа → ескі",
+      "old_new": "Ескі → жаңа",
+      "title_az": "Тақырып A→Z",
+      "title_za": "Тақырып Z→A"
     },
     "table": {
-      "actions": "Действия",
-      "article": "Статья",
-      "created": "Создана",
-      "status": "Статус"
+      "actions": "Әрекеттер",
+      "article": "Мақала",
+      "created": "Жасалды",
+      "status": "Мәртебе"
     },
-    "title": "Дашборд корректуры",
+    "title": "Корректура дашборды",
     "tooltip": {
-      "delete_pdf": "Удалить PDF",
-      "hide_panel": "Скрыть панель",
-      "select_all": "Выбрать все",
-      "show_panel": "Показать панель",
-      "unselect_all": "Снять все"
+      "delete_pdf": "PDF-ті жою",
+      "hide_panel": "Панельді жасыру",
+      "select_all": "Барлығын таңдау",
+      "show_panel": "Панельді көрсету",
+      "unselect_all": "Барлығын алып тастау"
     },
-    "updated": "Обновлено:"
+    "updated": "Жаңартылды:"
   },
   "secretary_dashboard": {
     "actions": {
-      "details": "Детали",
-      "move_to_screening_failed": "Не удалось перевести на скрининг",
-      "open": "Открыть",
-      "return_to_draft_failed": "Не удалось вернуть в черновик",
-      "to_screening": "На скрининг"
+      "details": "Толық ақпарат",
+      "move_to_screening_failed": "Скринингке ауыстыру мүмкін болмады",
+      "open": "Ашу",
+      "return_to_draft_failed": "Жобаға қайтару мүмкін болмады",
+      "to_screening": "Скринингке"
     },
     "batch": {
-      "none": "Нет групповых действий",
-      "title": "Батч-операции",
-      "to_screening": "На скрининг"
+      "none": "Топтық әрекеттер жоқ",
+      "title": "Пакеттік операциялар",
+      "to_screening": "Скринингке"
     },
     "density": {
-      "compact": "Плотно",
-      "normal": "Обычно"
+      "compact": "Тығыз",
+      "normal": "Әдеттегі"
     },
     "details": {
-      "article": "Статья",
-      "author_created": "Автор: {{author}} • Создана: {{date}}",
-      "empty_hint": "Выберите строку и нажмите Детали, чтобы посмотреть файлы и скрининг.",
-      "open_article_page": "Открыть страницу статьи"
+      "article": "Мақала",
+      "author_created": "Автор: {{author}} • Жасалды: {{date}}",
+      "empty_hint": "Файлдар мен скринингті көру үшін жолды таңдап, Толық ақпарат түймесін басыңыз.",
+      "open_article_page": "Мақала бетін ашу"
     },
     "details_panel": {
-      "title": "Панель деталей"
+      "title": "Толық ақпарат панелі"
     },
     "empty": {
-      "desc_prefix": "В очереди",
-      "desc_suffix": "нет статей под текущие фильтры.",
+      "desc_prefix": "Кезекте",
+      "desc_suffix": "ағымдағы сүзгілер бойынша мақалалар жоқ.",
       "queue_screening": "Скрининг",
       "queue_submitted": "Submitted",
-      "reset_search": "Сбросить поиск",
-      "title": "Пока пусто"
+      "reset_search": "Іздеуді ысыру",
+      "title": "Әзірше бос"
     },
     "files": {
-      "confirm_delete": "Удалить файл?",
-      "delete": "Удалить",
-      "delete_failed": "Не удалось удалить файл",
-      "empty": "Файлов нет.",
-      "loading": "Загрузка файлов…",
-      "open": "Открыть",
-      "pick_file": "Выберите файл",
-      "refresh_title": "Обновить файлы",
-      "title": "Файлы",
+      "confirm_delete": "Файлды жою керек пе?",
+      "delete": "Жою",
+      "delete_failed": "Файлды жою мүмкін болмады",
+      "empty": "Файлдар жоқ.",
+      "loading": "Файлдар жүктелуде…",
+      "open": "Ашу",
+      "pick_file": "Файлды таңдаңыз",
+      "refresh_title": "Файлдарды жаңарту",
+      "title": "Файлдар",
       "type": {
-        "antiplag_report": "Отчет об оригинальности",
-        "supplement": "Дополнительно",
-        "zgs": "Допуск ЗГС"
+        "antiplag_report": "Түпнұсқалық туралы есеп",
+        "supplement": "Қосымша",
+        "zgs": "ЗГС рұқсаты"
       },
-      "type_placeholder": "Тип файла",
-      "upload": "Загрузить",
-      "upload_failed": "Не удалось загрузить файл",
-      "uploaded_at": "Загружено: {{date}}",
-      "uploading": "Загрузка…"
+      "type_placeholder": "Файл түрі",
+      "upload": "Жүктеу",
+      "upload_failed": "Файлды жүктеу мүмкін болмады",
+      "uploaded_at": "Жүктелді: {{date}}",
+      "uploading": "Жүктелуде…"
     },
-    "hotkeys_hint": "/ — поиск, R — обновить, O — открыть, S — на скрининг",
+    "hotkeys_hint": "/ — іздеу, R — жаңарту, O — ашу, S — скринингке",
     "journal": {
-      "fallback_title": "Журнал #{{id}}"
+      "fallback_title": "#{{id}} журналы"
     },
-    "loading_rights": "Проверяем права секретаря…",
-    "no_rights": "Нет прав секретаря — доступных журналов не найдено.",
+    "loading_rights": "Хатшы құқықтары тексерілуде…",
+    "no_rights": "Хатшы құқықтары жоқ — қолжетімді журналдар табылмады.",
     "page_size": {
-      "option": "{{n}}/стр",
-      "placeholder": "Порог"
+      "option": "{{n}}/бет",
+      "placeholder": "Шектеу"
     },
     "panel": {
-      "hide": "Скрыть панель",
-      "show": "Показать панель",
+      "hide": "Панельді жасыру",
+      "show": "Панельді көрсету",
       "title": "Панель"
     },
-    "pick_journal": "Выберите журнал",
+    "pick_journal": "Журналды таңдаңыз",
     "queues": {
       "screening": {
-        "desc": "Формальная проверка",
+        "desc": "Формалды тексеру",
         "title": "Скрининг"
       },
       "submitted": {
-        "desc": "Новые подачи авторов",
-        "title": "Подачи"
+        "desc": "Авторлардың жаңа өтінімдері",
+        "title": "Өтінімдер"
       },
-      "title": "Очереди"
+      "title": "Кезектер"
     },
-    "quick_filters": "Быстрые фильтры",
-    "refresh": "Обновить",
+    "quick_filters": "Жылдам сүзгілер",
+    "refresh": "Жаңарту",
     "screening": {
-      "antiplag_ok": "Антиплагиат пройден",
-      "finish_to_review": "Завершить → На рецензию",
-      "finish_to_review_title": "Все ОК → на рецензию",
-      "format_ok": "Оформление корректно",
-      "notes_placeholder": "Заметки/комментарии (необязательно)",
-      "save_failed": "Не удалось сохранить результаты скрининга",
-      "scope_ok": "Соответствует тематике",
+      "antiplag_ok": "Антиплагиат өтті",
+      "finish_to_review": "Аяқтау → Рецензияға",
+      "finish_to_review_title": "Бәрі Ок → рецензияға",
+      "format_ok": "Рәсімдеу дұрыс",
+      "notes_placeholder": "Ескертулер/түсініктемелер (міндетті емес)",
+      "save_failed": "Скрининг нәтижелерін сақтау мүмкін болмады",
+      "scope_ok": "Тақырыпқа сәйкес келеді",
       "title": "Скрининг",
-      "zgs_ok": "Допуск ЗГС получен"
+      "zgs_ok": "ЗГС рұқсаты алынды"
     },
     "search": {
-      "placeholder": "Поиск по заголовку/автору…  (нажмите / чтобы перейти к поиску)"
+      "placeholder": "Тақырыбы/авторы бойынша іздеу…  (іздеуге өту үшін / басыңыз)"
     },
     "selection": {
-      "clear": "Снять выделение",
-      "count_one": "Выбрано: {{count}}",
-      "count_other": "Выбрано: {{count}}"
+      "clear": "Таңдауды алып тастау",
+      "count_one": "Таңдалды: {{count}}",
+      "count_other": "Таңдалды: {{count}}"
     },
     "sort": {
-      "new_old": "Новее → старее",
-      "old_new": "Старее → новее",
-      "placeholder": "Сортировка",
-      "title_az": "Заголовок A→Z",
-      "title_za": "Заголовок Z→A"
+      "new_old": "Жаңа → ескі",
+      "old_new": "Ескі → жаңа",
+      "placeholder": "Сұрыптау",
+      "title_az": "Тақырып A→Z",
+      "title_za": "Тақырып Z→A"
     },
     "status": {
-      "accepted": "Принята",
-      "draft": "Черновик",
-      "in_production": "В производстве",
-      "published": "Опубликована",
-      "rejected": "Отклонена",
+      "accepted": "Қабылданды",
+      "draft": "Жоба",
+      "in_production": "Өндірісте",
+      "published": "Жарияланды",
+      "rejected": "Қабылданбады",
       "revision_major": "Major revision",
       "revision_minor": "Minor revision",
       "screening": "Скрининг",
-      "submitted": "Отправлена",
-      "under_review": "На рецензии"
+      "submitted": "Жіберілді",
+      "under_review": "Рецензияда"
     },
     "table": {
-      "col_actions": "Действия",
-      "col_article": "Статья",
+      "col_actions": "Әрекеттер",
+      "col_article": "Мақала",
       "col_author": "Автор",
-      "col_created": "Создана",
-      "col_status": "Статус",
-      "journal_id": "Журнал #{{id}}",
-      "row_select_aria": "Выбрать строку",
-      "select_all": "Выбрать все",
-      "select_none": "Снять все"
+      "col_created": "Жасалды",
+      "col_status": "Мәртебе",
+      "journal_id": "#{{id}} журналы",
+      "row_select_aria": "Жолды таңдау",
+      "select_all": "Барлығын таңдау",
+      "select_none": "Барлығын алып тастау"
     },
-    "title": "Дашборд секретаря",
-    "updated_at": "Обновлено: {{date}}"
+    "title": "Хатшы дашборды",
+    "updated_at": "Жаңартылды: {{date}}"
   }
 }

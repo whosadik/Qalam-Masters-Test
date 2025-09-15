@@ -7,7 +7,14 @@
   "editorial_board": "Editorial Board",
   "journals": "Journals",
   "login": "Sign in",
+  "moderator": "Moderator",
   "news": "News",
+  "profile_menu": {
+    "logout": "Log out",
+    "open_profile_menu": "Open profile menu",
+    "profile": "Profile",
+    "profile_menu": "Profile menu"
+  },
   "publication_terms": "Publication terms",
   "register": "Sign up"
 }

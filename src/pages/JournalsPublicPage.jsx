@@ -44,6 +44,8 @@ function LetterAvatar({ name }) {
 
 // Карточка журнала
 function JournalCard({ j }) {
+  const { t } = useTranslation(["journal_public"]);
+
   // безопасные маппинги полей
   const id = j.id ?? j.pk ?? j.uuid ?? j.slug;
   const title = j.title || t("journal_public:public_page.unknown_title", "Без названия");
