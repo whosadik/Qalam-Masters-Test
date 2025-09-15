@@ -14,6 +14,7 @@ import { Loader2, RefreshCcw, Trash2, Save } from "lucide-react";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { tokenStore } from "@/lib/apiClient";
+import { useTranslation } from "react-i18next";
 
 /* ── local helpers ───────────────────────────────────────────── */
 const ROLES = ["member", "admin"];
@@ -98,6 +99,8 @@ async function removeMember(id, orgId) {
 }
 /* ── component ───────────────────────────────────────────────── */
 export default function OrgMembersManager({ orgId }) {
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
   const [error, setError] = useState("");
@@ -126,7 +129,7 @@ export default function OrgMembersManager({ orgId }) {
       setError(
         e?.response?.data?.detail ||
           e?.message ||
-          "Не удалось загрузить участников организации"
+          t("moderator_orgs:org_members_manager.load_error", "Не удалось загрузить участников организации")
       );
       setMembers([]);
     } finally {
@@ -168,7 +171,7 @@ export default function OrgMembersManager({ orgId }) {
   async function handleAdd() {
     const mail = email.trim();
     if (!EMAIL_RE.test(mail)) {
-      alert("Введите корректный email");
+      alert(t("moderator_orgs:org_members_manager.enter_valid_email", "Введите корректный email"));
       return;
     }
     setBusyAdd(true);
@@ -182,7 +185,7 @@ export default function OrgMembersManager({ orgId }) {
         e?.response?.data?.detail ||
         e?.response?.data?.email?.[0] ||
         e?.response?.data?.error ||
-        "Не удалось добавить участника";
+          t("moderator_orgs:org_members_manager.add_failed", "Не удалось добавить участника");
       alert(msg);
     } finally {
       setBusyAdd(false);
@@ -197,7 +200,7 @@ export default function OrgMembersManager({ orgId }) {
     ); // если нужно хранить предыдущее
     const becomingAdmin = adminRoles.has(role);
     if (!becomingAdmin && wasAdmin && admins.length <= 1) {
-      alert("Нельзя убирать роль у последнего администратора организации.");
+      alert(t("moderator_orgs:org_members_manager.cannot_downgrade_last_admin", "Нельзя убирать роль у последнего администратора организации."));
       return;
     }
     setSavingId(mid);
@@ -209,7 +212,7 @@ export default function OrgMembersManager({ orgId }) {
       );
       await load();
     } catch (e) {
-      alert(e?.response?.data?.detail || "Не удалось сохранить изменения");
+      alert(e?.response?.data?.detail || t("moderator_orgs:org_members_manager.save_failed", "Не удалось сохранить изменения"));
     } finally {
       setSavingId(null);
     }
@@ -226,19 +229,19 @@ export default function OrgMembersManager({ orgId }) {
 
     // Клиентские гарды, чтобы не ловить 403/400 от сервера
     if (isSelf) {
-      alert("Нельзя удалить самого себя из организации.");
+      alert(t("moderator_orgs:org_members_manager.cannot_remove_self", "Нельзя удалить самого себя из организации."));
       return;
     }
     if (targetRole === "owner") {
-      alert("Нельзя удалить владельца организации.");
+      alert(t("moderator_orgs:org_members_manager.cannot_remove_owner", "Нельзя удалить владельца организации."));
       return;
     }
     if (isTargetAdmin && adminCount <= 1) {
-      alert("Нельзя удалить последнего администратора организации.");
+      alert(t("moderator_orgs:org_members_manager.cannot_remove_last_admin", "Нельзя удалить последнего администратора организации."));
       return;
     }
 
-    if (!confirm("Удалить участника из организации?")) return;
+    if (!confirm(t("moderator_orgs:org_members_manager.confirm_remove", "Удалить участника из организации?"))) return;
     setRemovingId(id);
     try {
       const target = members.find((m) => getMembershipId(m) === id);
@@ -249,10 +252,10 @@ export default function OrgMembersManager({ orgId }) {
       const s = e?.response?.status;
       alert(
         s === 404
-          ? "Участник не найден или у вас нет прав на удаление."
-          : s === 403
-            ? "Недостаточно прав для удаления участника."
-            : e?.response?.data?.detail || "Не удалось удалить участника"
+            ? t("moderator_orgs:org_members_manager.remove_not_found_or_forbidden", "Участник не найден или у вас нет прав на удаление.")
+            : s === 403
+                ? t("moderator_orgs:org_members_manager.remove_forbidden", "Недостаточно прав для удаления участника.")
+                : e?.response?.data?.detail || t("moderator_orgs:org_members_manager.remove_failed", "Не удалось удалить участника")
       );
     } finally {
       setRemovingId(null);
@@ -265,7 +268,7 @@ export default function OrgMembersManager({ orgId }) {
         {/* Добавление по email */}
         <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm font-medium mb-3">
-            Добавить участника по email
+            {t("moderator_orgs:org_members_manager.add_by_email_title", "Добавить участника по email")}
           </div>
           <div className="flex flex-col md:flex-row gap-2 md:items-center">
             <input
@@ -278,26 +281,29 @@ export default function OrgMembersManager({ orgId }) {
             <div className="flex items-center gap-2">
               <Select value={role} onValueChange={setRole}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Роль" />
+                  <SelectValue placeholder={t("moderator_orgs:org_members_manager.role_placeholder", "Роль")} />
                 </SelectTrigger>
                 <SelectContent>
                   {ROLES.map((r) => (
                     <SelectItem key={r} value={r}>
-                      {ROLE_LABEL[r]}
+                      {r === "member"
+                          ? t("moderator_orgs:org_members_manager.role.member", "Участник")
+                          : t("moderator_orgs:org_members_manager.role.admin", "Админ")}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Button onClick={handleAdd} disabled={busyAdd}>
                 {busyAdd && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Добавить
+                {t("moderator_orgs:org_members_manager.add_btn", "Добавить")}
               </Button>
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Введите email существующего пользователя. Если у него ещё нет
-            аккаунта, бэкенд может отклонить запрос (или создать приглашение —
-            зависит от реализации).
+            {t(
+                "moderator_orgs:org_members_manager.add_help",
+                "Введите email существующего пользователя. Если у него ещё нет аккаунта, бэкенд может отклонить запрос (или создать приглашение — зависит от реализации)."
+            )}
           </p>
         </div>
 
@@ -307,13 +313,13 @@ export default function OrgMembersManager({ orgId }) {
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Поиск по ФИО / email / роли…"
+            placeholder={t("moderator_orgs:org_members_manager.search_placeholder", "Поиск по ФИО / email / роли…")}
             className="w-full md:w-96 h-10 px-3 rounded-md border"
           />
           {loading && (
             <div className="text-sm text-gray-500 flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Загрузка списка…
+              {t("moderator_orgs:org_members_manager.loading", "Загрузка списка…")}
             </div>
           )}
         </div>
@@ -324,21 +330,23 @@ export default function OrgMembersManager({ orgId }) {
             {error}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-gray-500">Участников нет.</div>
+          <div className="text-gray-500">
+            {t("moderator_orgs:org_members_manager.empty", "Участников нет.")}
+          </div>
         ) : (
           <div className="overflow-x-auto ">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-600 border-b">
-                  <th className="py-2 pr-3">ФИО</th>
-                  <th className="py-2 pr-3">Email</th>
-                  <th className="py-2 pr-3">Роль</th>
-                  <th className="py-2 pr-3">Активен</th>
-                  <th className="py-2 pr-3 w-44">Действия</th>
+                  <th className="py-2 pr-3">{t("moderator_orgs:org_members_manager.th_name", "ФИО")}</th>
+                  <th className="py-2 pr-3">{t("moderator_orgs:org_members_manager.th_email", "Email")}</th>
+                  <th className="py-2 pr-3">{t("moderator_orgs:org_members_manager.th_role", "Роль")}</th>
+                  <th className="py-2 pr-3">{t("moderator_orgs:org_members_manager.th_active", "Активен")}</th>
+                  <th className="py-2 pr-3 w-44">{t("moderator_orgs:org_members_manager.th_actions", "Действия")}</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((m) => {
+              {filtered.map((m) => {
                   const mid = getMembershipId(m);
                   return (
                     <tr
@@ -367,7 +375,9 @@ export default function OrgMembersManager({ orgId }) {
                             <SelectContent>
                               {ROLES.map((r) => (
                                 <SelectItem key={r} value={r}>
-                                  {ROLE_LABEL[r]}
+                                  {r === "member"
+                                      ? t("moderator_orgs:org_members_manager.role.member", "Участник")
+                                      : t("moderator_orgs:org_members_manager.role.admin", "Админ")}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -390,7 +400,9 @@ export default function OrgMembersManager({ orgId }) {
                             }
                           />
                           <span className="text-xs text-gray-600">
-                            {m.is_active ? "да" : "нет"}
+                            {m.is_active
+                                ? t("moderator_orgs:org_members_manager.yes", "да")
+                                : t("moderator_orgs:org_members_manager.no", "нет")}
                           </span>
                         </label>
                       </td>
@@ -406,7 +418,7 @@ export default function OrgMembersManager({ orgId }) {
                             ) : (
                               <Save className="w-4 h-4 mr-2" />
                             )}
-                            Сохранить
+                            {t("moderator_orgs:org_members_manager.save_btn", "Сохранить")}
                           </Button>
                           {(() => {
                             const role = String(m?.role || "").toLowerCase();
@@ -420,11 +432,11 @@ export default function OrgMembersManager({ orgId }) {
                               (isAdminRow && admins.length <= 1);
                             const title =
                               role === "owner"
-                                ? "Нельзя удалить владельца"
+                                ? t("moderator_orgs:org_members_manager.tip_cannot_remove_owner", "Нельзя удалить владельца")
                                 : isSelfRow
-                                  ? "Нельзя удалить самого себя"
+                                  ? t("moderator_orgs:org_members_manager.tip_cannot_remove_self", "Нельзя удалить самого себя")
                                   : isAdminRow && admins.length <= 1
-                                    ? "Нельзя удалить последнего администратора"
+                                    ? t("moderator_orgs:org_members_manager.tip_cannot_remove_last_admin", "Нельзя удалить последнего администратора")
                                     : undefined;
                             return (
                               <Button
@@ -439,7 +451,7 @@ export default function OrgMembersManager({ orgId }) {
                                 ) : (
                                   <Trash2 className="w-4 h-4 mr-2" />
                                 )}
-                                Удалить
+                                {t("moderator_orgs:org_members_manager.delete_btn", "Удалить")}
                               </Button>
                             );
                           })()}

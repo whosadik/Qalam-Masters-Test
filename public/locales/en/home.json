@@ -1,23 +1,23 @@
 {
   "authors": {
-    "cta_catalog": "Каталог журналов",
-    "cta_submit": "Подать статью",
+    "cta_catalog": "Journals Catalog",
+    "cta_submit": "Submit Article",
     "steps": {
       "1": {
-        "desc": "Создайте аккаунт и заполните профиль автора.",
-        "title": "Регистрация"
+        "desc": "Create an account and fill out the author profile.",
+        "title": "Registration"
       },
       "2": {
-        "desc": "Найдите подходящий журнал в каталоге.",
-        "title": "Выбор журнала"
+        "desc": "Find a suitable journal in the catalog.",
+        "title": "Choosing a Journal"
       },
       "3": {
-        "desc": "Загрузите файл, метаданные, сопроводительные документы.",
-        "title": "Подача статьи"
+        "desc": "Upload the file, metadata, and supporting documents.",
+        "title": "Article Submission"
       },
       "4": {
-        "desc": "Отслеживайте статусы и получайте решение редакции.",
-        "title": "Рецензия → решение"
+        "desc": "Track statuses and receive the editorial decision.",
+        "title": "Review → Decision"
       }
     }
   },
@@ -25,100 +25,100 @@
   "cta_join_org": "Join organization",
   "cta_submit": "Submit an article",
   "features": {
-    "badge": "Возможности",
+    "badge": "Features",
     "items": {
       "analytics": {
-        "desc": "Отчёты по срокам рецензий, отказам/принятию, активности редакций.",
-        "title": "Аналитика"
+        "desc": "Reports on review deadlines, rejections/acceptances, and editorial activity.",
+        "title": "Analytics"
       },
       "antiplag": {
-        "desc": "Интеграции и проверки оригинальности, поддержка этики публикаций.",
-        "title": "Антиплагиат и соответствие"
+        "desc": "Integrations and originality checks, support for publication ethics.",
+        "title": "Anti-plagiarism & Compliance"
       },
       "issues": {
-        "desc": "Публичные страницы журналов, номера, метаданные и индексация.",
-        "title": "Выпуски и архивы"
+        "desc": "Public journal pages, issues, metadata, and indexing.",
+        "title": "Issues & Archives"
       },
       "multi_journal": {
-        "desc": "Одна организация — несколько журналов, независимые команды и политики.",
-        "title": "Мульти-журналы"
+        "desc": "One organization — multiple journals, independent teams and policies.",
+        "title": "Multi-Journals"
       },
       "roles": {
-        "desc": "Авторы, рецензенты, редакторы и администраторы с гибкими правами.",
-        "title": "Роли и маршруты"
+        "desc": "Authors, reviewers, editors, and admins with flexible permissions.",
+        "title": "Roles & Workflows"
       },
       "smart_submit": {
-        "desc": "Шаблоны, чек-листы, валидаторы полей и файлов для качества рукописей.",
-        "title": "Умная подача"
+        "desc": "Templates, checklists, and validators for fields and files to ensure manuscript quality.",
+        "title": "Smart Submission"
       }
     },
-    "title": "Автоматизация полного цикла"
+    "title": "Full-Cycle Automation"
   },
   "hero": {
-    "cta_org_dashboard": "Кабинет организации",
+    "cta_org_dashboard": "Organization Dashboard",
     "mock": {
-      "antiplagiarism": "Антиплагиат · 92%",
-      "new_article": "Новая статья",
-      "reviewers": "Рецензенты · 2",
-      "status": "Статус · На рецензии"
+      "antiplagiarism": "Anti-plagiarism · 92%",
+      "new_article": "New Article",
+      "reviewers": "Reviewers · 2",
+      "status": "Status · Under Review"
     },
-    "point_ethics": "Этика и антиплагиат",
-    "point_issues": "Выпуски и архивы",
-    "point_reports": "Отчёты и метрики",
-    "point_roles": "Роли: авторы, рецензенты, редакторы"
+    "point_ethics": "Ethics & Anti-plagiarism",
+    "point_issues": "Issues & Archives",
+    "point_reports": "Reports & Metrics",
+    "point_roles": "Roles: authors, reviewers, editors"
   },
-  "hero_subtitle": "Qalam Masters brings together authors and editors: fast submission, transparent peer review, convenient journals and analytics - all in one place.",
-  "hero_title": "A unified platform for authors and journals",
+  "hero_subtitle": "Qalam Masters brings together authors and editors: fast submission, transparent peer review, convenient journals, and analytics — all in one place.",
+  "hero_title": "A Unified Platform for Authors and Journals",
   "orgs": {
-    "cta_create_org": "Создать организацию/журнал",
-    "cta_onboarding": "Онбординг для редакций",
+    "cta_create_org": "Create Organization / Journal",
+    "cta_onboarding": "Onboarding for Editorial Boards",
     "steps": {
       "1": {
-        "desc": "Любое лицо/организация может создать свой аккаунт.",
-        "title": "Создание организации"
+        "desc": "Any individual/organization can create their account.",
+        "title": "Organization Creation"
       },
       "2": {
-        "desc": "Назовите журнал, задайте политику, роли и процесс.",
-        "title": "Запуск журнала"
+        "desc": "Name the journal, set policies, roles, and workflow.",
+        "title": "Journal Launch"
       },
       "3": {
-        "desc": "Приём статей, рецензии, решения, выпуски и архивы.",
-        "title": "Процесс публикаций"
+        "desc": "Article submission, reviews, decisions, issues, and archives.",
+        "title": "Publication Process"
       },
       "4": {
-        "desc": "Статистика по срокам, отказам/принятию, активности.",
-        "title": "Аналитика и отчёты"
+        "desc": "Statistics on timelines, rejections/acceptances, and activity.",
+        "title": "Analytics & Reports"
       }
     }
   },
   "story": {
-    "back_to_top": "Вернуться наверх",
-    "paragraph": "Платформа была создана как технологическая основа для современных научных журналов, стремящихся к качеству, эффективности и международному признанию. Мы поддерживаем высокие стандарты и способствуем развитию научного сообщества.",
+    "back_to_top": "Back to Top",
+    "paragraph": "The platform was created as a technological foundation for modern scientific journals striving for quality, efficiency, and international recognition. We uphold high standards and contribute to the development of the scientific community.",
     "principles": {
       "items": {
-        "1": "• Открытость и прозрачность процесса рецензирования",
-        "2": "• Соблюдение этических стандартов публикации",
-        "3": "• Поддержка молодых исследователей",
-        "4": "• Междисциплинарный подход к науке"
+        "1": "• Openness and transparency of the review process",
+        "2": "• Adherence to publication ethics standards",
+        "3": "• Support for young researchers",
+        "4": "• Interdisciplinary approach to science"
       },
-      "title": "Наши принципы"
+      "title": "Our Principles"
     },
     "quality": {
       "items": {
-        "1": "• Строгий отбор рукописей",
-        "2": "• Квалифицированные рецензенты",
-        "3": "• Соответствие международным стандартам",
-        "4": "• Регулярное повышение качества"
+        "1": "• Rigorous manuscript selection",
+        "2": "• Qualified reviewers",
+        "3": "• Compliance with international standards",
+        "4": "• Continuous quality improvement"
       },
-      "title": "Качество публикаций"
+      "title": "Publication Quality"
     },
-    "title": "История и развитие"
+    "title": "History and Development"
   },
   "tabs": {
-    "badge_how_it_works": "Как это работает",
-    "label_authors": "Авторам",
-    "label_orgs": "Организациям",
-    "subtitle_choose_path": "Выберите подходящий путь — для автора или для организации/частного лица.",
-    "title_two_paths": "Два простых сценария"
+    "badge_how_it_works": "How It Works",
+    "label_authors": "For Authors",
+    "label_orgs": "For Organizations",
+    "subtitle_choose_path": "Choose the suitable path — for an author or for an organization/individual.",
+    "title_two_paths": "Two Simple Scenarios"
   }
 }

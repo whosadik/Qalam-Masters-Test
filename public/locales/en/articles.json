@@ -1,109 +1,109 @@
 {
   "edit": {
     "action": {
-      "back": "Назад",
-      "cancel": "Отмена",
-      "done": "Готово",
-      "open_card": "Открыть карточку статьи",
-      "save": "Сохранить",
-      "saving": "Сохраняю…"
+      "back": "Back",
+      "cancel": "Cancel",
+      "done": "Done",
+      "open_card": "Open article card",
+      "save": "Save",
+      "saving": "Saving…"
     },
     "alert": {
-      "delete_failed": "Не удалось удалить файл.",
-      "save_failed": "Не удалось сохранить изменения.",
-      "upload_failed": "Не удалось загрузить файл."
+      "delete_failed": "Failed to delete file.",
+      "save_failed": "Failed to save changes.",
+      "upload_failed": "Failed to upload file."
     },
     "confirm": {
-      "delete_file": "Удалить файл?"
+      "delete_file": "Delete file?"
     },
     "fields": {
       "title": {
-        "label": "Название",
-        "placeholder": "Название статьи"
+        "label": "Title",
+        "placeholder": "Article title"
       }
     },
     "files": {
-      "delete": "Удалить",
-      "empty": "Файлы не прикреплены.",
+      "delete": "Delete",
+      "empty": "No files attached.",
       "hint": {
-        "auto": "После выбора файл загрузится автоматически."
+        "auto": "The file will be uploaded automatically after selection."
       },
       "list": {
-        "subtitle": "Открыть / удалить",
-        "title": "Загруженные файлы"
+        "subtitle": "Open / delete",
+        "title": "Uploaded files"
       },
-      "need_manuscript": "Для отправки в редакцию нужна рукопись типа ",
-      "open": "Открыть",
+      "need_manuscript": "A manuscript type file is required for submission to the editorial office ",
+      "open": "Open",
       "type": {
-        "antiplag_label": "antiplag_report (антиплагиат)",
-        "label": "Тип файла",
-        "manuscript_label": "manuscript (рукопись)",
+        "antiplag_label": "antiplag_report (plagiarism check)",
+        "label": "File type",
+        "manuscript_label": "manuscript",
         "production_pdf_label": "production_pdf",
         "response_label": "response_to_review",
-        "supplement_label": "supplement (доп. материалы)",
-        "zgs_label": "zgs (экспертное заключение)"
+        "supplement_label": "supplement (additional materials)",
+        "zgs_label": "zgs (expert opinion)"
       },
-      "upload": "Загрузить",
-      "uploading": "Загрузка…"
+      "upload": "Upload",
+      "uploading": "Uploading…"
     },
-    "loading": "Загрузка…",
-    "not_found": "Статья не найдена.",
+    "loading": "Loading…",
+    "not_found": "Article not found.",
     "section": {
-      "form_desc": "Измените метаданные и управляйте файлами",
-      "form_title": "Поля статьи"
+      "form_desc": "Edit metadata and manage files",
+      "form_title": "Article fields"
     },
     "tabs": {
-      "files": "Файлы",
-      "meta": "Метаданные"
+      "files": "Files",
+      "meta": "Metadata"
     },
-    "title": "Редактирование статьи"
+    "title": "Editing article"
   },
   "view": {
     "action": {
-      "back": "Назад",
-      "sending": "Отправляем…",
-      "submit_to_editorial": "Отправить в редакцию",
-      "to_list": "К списку статей"
+      "back": "Back",
+      "sending": "Sending…",
+      "submit_to_editorial": "Submit to editorial office",
+      "to_list": "Back to article list"
     },
-    "back": "Назад",
+    "back": "Back",
     "files": {
-      "empty": "Файлы не прикреплены.",
-      "open": "Открыть",
-      "subtitle": "Загруженные материалы",
-      "title": "Файлы"
+      "empty": "No files attached.",
+      "open": "Open",
+      "subtitle": "Uploaded materials",
+      "title": "Files"
     },
-    "journal_prefix": "Журнал:",
-    "loading": "Загрузка…",
+    "journal_prefix": "Journal:",
+    "loading": "Loading…",
     "meta": {
-      "author": "Автор",
-      "created": "Создана",
-      "files": "Файлы"
+      "author": "Author",
+      "created": "Created",
+      "files": "Files"
     },
     "metadata": {
-      "abstract_en": "Аннотация (EN)",
-      "abstract_ru": "Аннотация (RU)",
-      "author_from_form": "Автор (из формы)",
-      "keywords_en": "Ключевые слова (EN)",
-      "keywords_ru": "Ключевые слова (RU)",
-      "organization": "Организация",
-      "research_goal": "Цель исследования",
-      "research_methods": "Методы исследования",
-      "research_tasks": "Задачи исследования",
-      "subtitle": "Название, аннотации, ключевые слова",
-      "thematic_direction": "Тематическое направление",
-      "title": "Метаданные",
-      "title_en": "Название (EN)",
-      "title_ru": "Название (RU)"
+      "abstract_en": "Abstract (EN)",
+      "abstract_ru": "Abstract (RU)",
+      "author_from_form": "Author (from form)",
+      "keywords_en": "Keywords (EN)",
+      "keywords_ru": "Keywords (RU)",
+      "organization": "Organization",
+      "research_goal": "Research goal",
+      "research_methods": "Research methods",
+      "research_tasks": "Research tasks",
+      "subtitle": "Title, abstracts, keywords",
+      "thematic_direction": "Thematic direction",
+      "title": "Metadata",
+      "title_en": "Title (EN)",
+      "title_ru": "Title (RU)"
     },
     "no_manuscript": {
-      "desc": "Чтобы отправить в редакцию, прикрепите файл типа «Рукопись».",
-      "title": "Загрузите рукопись"
+      "desc": "To submit to the editorial office, attach a file of type 'Manuscript'.",
+      "title": "Upload manuscript"
     },
-    "not_found": "Статья не найдена.",
-    "submit_error": "Не удалось отправить в редакцию. Попробуйте позже.",
+    "not_found": "Article not found.",
+    "submit_error": "Failed to submit to editorial office. Please try again later.",
     "timeline": {
-      "subtitle": "Как статья двигается по пайплайну",
-      "title": "Этапы процесса"
+      "subtitle": "How the article moves through the pipeline",
+      "title": "Process stages"
     }
   }
 }

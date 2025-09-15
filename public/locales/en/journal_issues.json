@@ -1,22 +1,22 @@
 {
-  "cover_alt": "Обложка журнала",
+  "cover_alt": "Journal Cover",
   "create_issue": {
-    "error": "Не удалось создать выпуск"
+    "error": "Failed to create issue"
   },
-  "download_pdf": "Скачать PDF",
-  "issues_title": "Выпуски",
-  "loading": "Загрузка выпусков…",
-  "no_published_yet": "Опубликованных выпусков пока нет.",
-  "pdf_missing": "PDF не загружен",
-  "published_on": "Опубликован:",
+  "download_pdf": "Download PDF",
+  "issues_title": "Issues",
+  "loading": "Loading issues…",
+  "no_published_yet": "No published issues yet.",
+  "pdf_missing": "PDF not uploaded",
+  "published_on": "Published on:",
   "toc": {
-    "back_to_all": "← Ко всем выпускам",
-    "empty": "Пока пусто.",
-    "issue_fallback": "Выпуск",
-    "journal_fallback": "Журнал",
-    "loading": "Загрузка оглавления…",
-    "title": "Оглавление",
-    "unavailable": "Оглавление недоступно."
+    "back_to_all": "← Back to all issues",
+    "empty": "Empty for now.",
+    "issue_fallback": "Issue",
+    "journal_fallback": "Journal",
+    "loading": "Loading table of contents…",
+    "title": "Table of Contents",
+    "unavailable": "Table of contents unavailable."
   },
-  "toc_button": "Оглавление"
+  "toc_button": "Table of Contents"
 }

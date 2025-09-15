@@ -1,20 +1,20 @@
 {
   "authors": {
-    "for_authors": "Для авторов",
-    "submit_article": "Подача статьи",
-    "title": "Авторам"
+    "for_authors": "For Authors",
+    "submit_article": "Submit Article",
+    "title": "Authors"
   },
-  "copyright": "Все права защищены.",
+  "copyright": "All rights reserved.",
   "orgs": {
-    "contact_us": "Связаться с нами",
-    "create_journal": "Создать журнал",
-    "create_org": "Создать организацию",
-    "title": "Организациям"
+    "contact_us": "Contact Us",
+    "create_journal": "Create Journal",
+    "create_org": "Create Organization",
+    "title": "For Organizations"
   },
   "platform": {
-    "journals_catalog": "Каталог журналов",
-    "privacy_policy": "Политика конфиденциальности",
-    "title": "Платформа"
+    "journals_catalog": "Journals Catalog",
+    "privacy_policy": "Privacy Policy",
+    "title": "Platform"
   },
-  "tagline": "Автоматизированная платформа для публикации научных статей и журналов."
+  "tagline": "Automated platform for publishing scientific articles and journals."
 }

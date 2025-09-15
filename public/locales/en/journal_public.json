@@ -1,176 +1,176 @@
 {
   "about": {
     "a11y": {
-      "skip_to_content": "Перейти к основному содержимому"
+      "skip_to_content": "Skip to main content"
     },
     "audience": {
-      "text": "Редакторы научных журналов, авторы и исследователи, рецензенты и научные консультанты, администраторы академических платформ, учебные и научные учреждения",
-      "title": "Целевая аудитория"
+      "text": "Editors of scientific journals, authors and researchers, reviewers and scientific consultants, administrators of academic platforms, educational and research institutions",
+      "title": "Target Audience"
     },
-    "back_to_top": "Вернуться наверх",
-    "badge": "О журнале",
-    "description": "Платформа «Qalam Masters» — это цифровое решение для автоматизации всех процессов научного журнала: от подачи статьи и рецензирования до публикации и аналитики. Она объединяет авторов, рецензентов и редакторов в едином пространстве, обеспечивая удобство, прозрачность и высокие стандарты научной коммуникации.",
+    "back_to_top": "Back to top",
+    "badge": "About the Journal",
+    "description": "The “Qalam Masters” platform is a digital solution for automating all processes of a scientific journal: from article submission and peer review to publication and analytics. It brings together authors, reviewers, and editors in one space, ensuring convenience, transparency, and high standards of scientific communication.",
     "ethics": {
-      "text": "Платформа поддерживает двустороннее слепое рецензирование, автоматизируя процесс назначения рецензентов и отслеживания статуса статей. Мы обеспечиваем соблюдение международных стандартов публикационной этики (COPE) и прозрачность всех этапов.",
-      "title": "Рецензирование и этика"
+      "text": "The platform supports double-blind peer review, automating the process of assigning reviewers and tracking article status. We ensure compliance with international standards of publication ethics (COPE) and transparency at all stages.",
+      "title": "Peer Review and Ethics"
     },
     "extra": {
-      "aria": "История и качество"
+      "aria": "History and Quality"
     },
     "hero": {
-      "aria": "О журнале — вступительный блок"
+      "aria": "About the Journal — introductory block"
     },
     "history": {
-      "text": "Платформа была создана как технологическая основа для современных научных журналов, стремящихся к качеству, эффективности и международному признанию. Мы поддерживаем высокие стандарты и способствуем развитию научного сообщества.",
-      "title": "История и развитие"
+      "text": "The platform was created as a technological foundation for modern scientific journals striving for quality, efficiency, and international recognition. We maintain high standards and contribute to the development of the scientific community.",
+      "title": "History and Development"
     },
     "mission": {
-      "text": "Содействовать развитию научных исследований и академического диалога через современные цифровые инструменты, упрощая взаимодействие между участниками публикационного процесса и интегрируя науку с практикой.",
-      "title": "Миссия платформы"
+      "text": "To promote the development of scientific research and academic dialogue through modern digital tools, simplifying interaction between participants in the publication process and integrating science with practice.",
+      "title": "Platform Mission"
     },
     "principles": {
-      "items1": "• Открытость и прозрачность процесса рецензирования",
-      "items2": "• Соблюдение этических стандартов публикации",
-      "items3": "• Поддержка молодых исследователей",
-      "items4": "• Междисциплинарный подход к науке",
-      "title": "Наши принципы"
+      "items1": "• Openness and transparency of the peer review process",
+      "items2": "• Compliance with publication ethics standards",
+      "items3": "• Support for young researchers",
+      "items4": "• Interdisciplinary approach to science",
+      "title": "Our Principles"
     },
     "quality": {
-      "items1": "• Строгий отбор рукописей",
-      "items2": "• Квалифицированные рецензенты",
-      "items3": "• Соответствие международным стандартам",
-      "items4": "• Регулярное повышение качества",
-      "title": "Качество публикаций"
+      "items1": "• Rigorous manuscript selection",
+      "items2": "• Qualified reviewers",
+      "items3": "• Compliance with international standards",
+      "items4": "• Regular quality improvement",
+      "title": "Publication Quality"
     },
     "sections": {
       "overview": {
-        "aria": "Миссия, аудитория и рецензирование"
+        "aria": "Mission, Audience, and Peer Review"
       }
     },
-    "title": "Веб-платформа \"Qalam Masters\"",
+    "title": "Web Platform \"Qalam Masters\"",
     "topics": {
-      "aria": "Тематика публикаций",
-      "badge": "Тематика публикаций",
-      "subtitle": "Мы принимаем к публикации оригинальные научные работы по широкому спектру дисциплин",
-      "title": "Направления исследований"
+      "aria": "Publication Topics",
+      "badge": "Publication Topics",
+      "subtitle": "We accept original scientific works across a wide range of disciplines",
+      "title": "Research Areas"
     }
   },
   "author_info": {
     "benefits": {
       "items": {
         "antiplag": {
-          "desc": "Отчёт прикладывается к заявке, редакция видит результаты сразу.",
-          "title": "Антиплагиат встроен"
+          "desc": "The report is attached to the submission; the editorial team sees the results immediately.",
+          "title": "Built-in Antiplagiarism"
         },
         "smart_forms": {
-          "desc": "Автозаполнение авторов, ORCID, аффилиаций, литературы. Меньше кликов — меньше ошибок.",
-          "title": "Умные формы"
+          "desc": "Auto-fill authors, ORCID, affiliations, references. Fewer clicks — fewer mistakes.",
+          "title": "Smart Forms"
         },
         "templates": {
-          "desc": "Экспорт в формат журнала, чек-листы требований и подсказки оформления.",
-          "title": "Готовые шаблоны"
+          "desc": "Export to journal format, requirement checklists, and formatting tips.",
+          "title": "Ready-made Templates"
         }
       },
-      "subtitle": "Сфокусируйтесь на исследовании — рутину мы возьмём на себя.",
-      "title": "Почему авторам удобно у нас"
+      "subtitle": "Focus on research — we handle the routine.",
+      "title": "Why It’s Convenient for Authors"
     },
     "faq": {
-      "cta_requirements": "Требования к оформлению",
-      "cta_submit": "Подать статью",
+      "cta_requirements": "Formatting Requirements",
+      "cta_submit": "Submit Article",
       "items": {
         "0": {
-          "a": "DOCX и PDF. При необходимости система конвертирует предварительный просмотр.",
-          "q": "Какие форматы файлов поддерживаются?"
+          "a": "DOCX and PDF. If needed, the system generates a preview.",
+          "q": "What file formats are supported?"
         },
         "1": {
-          "a": "Нет. Проверка встроена: редакция сразу получает отчёт, а вы — сводку в кабинете.",
-          "q": "Нужно ли отдельно проходить проверку на плагиат?"
+          "a": "No. The check is built-in: the editorial board immediately receives the report, and you get a summary in your account.",
+          "q": "Do I need to check for plagiarism separately?"
         },
         "2": {
-          "a": "Обычно 1–3 рабочих дня в зависимости от журнала и загрузки редакции.",
-          "q": "Сколько занимает первичная проверка?"
+          "a": "Usually 1–3 business days depending on the journal and editorial workload.",
+          "q": "How long does the initial check take?"
         },
         "3": {
-          "a": "Да, до передачи на рецензирование. Дальше — по запросу редакции через переписку внутри карточки.",
-          "q": "Можно ли редактировать отправленную заявку?"
+          "a": "Yes, before peer review. Afterward — at the editor’s request via communication inside the submission card.",
+          "q": "Can I edit a submitted application?"
         }
       },
-      "title": "Частые вопросы"
+      "title": "Frequently Asked Questions"
     },
     "hero": {
-      "cta_primary_auth": "Подать статью",
-      "cta_primary_guest": "Зарегистрироваться и подать статью",
+      "cta_primary_auth": "Submit Article",
+      "cta_primary_guest": "Register and Submit Article",
       "quick_benefits": {
-        "antiplag": "Антиплагиат по умолчанию",
-        "auto_metadata": "Авто-форматирование метаданных",
-        "status_notifications": "Уведомления о статусе"
+        "antiplag": "Plagiarism Check by Default",
+        "auto_metadata": "Auto-formatting of Metadata",
+        "status_notifications": "Status Notifications"
       },
-      "subtitle": "Единое окно для загрузки рукописи, проверки на плагиат, коммуникации с редакцией и получения решения. Прозрачно, быстро и удобно.",
-      "title_line1": "Подача статьи за минуты —",
-      "title_line2": "без сложностей и писем"
+      "subtitle": "A single window for uploading a manuscript, plagiarism checking, communication with the editorial team, and receiving a decision. Transparent, fast, and convenient.",
+      "title_line1": "Article submission in minutes —",
+      "title_line2": "without hassle or emails"
     },
     "preview": {
-      "card_title": "Загрузка рукописи",
+      "card_title": "Manuscript Upload",
       "progress": {
-        "label": "Подготовка заявки"
+        "label": "Preparing Submission"
       },
-      "ready_to_submit": "Готово к отправке",
+      "ready_to_submit": "Ready to Submit",
       "steps": {
         "antiplag": {
-          "status": "пройден",
-          "title": "Антиплагиат"
+          "status": "passed",
+          "title": "Plagiarism Check"
         },
         "metadata": {
-          "status": "заполнены",
-          "title": "Метаданные"
+          "status": "completed",
+          "title": "Metadata"
         },
         "requirements": {
-          "title": "Требования"
+          "title": "Requirements"
         }
       }
     },
     "steps": {
-      "cta_primary": "Подать статью",
-      "cta_primary_mobile": "Подать статью",
-      "cta_secondary": "Начать сейчас",
+      "cta_primary": "Submit Article",
+      "cta_primary_mobile": "Submit Article",
+      "cta_secondary": "Start Now",
       "items": {
         "decision": {
-          "desc": "Прозрачный статус: принято/правки/отклонено. Готовим к публикации.",
-          "title": "Решение и выпуск"
+          "desc": "Transparent status: accepted/revisions/rejected. Preparing for publication.",
+          "title": "Decision and Issue"
         },
         "requirements": {
-          "desc": "Онлайн-чеки списка требований и шаблонов оформления.",
-          "title": "Требования"
+          "desc": "Online requirement checklist and formatting templates.",
+          "title": "Requirements"
         },
         "review": {
-          "desc": "Получайте запросы на доработку и оставляйте ответы прямо в карточке статьи.",
-          "title": "Рецензирование"
+          "desc": "Receive revision requests and provide responses directly in the article card.",
+          "title": "Peer Review"
         },
         "upload": {
-          "desc": "Прикрепите DOCX/PDF и заполните минимальные поля — остальное заполним автоматически.",
-          "title": "Загрузка"
+          "desc": "Attach DOCX/PDF and fill in minimal fields — we’ll auto-complete the rest.",
+          "title": "Upload"
         }
       },
-      "step_prefix": "Шаг",
-      "title": "Как подать статью"
+      "step_prefix": "Step",
+      "title": "How to Submit an Article"
     },
     "sticky": {
-      "cta": "Подать",
-      "subtitle": "Потребуется всего несколько минут",
-      "title": "Готовы отправить рукопись?"
+      "cta": "Submit",
+      "subtitle": "It only takes a few minutes",
+      "title": "Ready to Send Your Manuscript?"
     },
     "tabs": {
       "submit": {
-        "cta": "Подать статью",
-        "desc": "Загрузите файл, добавьте соавторов, прикрепите сопроводительное письмо — система всё аккуратно соберёт и передаст редакции.",
-        "label": "Подать новую статью",
-        "title": "Готовы отправить рукопись?"
+        "cta": "Submit Article",
+        "desc": "Upload the file, add co-authors, attach a cover letter — the system neatly compiles and sends it to the editorial team.",
+        "label": "Submit New Article",
+        "title": "Ready to Submit Your Manuscript?"
       },
       "track": {
-        "cta": "Открыть кабинет",
-        "desc": "От «На рассмотрении» до «Принято к печати»: таймлайн, комментарии, сроки ответов и уведомления — всё в личном кабинете.",
-        "label": "Отслеживать статус",
-        "title": "Следите за статусом онлайн"
+        "cta": "Open Dashboard",
+        "desc": "From 'Under Review' to 'Accepted for Print': timeline, comments, deadlines, and notifications — all in your personal account.",
+        "label": "Track Status",
+        "title": "Track Status Online"
       }
     }
   },
@@ -178,265 +178,265 @@
     "benefits": {
       "items": {
         "antiplag": {
-          "desc": "Проверка встроена в поток. Приложенный отчёт доступен редакции и авторам.",
-          "title": "Антиплагиат"
+          "desc": "The check is built into the workflow. The attached report is available to editors and authors.",
+          "title": "Plagiarism Check"
         },
         "automation": {
-          "desc": "Шаблоны писем, напоминания дедлайнов, авто-назначение рецензентов по секциям.",
-          "title": "Автоматизация"
+          "desc": "Email templates, deadline reminders, auto-assignment of reviewers by section.",
+          "title": "Automation"
         },
         "security": {
-          "desc": "Разграничение прав, аудит действий, хранение артефактов и версий.",
-          "title": "Безопасность"
+          "desc": "Access rights, action logs, storage of artifacts and versions.",
+          "title": "Security"
         }
       },
-      "subtitle": "Сократите сроки цикла и повысьте качество выпуска без роста операционных затрат.",
-      "title": "Преимущества для редакции"
+      "subtitle": "Shorten cycle times and improve quality without increasing operating costs.",
+      "title": "Benefits for Editors"
     },
     "create_card": {
       "fields": {
-        "name_label": "Название журнала",
-        "name_placeholder": "\"Вестник науки\"",
-        "periodicity_label": "Периодичность",
-        "periodicity_value": "Ежеквартально",
-        "sections_label": "Тематика"
+        "name_label": "Journal Name",
+        "name_placeholder": "\"Science Bulletin\"",
+        "periodicity_label": "Periodicity",
+        "periodicity_value": "Quarterly",
+        "sections_label": "Subjects"
       },
-      "org_hint": "Организация: выберите или создайте",
+      "org_hint": "Organization: select or create",
       "sections": {
-        "economy": "Экономика",
+        "economy": "Economics",
         "it": "IT",
-        "pedagogy": "Педагогика"
+        "pedagogy": "Pedagogy"
       },
-      "step_label": "Шаг",
-      "title": "Создать журнал"
+      "step_label": "Step",
+      "title": "Create Journal"
     },
     "faq": {
       "items": {
         "1": {
-          "a": "Неограниченно. Управляйте всеми журналами вашей организации из одного кабинета.",
-          "q": "Сколько журналов можно подключить?"
+          "a": "Unlimited. Manage all journals of your organization from one account.",
+          "q": "How many journals can be connected?"
         },
         "2": {
-          "a": "Да. Настройка шаблонов, сокрытие данных автора и рецензента, безопасная переписка внутри системы.",
-          "q": "Поддерживается double-blind рецензирование?"
+          "a": "Yes. Template customization, hidden author/reviewer data, secure communication within the system.",
+          "q": "Is double-blind review supported?"
         },
         "3": {
-          "a": "Да. Доступны интеграции с LMS/СРС (например, Platonus), а также с ORCID/DOI провайдерами.",
-          "q": "Есть ли интеграции с Platonus и ORCID?"
+          "a": "Yes. Integrations with LMS/CRS (e.g., Platonus), as well as ORCID/DOI providers, are available.",
+          "q": "Are there integrations with Platonus and ORCID?"
         },
         "4": {
-          "a": "Базовая настройка занимает 1 день: организация, журнал, роли, почта, публичная страница приёма статей.",
-          "q": "Как быстро можно запуститься?"
+          "a": "Basic setup takes 1 day: organization, journal, roles, email, public article submission page.",
+          "q": "How quickly can we launch?"
         }
       },
-      "primary_cta": "Создать организацию",
-      "secondary_cta": "Подключить журнал",
-      "title": "Частые вопросы"
+      "primary_cta": "Create Organization",
+      "secondary_cta": "Connect Journal",
+      "title": "Frequently Asked Questions"
     },
     "hero": {
       "bullets": {
-        "analytics": "Сквозная аналитика и отчёты",
-        "integrations": "Интеграция с Platonus и ORCID в процессе.",
-        "profit": "Сделайте ваш журнал прибыльным",
-        "roles_rights": "Роли и права: авторы, рецензенты, редакторы"
+        "analytics": "End-to-end analytics and reports",
+        "integrations": "Integration with Platonus and ORCID in progress",
+        "profit": "Make your journal profitable",
+        "roles_rights": "Roles and rights: authors, reviewers, editors"
       },
-      "primary_cta": "Подключить организацию и добавить журнал",
-      "subtitle": "Создайте организацию, подключите один или несколько журналов, настройте роли и процессы. Минимум ручной рутины, максимум прозрачности и скорости.",
-      "title_highlight": "приёмы статей, рецензирование и выпуск под контролем",
-      "title_main": "Запустите журнал на платформе —"
+      "primary_cta": "Connect Organization and Add Journal",
+      "subtitle": "Create an organization, connect one or multiple journals, configure roles and processes. Minimum manual routine, maximum transparency and speed.",
+      "title_highlight": "article submission, peer review, and publishing under control",
+      "title_main": "Launch Your Journal on the Platform —"
     },
     "stats": {
       "checks": {
-        "label": "проверок в системе",
-        "value": "500 000+"
+        "label": "checks in the system",
+        "value": "500,000+"
       },
       "organizations": {
-        "label": "организаций",
+        "label": "organizations",
         "value": "30+"
       },
       "support": {
-        "label": "поддержка",
+        "label": "support",
         "value": "24/7"
       }
     },
     "steps": {
-      "cta_primary": "Создать организацию",
-      "cta_secondary": "Подключить журнал",
+      "cta_primary": "Create Organization",
+      "cta_secondary": "Connect Journal",
       "items": {
         "1": {
-          "desc": "Создайте профиль вуза/издателя и пригласите команду.",
-          "title": "Организация"
+          "desc": "Create a university/publisher profile and invite the team.",
+          "title": "Organization"
         },
         "2": {
-          "desc": "Определите секции, политику рецензирования, шаблоны писем.",
-          "title": "Настройки журнала"
+          "desc": "Define sections, peer review policy, email templates.",
+          "title": "Journal Settings"
         },
         "3": {
-          "desc": "Редакторы, тех. редакторы, модераторы, рецензенты — гибкая матрица прав.",
-          "title": "Роли и доступы"
+          "desc": "Editors, technical editors, moderators, reviewers — flexible access rights matrix.",
+          "title": "Roles and Access"
         },
         "4": {
-          "desc": "Откройте форму подачи, настройте статусы и автоматические уведомления.",
-          "title": "Приём статей"
+          "desc": "Open the submission form, set statuses and automated notifications.",
+          "title": "Article Submission"
         },
         "5": {
-          "desc": "Следите за SLA и качеством — прозрачные метрики с первого дня.",
-          "title": "Аналитика"
+          "desc": "Monitor SLA and quality — transparent metrics from day one.",
+          "title": "Analytics"
         }
       },
-      "mobile_primary": "Создать организацию",
-      "step_prefix": "Шаг",
-      "title": "Как подключить журнал"
+      "mobile_primary": "Create Organization",
+      "step_prefix": "Step",
+      "title": "How to Connect a Journal"
     },
     "sticky": {
-      "cta": "Создать",
-      "subtitle": "Организация + подключение за 1 день",
-      "title": "Готовы запустить журнал?"
+      "cta": "Create",
+      "subtitle": "Organization + connection in 1 day",
+      "title": "Ready to Launch Your Journal?"
     },
     "tabs": {
-      "journal": "Журнал",
+      "journal": "Journal",
       "journal_block": {
-        "cta": "Подключить журнал",
-        "desc": "Секции, правила рецензирования (single/double blind), шаблоны писем, публичная страница для авторов.",
-        "title": "Подключите журнал к платформе"
+        "cta": "Connect Journal",
+        "desc": "Sections, review rules (single/double blind), email templates, public page for authors.",
+        "title": "Connect Your Journal to the Platform"
       },
-      "org": "Организация",
+      "org": "Organization",
       "org_block": {
-        "cta": "Создать организацию",
-        "desc": "Профиль, домены, лого, команда, роли и доступы. Дальше — быстрое подключение журналов и запуск процессов.",
-        "title": "Создайте организацию за несколько минут"
+        "cta": "Create Organization",
+        "desc": "Profile, domains, logo, team, roles, and access. Then — quick journal connection and process launch.",
+        "title": "Create an Organization in Minutes"
       }
     }
   },
   "public_page": {
-    "btn_about": "О журнале",
-    "btn_next": "Вперёд",
-    "btn_prev": "Назад",
-    "empty_results": "По вашему запросу ничего не найдено.",
-    "error_prefix": "Ошибка",
-    "found_count_one": "Найдено: {{count}}",
-    "found_count_other": "Найдено: {{count}}",
-    "hint_open_about": "Подсказка: нажмите на «О журнале», чтобы посмотреть описание, выпуски и инструкции для авторов.",
-    "load_error_fallback": "Не удалось загрузить журналы.",
-    "meta_line": "Тема: {{theme}} • Язык: {{language}} • Периодичность: {{frequency}}",
-    "ordering_new_first": "Сначала новые",
-    "ordering_old_first": "Сначала старые",
-    "ordering_title": "Сортировка",
-    "ordering_title_az": "Название A–Z",
-    "ordering_title_za": "Название Z–A",
-    "page_subtitle": "Просматривайте каталог журналов до регистрации.",
-    "page_title": "Журналы",
-    "pagesize_option": "{{n}} на странице",
-    "pagesize_title": "На странице",
-    "search_placeholder": "Поиск по названию, ISSN…",
-    "unknown_title": "Без названия"
+    "btn_about": "About Journal",
+    "btn_next": "Next",
+    "btn_prev": "Back",
+    "empty_results": "No results found for your query.",
+    "error_prefix": "Error",
+    "found_count_one": "Found: {{count}}",
+    "found_count_other": "Found: {{count}}",
+    "hint_open_about": "Tip: click on “About Journal” to see description, issues, and author instructions.",
+    "load_error_fallback": "Failed to load journals.",
+    "meta_line": "Theme: {{theme}} • Language: {{language}} • Frequency: {{frequency}}",
+    "ordering_new_first": "Newest first",
+    "ordering_old_first": "Oldest first",
+    "ordering_title": "Sorting",
+    "ordering_title_az": "Title A–Z",
+    "ordering_title_za": "Title Z–A",
+    "page_subtitle": "Browse journal catalog before registering.",
+    "page_title": "Journals",
+    "pagesize_option": "{{n}} per page",
+    "pagesize_title": "Per page",
+    "search_placeholder": "Search by title, ISSN…",
+    "unknown_title": "Untitled"
   },
   "requirements": {
     "notice": {
-      "attention": "Обратите внимание: у каждого журнала могут быть",
-      "authors_section": "разделом «Для авторов» ",
-      "before_submit": "Перед подачей рукописи обязательно ознакомьтесь с",
-      "bold_common": "общими требованиями ",
-      "examples": "(объём, оформление, структура).",
-      "extra_conditions": "дополнительные или уточняющие условия ",
-      "for_platform": "для платформы.",
-      "intro": "Настоящие правила являются",
-      "of_specific_journal": "конкретного журнала."
+      "attention": "Note: each journal may have",
+      "authors_section": "an “For Authors” section ",
+      "before_submit": "Before submitting your manuscript, please review",
+      "bold_common": "the common requirements ",
+      "examples": "(length, formatting, structure).",
+      "extra_conditions": "additional or clarifying conditions ",
+      "for_platform": "for the platform.",
+      "intro": "These rules are",
+      "of_specific_journal": "of a specific journal."
     },
     "s1": {
-      "p1": "В журнале публикуются статьи по актуальным проблемам в различных областях науки (гуманитарные, социальные, технические, естественные и др.). Принимаются только ранее не опубликованные работы, соответствующие тематике, обладающие научной новизной и содержащие результаты собственных исследований. Статьи могут быть на казахском, русском или английском языке.",
-      "structure_label": "Структура статьи: ",
-      "structure_value": "название, аннотация, ключевые слова, основные положения, введение, цель, материалы и методы, результаты и обсуждение, заключение, информация о финансировании (при наличии), список источников.",
-      "title": "1. Общие положения",
-      "volume_label": "Объем: ",
-      "volume_value": "от 5 до 10 страниц, включая все материалы. Каждая статья должна содержать УДК и МРНТИ."
+      "p1": "The journal publishes articles on relevant issues in various fields of science (humanities, social, technical, natural, etc.). Only previously unpublished works corresponding to the subject area, with scientific novelty, and containing original research results are accepted. Articles can be in Kazakh, Russian, or English.",
+      "structure_label": "Article structure: ",
+      "structure_value": "title, abstract, keywords, main points, introduction, aim, materials and methods, results and discussion, conclusion, funding information (if available), references.",
+      "title": "1. General Provisions",
+      "volume_label": "Length: ",
+      "volume_value": "5 to 10 pages including all materials. Each article must include UDC and MRNTI."
     },
     "s2": {
-      "forbidden_label": "Запрещается: ",
-      "forbidden_value": "нумерация страниц, разрывы страниц, автоматические сноски, переносы, изменение межбуквенного интервала.",
+      "forbidden_label": "Not allowed: ",
+      "forbidden_value": "page numbering, page breaks, automatic footnotes, hyphenation, letter-spacing adjustments.",
       "items": {
-        "font": "Шрифт Times New Roman, 12 pt, межстрочный интервал — одинарный",
-        "format": "Формат MS Word 2016–2021",
-        "indent": "Абзацный отступ — 1,25 см (без Tab и пробелов)",
-        "margins": "Поля: верх/низ — 20 мм, левое — 30 мм, правое — 15 мм",
-        "orientation": "Ориентация — книжная, формат А4"
+        "font": "Font: Times New Roman, 12 pt, line spacing — single",
+        "format": "MS Word 2016–2021 format",
+        "indent": "Paragraph indent — 1.25 cm (without Tab or spaces)",
+        "margins": "Margins: top/bottom — 20 mm, left — 30 mm, right — 15 mm",
+        "orientation": "Orientation — portrait, A4 format"
       },
-      "title": "2. Технические требования"
+      "title": "2. Technical Requirements"
     },
     "s3": {
       "items": {
-        "abstract": "Аннотация — 100–150 слов, ключевых слов — не менее 5",
-        "author_name": "По центру — фамилия и инициалы автора (полужирным)",
-        "multilingual": "Информация дублируется на казахском, русском и английском языках",
-        "org": "Далее — организация (курсивом, без сокращений)",
-        "title": "Название статьи — заглавными буквами, полужирным, по центру",
-        "udc_mrnti": "В левом верхнем углу — УДК, ниже — МРНТИ"
+        "abstract": "Abstract — 100–150 words, at least 5 keywords",
+        "author_name": "Centered — author’s surname and initials (bold)",
+        "multilingual": "Information must be duplicated in Kazakh, Russian, and English",
+        "org": "Next — organization (italic, without abbreviations)",
+        "title": "Article title — uppercase, bold, centered",
+        "udc_mrnti": "Upper left corner — UDC, below it — MRNTI"
       },
-      "title": "3. Оформление первой страницы"
+      "title": "3. First Page Formatting"
     },
     "s4": {
       "items": {
-        "charts": "Графики и диаграммы — в Microsoft Excel, вставленные как объект",
-        "eq_numbers": "Номера формул — у правого края в круглых скобках",
-        "formulas": "Формулы — в Microsoft Equation, курсивом, по центру",
-        "images": "Изображения — подписями под ними, разрешение не менее 300 dpi",
-        "tables": "Таблицы с номерами и названиями над ними"
+        "charts": "Charts and diagrams — in Microsoft Excel, inserted as object",
+        "eq_numbers": "Equation numbers — at the right margin in parentheses",
+        "formulas": "Formulas — in Microsoft Equation, italic, centered",
+        "images": "Images — with captions below, resolution at least 300 dpi",
+        "tables": "Tables with numbers and titles above them"
       },
-      "title": "4. Таблицы, рисунки, формулы"
+      "title": "4. Tables, Figures, Formulas"
     },
     "s5": {
-      "text": "Источники нумеруются по порядку упоминания, оформляются по ГОСТ 7.1-2003 и ГОСТ 7.32-2017. Ссылки в тексте указываются в квадратных скобках: [3], [5,7].",
-      "title": "5. Список источников"
+      "text": "References must be numbered in order of mention, formatted according to GOST 7.1-2003 and GOST 7.32-2017. In-text citations in square brackets: [3], [5,7].",
+      "title": "5. References"
     },
     "s6": {
       "items": {
-        "blind_review": "Статьи проходят слепое рецензирование",
-        "originality": "Оригинальность текста — не менее 75%",
-        "permission": "При необходимости приложить разрешение на публикацию конфиденциальных материалов",
-        "responsibility": "Автор отвечает за достоверность данных"
+        "blind_review": "Articles undergo blind peer review",
+        "originality": "Text originality — at least 75%",
+        "permission": "Attach permission to publish confidential materials if required",
+        "responsibility": "Author is responsible for data accuracy"
       },
-      "title": "6. Дополнительные условия"
+      "title": "6. Additional Conditions"
     },
-    "title": "Требования к рукописям, публикуемым в платформе «Qalam Masters»",
+    "title": "Manuscript Requirements for Publication on the “Qalam Masters” Platform",
     "upload_text": {
-      "part1": "Материалы загружаются через личный кабинет автора на платформе"
+      "part1": "Materials are uploaded through the author’s personal account on the platform"
     }
   },
   "view": {
     "actions": {
-      "issues": "Выпуски / Архив",
-      "submit": "Подать статью в журнал"
+      "issues": "Issues / Archive",
+      "submit": "Submit Article to Journal"
     },
     "cover": {
       "placeholder": {
-        "hint": "(загрузите в настройках журнала)",
-        "title": "Обложка журнала"
+        "hint": "(upload in journal settings)",
+        "title": "Journal Cover"
       }
     },
     "errors": {
-      "load_failed": "Не удалось загрузить данные журнала. Показан пример."
+      "load_failed": "Failed to load journal data. Sample shown."
     },
     "forbidden": {
-      "subtitle": "Просмотр этого журнала доступен только авторизованным пользователям с соответствующими правами.",
-      "title": "Доступ запрещён (403)"
+      "subtitle": "Viewing this journal is available only to authorized users with appropriate rights.",
+      "title": "Access Denied (403)"
     },
     "labels": {
-      "organization": "Организация"
+      "organization": "Organization"
     },
-    "loading": "Загрузка…",
+    "loading": "Loading…",
     "meta": {
-      "frequency": "Периодичность",
-      "language": "Язык",
-      "theme": "Тема"
+      "frequency": "Frequency",
+      "language": "Language",
+      "theme": "Theme"
     },
     "org": {
-      "not_verified": "Не верифицирована",
-      "verified": "Верифицирована"
+      "not_verified": "Not Verified",
+      "verified": "Verified"
     },
     "sections": {
-      "description": "Описание журнала",
-      "periodicity": "Периодичность выхода",
-      "topics": "Тематика публикаций"
+      "description": "Journal Description",
+      "periodicity": "Publication Frequency",
+      "topics": "Publication Topics"
     }
   }
 }

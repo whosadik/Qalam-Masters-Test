@@ -13,7 +13,7 @@ i18n
     .init({
         fallbackLng: "ru",
         supportedLngs: ["kk", "ru", "en"],
-        ns: ["common", "navbar", "home", "footer"],
+        ns: ["navbar", "footer", "home", "auth", "common", "info_pages", "news", "onboarding", "journal_public", "journal_issues", "articles", "submission", "review", "dashboards", "moderator_orgs", "moderator_journals"],
         defaultNS: "common",
         returnEmptyString: false,
         backend: {

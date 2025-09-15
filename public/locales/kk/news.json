@@ -1,36 +1,36 @@
 {
   "actions": {
-    "more": "Подробнее"
+    "more": "Толығырақ"
   },
   "badges": {
-    "new": "New"
+    "new": "Жаңа"
   },
   "controls": {
-    "all_years": "Все годы",
-    "per_page_option_one": "{{count}} на странице",
-    "per_page_option_other": "{{count}} на странице",
-    "per_page_title": "На странице",
-    "search_aria": "Поиск новостей",
-    "search_placeholder": "Поиск по заголовку и тегам…",
-    "year_title": "Год"
+    "all_years": "Барлық жылдар",
+    "per_page_option_one": "Бетте {{count}}",
+    "per_page_option_other": "Бетте {{count}}",
+    "per_page_title": "Беттегі саны",
+    "search_aria": "Жаңалықтардан іздеу",
+    "search_placeholder": "Тақырып пен тегтер бойынша іздеу…",
+    "year_title": "Жыл"
   },
   "empty": {
-    "no_results": "Ничего не найдено по текущим фильтрам."
+    "no_results": "Ағымдағы сүзгілер бойынша ештеңе табылмады."
   },
   "labels": {
-    "link_unavailable": "Ссылка недоступна"
+    "link_unavailable": "Сілтеме қолжетімсіз"
   },
   "page": {
-    "subtitle": "Обновления платформы, добавление журналов, встречи, меморандумы.",
-    "title": "Новости"
+    "subtitle": "Платформа жаңартулары, журналдар қосу, кездесулер, меморандумдар.",
+    "title": "Жаңалықтар"
   },
   "pagination": {
-    "next": "Вперёд →",
-    "prev": "← Назад",
-    "summary": "Найдено: {{total}} • Стр. {{page}} из {{totalPages}}"
+    "next": "Алға →",
+    "prev": "← Артқа",
+    "summary": "Табылды: {{total}} • {{totalPages}} ішінен {{page}} бет"
   },
   "timeline": {
-    "subtitle": "Сжатая хронология ключевых обновлений и событий.",
-    "title": "Лента событий"
+    "subtitle": "Негізгі жаңартулар мен оқиғалардың қысқаша хронологиясы.",
+    "title": "Оқиғалар таспасы"
   }
 }
