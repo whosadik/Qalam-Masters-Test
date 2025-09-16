@@ -48,6 +48,7 @@ import {
   listIssueArticles,
   getNextOrder,
 } from "@/services/issuesService";
+import { useTranslation } from "react-i18next";
 
 /* ---------- helpers ---------- */
 const STATUS_LABEL = {
@@ -65,6 +66,7 @@ const STATUS_LABEL = {
 const fmt = (iso) => (iso ? new Date(iso).toLocaleString("ru-RU") : "—");
 
 function StatusPill({ status }) {
+  const { t } = useTranslation();
   const map = {
     accepted: "bg-blue-100 text-blue-700",
     in_production: "bg-amber-100 text-amber-700",
@@ -74,13 +76,14 @@ function StatusPill({ status }) {
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${map[status] || "bg-slate-100 text-slate-700"}`}
     >
-      {STATUS_LABEL[status] || status}
+      {t(`dashboards:proofreader_dashboard.status.${status}`, STATUS_LABEL[status] || status)}
     </span>
   );
 }
 
 /* ---------- Files: production PDF mini-view ---------- */
 function ProductionFilesCell({ article, onChanged }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [files, setFiles] = useState(null);
 
@@ -101,7 +104,9 @@ function ProductionFilesCell({ article, onChanged }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.type !== "application/pdf") {
-      alert("Загрузите PDF.");
+      alert(
+          t("dashboards:proofreader_dashboard.alert.upload_pdf_only", "Загрузите PDF.")
+      );
       e.target.value = "";
       return;
     }
@@ -111,7 +116,8 @@ function ProductionFilesCell({ article, onChanged }) {
       await refresh();
     } catch (err) {
       console.error(err?.response?.data || err);
-      alert(err?.response?.data?.detail || "Не удалось загрузить PDF");
+      alert(err?.response?.data?.detail ||
+          t("dashboards:proofreader_dashboard.alert.upload_pdf_failed", "Не удалось загрузить PDF"));
     } finally {
       setBusy(false);
       e.target.value = "";
@@ -119,14 +125,15 @@ function ProductionFilesCell({ article, onChanged }) {
   }
 
   async function removeFile(id) {
-    if (!confirm("Удалить PDF?")) return;
+    if (!confirm(t("dashboards:proofreader_dashboard.confirm.delete_pdf", "Удалить PDF?"))) return;
     setBusy(true);
     try {
       await deleteArticleFile(article.id, id);
       await refresh();
     } catch (err) {
       console.error(err?.response?.data || err);
-      alert(err?.response?.data?.detail || "Не удалось удалить файл");
+      alert(err?.response?.data?.detail ||
+          t("dashboards:proofreader_dashboard.alert.delete_pdf_failed", "Не удалось удалить файл"));
     } finally {
       setBusy(false);
     }
@@ -169,14 +176,14 @@ function ProductionFilesCell({ article, onChanged }) {
               className="text-xs text-slate-500 hover:text-rose-600"
               onClick={() => removeFile(files[0].id)}
               disabled={busy}
-              title="Удалить PDF"
+              title={t("dashboards:proofreader_dashboard.tooltip.delete_pdf", "Удалить PDF")}
             >
-              Удалить
+              {t("dashboards:proofreader_dashboard.actions.delete_pdf", "Удалить")}
             </button>
           )}
         </div>
       ) : (
-        <span className="text-xs text-slate-500">нет</span>
+        <span className="text-xs text-slate-500">{t("dashboards:proofreader_dashboard.pdf.none", "нет")}</span>
       )}
     </div>
   );
@@ -186,6 +193,8 @@ function ProductionFilesCell({ article, onChanged }) {
    Main: Proofreader console
 ========================= */
 export default function ProofreaderDashboard() {
+  const { t } = useTranslation();
+
   // layout & UX
   const [dense, setDense] = useState(
     () => (localStorage.getItem("proof_dense") ?? "1") === "1"
@@ -325,13 +334,13 @@ export default function ProofreaderDashboard() {
             const { data: j } = await http.get(API.JOURNAL_ID(jid));
             fetched.push({
               id: Number(j.id),
-              title: j.title || `Журнал #${jid}`,
+              title: j.title || t("dashboards:proofreader_dashboard.journal.fallback_title", "Журнал") + ` #${jid}`,
               organization: j.organization,
             });
           } catch {
             fetched.push({
               id: Number(jid),
-              title: `Журнал #${jid}`,
+              title: t("dashboards:proofreader_dashboard.journal.fallback_title", "Журнал") + ` #${jid}`,
               organization: null,
             });
           }
@@ -376,7 +385,12 @@ export default function ProofreaderDashboard() {
       await loadArticlesForJournal(journalId);
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось перевести в производство");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.to_production_failed",
+              "Не удалось перевести в производство"
+          )
+      );
     }
   }
   async function backToAccepted(id) {
@@ -385,7 +399,12 @@ export default function ProofreaderDashboard() {
       await loadArticlesForJournal(journalId);
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось вернуть в 'Принята'");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.back_to_accepted_failed",
+              "Не удалось вернуть в 'Принята'"
+          )
+      );
     }
   }
   async function publishArticle(id) {
@@ -394,7 +413,12 @@ export default function ProofreaderDashboard() {
       const files = await listArticleFiles(id, { page_size: 20 });
       const hasPdf = (files || []).some((f) => f.type === "production_pdf");
       if (!hasPdf) {
-        alert("Перед публикацией загрузите production PDF.");
+        alert(
+            t(
+                "dashboards:proofreader_dashboard.alert.need_production_pdf",
+                "Перед публикацией загрузите production PDF."
+            )
+        );
         return;
       }
     } catch {}
@@ -403,13 +427,25 @@ export default function ProofreaderDashboard() {
       await loadArticlesForJournal(journalId);
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось опубликовать статью");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.publish_article_failed",
+              "Не удалось опубликовать статью"
+          )
+      );
     }
   }
 
   async function addSelectedToIssue(issueId) {
-    if (!issueId) return alert("Выберите выпуск.");
-    if (selectedIds.size === 0) return alert("Выберите статьи чекбоксами.");
+    if (!issueId) return alert(
+        t("dashboards:proofreader_dashboard.alert.choose_issue", "Выберите выпуск.")
+    );
+    if (selectedIds.size === 0) return alert(
+        t(
+            "dashboards:proofreader_dashboard.alert.choose_articles",
+            "Выберите статьи чекбоксами."
+        )
+    );
     try {
       let order = await getNextOrder(issueId);
       for (const articleId of selectedIds) {
@@ -418,22 +454,31 @@ export default function ProofreaderDashboard() {
           order += 10;
         } catch (e) {
           console.warn(
-            `Не удалось добавить ${articleId}:`,
-            e?.response?.data || e
+              t(
+                  "dashboards:proofreader_dashboard.alert.add_article_to_issue_failed_prefix",
+                  "Не удалось добавить"
+              ) +
+              ` ${articleId}:`,
+              e?.response?.data || e
           );
         }
       }
       clearSelection();
       await loadIssues(journalId);
-      alert("Статьи добавлены в выпуск.");
+      alert(t("dashboards:proofreader_dashboard.alert.added_to_issue", "Статьи добавлены в выпуск."));
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось добавить статьи.");
+      alert(e?.response?.data?.detail ||  t("dashboards:proofreader_dashboard.alert.add_to_issue_failed", "Не удалось добавить статьи."));
     }
   }
 
   async function createIssueAndAdd() {
-    const label = window.prompt("Название выпуска (например: Август 2025):");
+    const label = window.prompt(
+        t(
+            "dashboards:proofreader_dashboard.prompt.issue_title",
+            "Название выпуска (например: Август 2025):"
+        )
+    );
     if (!label) return;
     try {
       const issue = await createIssue(journalId, label);
@@ -442,21 +487,26 @@ export default function ProofreaderDashboard() {
     } catch (e) {
       console.error(e?.response?.data || e);
       alert(
-        e?.message || e?.response?.data?.detail || "Не удалось создать выпуск"
+        e?.message || e?.response?.data?.detail || t("dashboards:proofreader_dashboard.alert.create_issue_failed", "Не удалось создать выпуск")
       );
     }
   }
 
   async function uploadIssuePdfAction(id, file) {
     if (!file) return;
-    if (file.type !== "application/pdf") return alert("Загрузите PDF.");
+    if (file.type !== "application/pdf") return alert(t("dashboards:proofreader_dashboard.alert.upload_pdf_only", "Загрузите PDF."));
     setBusyIssueId(id);
     try {
       await uploadIssuePdf(id, file);
       await loadIssues(journalId);
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось загрузить PDF выпуска");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.upload_issue_pdf_failed",
+              "Не удалось загрузить PDF выпуска"
+          )
+      );
     } finally {
       setBusyIssueId(null);
     }
@@ -465,19 +515,29 @@ export default function ProofreaderDashboard() {
   async function publishIssueNow(id) {
     const issue = await getIssue(id);
     const items = await listIssueArticles(id);
-    if (!items.length) return alert("Добавьте в выпуск хотя бы одну статью.");
-    if (!issue?.pdf) return alert("Сначала загрузите PDF выпуска.");
+    if (!items.length) return alert(
+        t(
+            "dashboards:proofreader_dashboard.alert.add_at_least_one_article",
+            "Добавьте в выпуск хотя бы одну статью."
+        )
+    );
+    if (!issue?.pdf) return alert(
+        t(
+            "dashboards:proofreader_dashboard.alert.upload_issue_pdf_first",
+            "Сначала загрузите PDF выпуска."
+        )
+    );
     setBusyIssueId(id);
     try {
       await publishIssue(id);
       await loadIssues(journalId);
-      alert("Выпуск опубликован");
+      alert(t("dashboards:proofreader_dashboard.alert.issue_published", "Выпуск опубликован"));
     } catch (e) {
       console.error(e?.response?.data || e);
       alert(
         e?.message ||
           e?.response?.data?.detail ||
-          "Не удалось опубликовать выпуск"
+          t("dashboards:proofreader_dashboard.alert.issue_publish_failed", "Не удалось опубликовать выпуск")
       );
     } finally {
       setBusyIssueId(null);
@@ -528,14 +588,18 @@ export default function ProofreaderDashboard() {
   if (membershipsLoading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Проверяем права корректуры…
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {t("dashboards:proofreader_dashboard.loading.membership", "Проверяем права корректуры…")}
       </div>
     );
   }
   if (!journals.length) {
     return (
       <div className="p-6">
-        Нет прав корректуры — доступных журналов не найдено.
+        {t(
+            "dashboards:proofreader_dashboard.empty.no_journals",
+            "Нет прав корректуры — доступных журналов не найдено."
+        )}
       </div>
     );
   }
@@ -558,19 +622,23 @@ export default function ProofreaderDashboard() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Дашборд корректуры
+                {t("dashboards:proofreader_dashboard.title", "Дашборд корректуры")}
               </h1>
               <div className="mt-1 text-xs sm:text-sm text-slate-500">
                 {currentJournal ? (
                   <>
-                    Журнал: <b>{currentJournal.title}</b> • Организация:{" "}
+                    {t("dashboards:proofreader_dashboard.journal.label", "Журнал:")}{" "}
+                    <b>{currentJournal.title}</b> •{" "}
+                    {t("dashboards:proofreader_dashboard.organization.label", "Организация:")}{" "}
                     <b>{currentJournal.organization ?? "—"}</b>
                   </>
                 ) : (
                   "—"
                 )}
                 {"  "}
-                {lastUpdated ? `• Обновлено: ${fmt(lastUpdated)}` : ""}
+                {lastUpdated
+                    ? `• ${t("dashboards:proofreader_dashboard.updated", "Обновлено:")} ${fmt(lastUpdated)}`
+                    : ""}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -579,7 +647,7 @@ export default function ProofreaderDashboard() {
                 onValueChange={(v) => setJournalId(Number(v))}
               >
                 <SelectTrigger className="w-72 bg-white">
-                  <SelectValue placeholder="Выберите журнал" />
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.select_journal", "Выберите журнал")} />
                 </SelectTrigger>
                 <SelectContent>
                   {journals.map((j) => (
@@ -592,13 +660,13 @@ export default function ProofreaderDashboard() {
 
               <Select value={ordering} onValueChange={setOrdering}>
                 <SelectTrigger className="w-44 bg-white">
-                  <SelectValue placeholder="Сортировка" />
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.sort", "Сортировка")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="-created_at">Новее → старее</SelectItem>
-                  <SelectItem value="created_at">Старее → новее</SelectItem>
-                  <SelectItem value="title">Заголовок A→Z</SelectItem>
-                  <SelectItem value="-title">Заголовок Z→A</SelectItem>
+                  <SelectItem value="-created_at">{t("dashboards:proofreader_dashboard.sort.new_old", "Новее → старее")}</SelectItem>
+                  <SelectItem value="created_at">{t("dashboards:proofreader_dashboard.sort.old_new", "Старее → новее")}</SelectItem>
+                  <SelectItem value="title">{t("dashboards:proofreader_dashboard.sort.title_az", "Заголовок A→Z")}</SelectItem>
+                  <SelectItem value="-title">{t("dashboards:proofreader_dashboard.sort.title_za", "Заголовок Z→A")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -607,12 +675,12 @@ export default function ProofreaderDashboard() {
                 onValueChange={(v) => setPageSize(Number(v))}
               >
                 <SelectTrigger className="w-28 bg-white">
-                  <SelectValue placeholder="Порог" />
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.page_size", "Порог")} />
                 </SelectTrigger>
                 <SelectContent>
                   {[10, 20, 50, 100].map((n) => (
                     <SelectItem key={n} value={String(n)}>
-                      {n}/стр
+                      {n}/{t("dashboards:proofreader_dashboard.per_page", "стр")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -622,7 +690,7 @@ export default function ProofreaderDashboard() {
                 variant="outline"
                 onClick={() => journalId && loadArticlesForJournal(journalId)}
               >
-                <RefreshCw className="h-4 w-4 mr-2" /> Обновить
+                <RefreshCw className="h-4 w-4 mr-2" /> {t("dashboards:proofreader_dashboard.actions.refresh", "Обновить")}
               </Button>
 
               <Button
@@ -634,20 +702,24 @@ export default function ProofreaderDashboard() {
                   });
                 }}
               >
-                {dense ? "Плотно" : "Обычно"}
+                {dense
+                    ? t("dashboards:proofreader_dashboard.density.compact", "Плотно")
+                    : t("dashboards:proofreader_dashboard.density.normal", "Обычно")}
               </Button>
 
               <Button
                 variant="outline"
                 onClick={() => setShowRight((v) => !v)}
-                title={showRight ? "Скрыть панель" : "Показать панель"}
+                title={showRight
+                    ? t("dashboards:proofreader_dashboard.tooltip.hide_panel", "Скрыть панель")
+                    : t("dashboards:proofreader_dashboard.tooltip.show_panel", "Показать панель")}
               >
                 {showRight ? (
                   <PanelRightClose className="h-4 w-4 mr-2" />
                 ) : (
                   <PanelRightOpen className="h-4 w-4 mr-2" />
                 )}
-                Панель
+                {t("dashboards:proofreader_dashboard.panel.title", "Панель")}
               </Button>
             </div>
           </div>
@@ -657,15 +729,15 @@ export default function ProofreaderDashboard() {
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <Input
                 id="proof_global_search"
-                placeholder="Поиск по заголовку/автору…  (нажмите /)"
+                placeholder={t("dashboards:proofreader_dashboard.search.placeholder", "Поиск по заголовку/автору…  (нажмите /)")}
                 className="pl-9 bg-white"
                 value={globalQuery}
                 onChange={(e) => onGlobalSearch(e.target.value)}
               />
             </div>
             <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 px-2">
-              <KeyboardIcon className="h-3.5 w-3.5" /> / — поиск, R — обновить,
-              A — добавить в выпуск, C — создать выпуск и добавить
+              <KeyboardIcon className="h-3.5 w-3.5" />
+              {t("dashboards:proofreader_dashboard.hotkeys.hint", "/ — поиск, R — обновить, A — добавить в выпуск, C — создать выпуск и добавить")}
             </span>
           </div>
         </div>
@@ -676,7 +748,7 @@ export default function ProofreaderDashboard() {
         {/* LEFT: queues + issues */}
         <aside className="rounded-xl border border-slate-200 bg-white p-2 sticky top-[68px] h-fit">
           <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-slate-500">
-            Очереди
+            {t("dashboards:proofreader_dashboard.queues.title", "Очереди")}
           </div>
           <nav className="p-1 space-y-1">
             <button
@@ -685,14 +757,14 @@ export default function ProofreaderDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" /> Приняты
+                  <BookOpen className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.queues.accepted", "Приняты")}
                 </span>
                 <span className="text-xs rounded-full bg-blue-100 text-blue-700 px-2 py-0.5">
                   {counts.accepted}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Готовы к старту производства
+                {t("dashboards:proofreader_dashboard.queues.accepted_desc", "Готовы к старту производства")}
               </div>
             </button>
             <button
@@ -701,14 +773,14 @@ export default function ProofreaderDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <Hammer className="h-4 w-4" /> В производстве
+                  <Hammer className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.queues.in_production", "В производстве")}
                 </span>
                 <span className="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
                   {counts.in_production}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                PDF, корректура, добавление в выпуск
+                {t("dashboards:proofreader_dashboard.queues.in_production_desc", "PDF, корректура, добавление в выпуск")}
               </div>
             </button>
             <button
@@ -717,24 +789,27 @@ export default function ProofreaderDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Опубликовано
+                  <CheckCircle2 className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.queues.published", "Опубликовано")}
                 </span>
                 <span className="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
                   {counts.published}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Готово, для обзора
+                {t("dashboards:proofreader_dashboard.queues.published_desc", "Готово, для обзора")}
               </div>
             </button>
           </nav>
 
           <div className="mt-3 border-t border-slate-200 pt-2 px-2">
-            <div className="text-xs text-slate-500 mb-1">Выпуски</div>
+            <div className="text-xs text-slate-500 mb-1">
+              {t("dashboards:proofreader_dashboard.issues.title", "Выпуски")}
+            </div>
             <div className="space-y-2 max-h-[38vh] overflow-auto pr-1">
               {issuesLoading ? (
                 <div className="text-xs text-slate-500 flex items-center gap-2">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Загрузка…
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t("dashboards:proofreader_dashboard.loading.issues", "Загрузка…")}
                 </div>
               ) : issues.length ? (
                 issues.map((i) => (
@@ -742,7 +817,7 @@ export default function ProofreaderDashboard() {
                     key={i.id}
                     onClick={() => setSelectedIssueId(i.id)}
                     className={`w-full text-left rounded-md px-2 py-1.5 border ${selectedIssueId === i.id ? "border-slate-400 bg-slate-50" : "border-slate-200 hover:bg-slate-50"}`}
-                    title={`Выпуск #${i.id} • ${i.status}`}
+                    title={`${t("dashboards:proofreader_dashboard.issue", "Выпуск")} #${i.id} • ${i.status}`}
                   >
                     <div className="truncate text-sm">{i.label}</div>
                     <div className="text-xs text-slate-500">
@@ -751,7 +826,9 @@ export default function ProofreaderDashboard() {
                   </button>
                 ))
               ) : (
-                <div className="text-xs text-slate-500">Выпусков нет</div>
+                <div className="text-xs text-slate-500">
+                  {t("dashboards:proofreader_dashboard.issues.none", "Выпусков нет")}
+                </div>
               )}
             </div>
 
@@ -761,7 +838,10 @@ export default function ProofreaderDashboard() {
                 className="justify-start"
                 onClick={async () => {
                   const label = window.prompt(
-                    "Название выпуска (например: Август 2025):"
+                      t(
+                          "dashboards:proofreader_dashboard.prompt.issue_title",
+                          "Название выпуска (например: Август 2025):"
+                      )
                   );
                   if (!label) return;
                   const iss = await createIssue(journalId, label);
@@ -769,7 +849,7 @@ export default function ProofreaderDashboard() {
                   setSelectedIssueId(iss.id);
                 }}
               >
-                <Plus className="h-4 w-4 mr-2" /> Создать выпуск
+                <Plus className="h-4 w-4 mr-2" /> {t("dashboards:proofreader_dashboard.actions.create_issue", "Создать выпуск")}
               </Button>
             </div>
           </div>
@@ -777,7 +857,7 @@ export default function ProofreaderDashboard() {
           {/* Batch */}
           <div className="mt-3 border-t border-slate-200 pt-2 px-2">
             <div className="text-xs text-slate-500 mb-1">
-              Групповые действия
+              {t("dashboards:proofreader_dashboard.batch.title", "Групповые действия")}
             </div>
             <div className="grid grid-cols-1 gap-1.5">
               <Select
@@ -785,7 +865,7 @@ export default function ProofreaderDashboard() {
                 onValueChange={(v) => setSelectedIssueId(Number(v))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Выбрать выпуск…" />
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.choose_issue", "Выбрать выпуск…")} />
                 </SelectTrigger>
                 <SelectContent>
                   {candidateIssues.map((iss) => (
@@ -801,7 +881,7 @@ export default function ProofreaderDashboard() {
                 disabled={!selectedIds.size || !selectedIssueId}
                 onClick={() => addSelectedToIssue(selectedIssueId)}
               >
-                Добавить в выпуск ({selectedIds.size})
+                {t("dashboards:proofreader_dashboard.actions.add_to_issue_count", "Добавить в выпуск")} ({selectedIds.size})
               </Button>
               <Button
                 size="sm"
@@ -809,7 +889,7 @@ export default function ProofreaderDashboard() {
                 disabled={!selectedIds.size}
                 onClick={createIssueAndAdd}
               >
-                + Создать выпуск и добавить
+                {t("dashboards:proofreader_dashboard.actions.create_and_add", "+ Создать выпуск и добавить")}
               </Button>
               <Button
                 size="sm"
@@ -817,7 +897,7 @@ export default function ProofreaderDashboard() {
                 disabled={!selectedIds.size}
                 onClick={clearSelection}
               >
-                <X className="h-4 w-4 mr-1" /> Снять выделение
+                <X className="h-4 w-4 mr-1" /> {t("dashboards:proofreader_dashboard.actions.clear_selection", "Снять выделение")}
               </Button>
             </div>
           </div>
@@ -839,8 +919,8 @@ export default function ProofreaderDashboard() {
                       }
                       title={
                         selectedIds.size === visibleRows.length
-                          ? "Снять все"
-                          : "Выбрать все"
+                            ? t("dashboards:proofreader_dashboard.tooltip.unselect_all", "Снять все")
+                            : t("dashboards:proofreader_dashboard.tooltip.select_all", "Выбрать все")
                       }
                     >
                       {selectedIds.size === visibleRows.length &&
@@ -851,13 +931,11 @@ export default function ProofreaderDashboard() {
                       )}
                     </button>
                   </th>
-                  <th className="px-3 py-2 text-left">Статья</th>
-                  <th className="px-3 py-2 text-left w-[180px]">Создана</th>
-                  <th className="px-3 py-2 text-left w-[150px]">Статус</th>
-                  <th className="px-3 py-2 text-left w-[170px]">
-                    Production PDF
-                  </th>
-                  <th className="px-3 py-2 text-right w-[420px]">Действия</th>
+                  <th className="px-3 py-2 text-left">{t("dashboards:proofreader_dashboard.table.article", "Статья")}</th>
+                  <th className="px-3 py-2 text-left w-[180px]">{t("dashboards:proofreader_dashboard.table.created", "Создана")}</th>
+                  <th className="px-3 py-2 text-left w-[150px]">{t("dashboards:proofreader_dashboard.table.status", "Статус")}</th>
+                  <th className="px-3 py-2 text-left w-[170px]">Production PDF</th>
+                  <th className="px-3 py-2 text-right w-[420px]">{t("dashboards:proofreader_dashboard.table.actions", "Действия")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -880,7 +958,7 @@ export default function ProofreaderDashboard() {
                           {a.title}
                         </div>
                         <div className="text-xs text-slate-500">
-                          Журнал #{a.journal} • Автор {a.author_email ?? "—"}
+                          {t("dashboards:proofreader_dashboard.row.journal", "Журнал")} #{a.journal} • {t("dashboards:proofreader_dashboard.row.author", "Автор")} {a.author_email ?? "—"}
                         </div>
                       </td>
                       <td className={`px-3 ${rowPad}`}>{fmt(a.created_at)}</td>
@@ -901,7 +979,7 @@ export default function ProofreaderDashboard() {
                               className="bg-blue-600 hover:bg-blue-700"
                               onClick={() => startProduction(a.id)}
                             >
-                              Начать производство
+                              {t("dashboards:proofreader_dashboard.actions.start_production", "Начать производство")}
                             </Button>
                           )}
                           {a.status === "in_production" && (
@@ -911,20 +989,20 @@ export default function ProofreaderDashboard() {
                                 variant="outline"
                                 onClick={() => backToAccepted(a.id)}
                               >
-                                Снять из прод.
+                                {t("dashboards:proofreader_dashboard.actions.remove_from_prod", "Снять из прод.")}
                               </Button>
                               <Button
                                 size="sm"
                                 className="bg-emerald-600 hover:bg-emerald-700"
                                 onClick={() => publishArticle(a.id)}
                               >
-                                Опубликовать
+                                {t("dashboards:proofreader_dashboard.actions.publish", "Опубликовать")}
                               </Button>
                             </>
                           )}
                           {a.status === "published" && (
                             <Badge className="bg-emerald-600">
-                              Опубликована
+                              {t("dashboards:proofreader_dashboard.badge.published", "Опубликована")}
                             </Badge>
                           )}
                           <Button
@@ -935,11 +1013,11 @@ export default function ProofreaderDashboard() {
                               setShowRight(true);
                             }}
                           >
-                            Детали
+                            {t("dashboards:proofreader_dashboard.actions.details", "Детали")}
                           </Button>
                           <Link to={`/articles/${a.id}`}>
                             <Button size="sm" variant="outline">
-                              Открыть
+                              {t("dashboards:proofreader_dashboard.actions.open", "Открыть")}
                             </Button>
                           </Link>
                         </div>
@@ -952,11 +1030,11 @@ export default function ProofreaderDashboard() {
                       {accepted.length + inProd.length + published.length ===
                       0 ? (
                         <div className="text-slate-500">
-                          Нет статей под выбранный журнал.
+                          {t("dashboards:proofreader_dashboard.empty.no_articles_for_journal", "Нет статей под выбранный журнал.")}
                         </div>
                       ) : (
                         <div className="text-slate-500">
-                          Пусто в этой очереди или ничего не найдено.
+                          {t("dashboards:proofreader_dashboard.empty.queue_or_search_empty", "Пусто в этой очереди или ничего не найдено.")}
                         </div>
                       )}
                     </td>
@@ -971,7 +1049,7 @@ export default function ProofreaderDashboard() {
             <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm text-slate-600">
-                  Выбрано: <b>{selectedIds.size}</b>
+                  {t("dashboards:proofreader_dashboard.selected", "Выбрано:")} <b>{selectedIds.size}</b>
                 </div>
                 <div className="flex items-center gap-2">
                   <Select
@@ -981,7 +1059,7 @@ export default function ProofreaderDashboard() {
                     onValueChange={(v) => setSelectedIssueId(Number(v))}
                   >
                     <SelectTrigger className="w-64">
-                      <SelectValue placeholder="Выберите выпуск…" />
+                      <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.choose_issue", "Выберите выпуск…")} />
                     </SelectTrigger>
                     <SelectContent>
                       {candidateIssues.map((iss) => (
@@ -997,18 +1075,18 @@ export default function ProofreaderDashboard() {
                     disabled={!selectedIssueId}
                     onClick={() => addSelectedToIssue(selectedIssueId)}
                   >
-                    Добавить в выпуск
+                    {t("dashboards:proofreader_dashboard.actions.add_to_issue", "Добавить в выпуск")}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={createIssueAndAdd}
                   >
-                    + Создать выпуск и добавить
+                    {t("dashboards:proofreader_dashboard.actions.create_and_add", "+ Создать выпуск и добавить")}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={clearSelection}>
                     <X className="h-4 w-4 mr-1" />
-                    Снять выделение
+                    {t("dashboards:proofreader_dashboard.actions.clear_selection", "Снять выделение")}
                   </Button>
                 </div>
               </div>
@@ -1022,7 +1100,9 @@ export default function ProofreaderDashboard() {
         >
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
-              <div className="font-semibold">Панель</div>
+              <div className="font-semibold">
+                {t("dashboards:proofreader_dashboard.panel.title", "Панель")}
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -1036,13 +1116,15 @@ export default function ProofreaderDashboard() {
             <div className="p-3 space-y-4">
               {detailArticle ? (
                 <div className="space-y-2">
-                  <div className="text-sm text-slate-500">Статья</div>
+                  <div className="text-sm text-slate-500">
+                    {t("dashboards:proofreader_dashboard.detail.article", "Статья")}
+                  </div>
                   <div className="font-medium break-words">
                     {detailArticle.title}
                   </div>
                   <div className="text-xs text-slate-500">
-                    Автор: {detailArticle.author_email ?? "—"} • Создана:{" "}
-                    {fmt(detailArticle.created_at)}
+                    {t("dashboards:proofreader_dashboard.detail.author", "Автор:")} {detailArticle.author_email ?? "—"} •{" "}
+                    {t("dashboards:proofreader_dashboard.detail.created", "Создана:")} {fmt(detailArticle.created_at)}
                   </div>
                   <div>
                     <StatusPill status={detailArticle.status} />
@@ -1053,7 +1135,7 @@ export default function ProofreaderDashboard() {
                         className="bg-blue-600 hover:bg-blue-700"
                         onClick={() => startProduction(detailArticle.id)}
                       >
-                        Начать производство
+                        {t("dashboards:proofreader_dashboard.actions.start_production", "Начать производство")}
                       </Button>
                     )}
                     {detailArticle.status === "in_production" && (
@@ -1062,30 +1144,34 @@ export default function ProofreaderDashboard() {
                           variant="outline"
                           onClick={() => backToAccepted(detailArticle.id)}
                         >
-                          Снять из прод.
+                          {t("dashboards:proofreader_dashboard.actions.remove_from_prod", "Снять из прод.")}
                         </Button>
                         <Button
                           className="bg-emerald-600 hover:bg-emerald-700"
                           onClick={() => publishArticle(detailArticle.id)}
                         >
-                          Опубликовать
+                          {t("dashboards:proofreader_dashboard.actions.publish", "Опубликовать")}
                         </Button>
                       </>
                     )}
                     <Link to={`/articles/${detailArticle.id}`}>
-                      <Button variant="outline">Открыть карточку</Button>
+                      <Button variant="outline">
+                        {t("dashboards:proofreader_dashboard.actions.open_card", "Открыть карточку")}
+                      </Button>
                     </Link>
                   </div>
                 </div>
               ) : (
                 <div className="text-sm text-slate-500">
-                  Выберите строку и нажмите <b>Детали</b>.
+                  {t("dashboards:proofreader_dashboard.detail.pick_row", "Выберите строку и нажмите")} <b>{t("dashboards:proofreader_dashboard.actions.details", "Детали")}</b>.
                 </div>
               )}
 
               {/* Issue controls */}
               <div className="mt-4 border-t border-slate-200 pt-3">
-                <div className="text-sm font-medium mb-2">Выпуск</div>
+                <div className="text-sm font-medium mb-2">
+                  {t("dashboards:proofreader_dashboard.issue", "Выпуск")}
+                </div>
                 {selectedIssueId ? (
                   <IssuePanel
                     issueId={selectedIssueId}
@@ -1095,7 +1181,7 @@ export default function ProofreaderDashboard() {
                   />
                 ) : (
                   <div className="text-sm text-slate-500">
-                    Выберите выпуск слева, чтобы загрузить PDF и опубликовать.
+                    {t("dashboards:proofreader_dashboard.issue.pick_left", "Выберите выпуск слева, чтобы загрузить PDF и опубликовать.")}
                   </div>
                 )}
               </div>
@@ -1131,7 +1217,7 @@ function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish }) {
       <div className="text-sm">
         <div className="font-medium break-words">{issue.label}</div>
         <div className="text-xs text-slate-500">
-          #{issue.id} • Статус: <b>{issue.status}</b> • Создан:{" "}
+          #{issue.id} • {t("dashboards:proofreader_dashboard.detail.status", "Статус:")} <b>{issue.status}</b> • {t("dashboards:proofreader_dashboard.detail.created", "Создан:")}{" "}
           {fmt(issue.created_at)}
         </div>
       </div>
@@ -1144,10 +1230,12 @@ function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish }) {
             rel="noreferrer"
             className="underline text-sm"
           >
-            Скачать PDF
+            {t("dashboards:proofreader_dashboard.pdf.download", "Скачать PDF")}
           </a>
         ) : (
-          <span className="text-xs text-slate-500">PDF не загружен</span>
+          <span className="text-xs text-slate-500">
+            {t("dashboards:proofreader_dashboard.pdf.not_uploaded", "PDF не загружен")}
+          </span>
         )}
 
         <label className="inline-flex items-center gap-2">
@@ -1163,12 +1251,12 @@ function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish }) {
             }}
           />
           <span className="inline-flex items-center gap-2 rounded-md border border-dashed px-3 py-2 cursor-pointer bg-slate-50 hover:bg-slate-100 text-sm">
-            <UploadIcon className="h-4 w-4" /> Загрузить PDF
+            <UploadIcon className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.pdf.upload", "Загрузить PDF")}
           </span>
         </label>
 
         {issue.status === "published" ? (
-          <Badge className="bg-emerald-600">Опубликован</Badge>
+          <Badge className="bg-emerald-600">{t("dashboards:proofreader_dashboard.badge.issue_published", "Опубликован")}</Badge>
         ) : (
           <Button
             onClick={() => onPublish(issueId)}
@@ -1180,7 +1268,7 @@ function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish }) {
             ) : (
               <CheckCircle2 className="h-4 w-4 mr-2" />
             )}{" "}
-            Опубликовать
+            {t("dashboards:proofreader_dashboard.actions.publish", "Опубликовать")}
           </Button>
         )}
       </div>

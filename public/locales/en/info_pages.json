@@ -1,0 +1,117 @@
+{
+  "contacts": {
+    "badge": "Contact Us",
+    "cta": {
+      "button_label": "Contact Department",
+      "subtitle": "Write to us — we’ll help set up the process and speed up publications.",
+      "title": "Have a question about submission or connecting a journal?"
+    },
+    "email": {
+      "note": "For authors and editors"
+    },
+    "phone": {
+      "hours": "Mon–Fri, 9:00–18:00",
+      "label": "Phone"
+    },
+    "subtitle": "We are here to help: questions about publishing, integrations, contracts, and technical support.",
+    "title": "Contacts & Support"
+  },
+  "privacy": {
+    "back_home": "← Back to Home",
+    "badge": "Privacy Policy",
+    "disclaimer": "This text is provided for informational purposes and is not legal advice. If necessary, adapt the policy to your organization’s requirements and applicable law.",
+    "h": {
+      "changes": "12. Policy Changes",
+      "children": "10. Children and Vulnerable Individuals",
+      "contact": "13. Contacts",
+      "cookies": "5. Cookies and Analytics",
+      "data": "2. What Data We Collect",
+      "lawful": "4. Legal Bases for Processing",
+      "retention": "7. Data Retention",
+      "rights": "9. User Rights",
+      "scope": "1. Scope",
+      "security": "8. Security",
+      "sharing": "6. Third-Party Sharing",
+      "transfer": "11. Cross-Border Transfer",
+      "use": "3. How We Use Data"
+    },
+    "hero_desc": "This page explains what data we collect on the {{brand}} platform, how we use it, and what rights you have.",
+    "hero_title": "How We Protect Your Data",
+    "li": {
+      "account_bold": "Account data: ",
+      "account_text": "name, email, password (stored as a hash), role/organization.",
+      "billing_bold": "Billing/contract data",
+      "billing_text": "organization details, contract numbers, invoices.",
+      "if_applicable": "if applicable",
+      "ops_bold": "Operational data: ",
+      "ops_text": "submission statuses, comments, editorial decisions, activity history.",
+      "profile_bold": "Profile and article metadata: ",
+      "profile_text": "author names, ORCID, affiliations, abstracts, keywords, manuscript files and attachments.",
+      "rights": {
+        "access": "request access to your data and a copy of it;",
+        "erase": "delete data (except where retention is mandatory);",
+        "portability": "data portability (where applicable);",
+        "rectify": "correct inaccuracies and update your profile;",
+        "restrict": "restrict processing or object to it;",
+        "withdraw": "withdraw consent (if processing is based on it);"
+      },
+      "security": {
+        "logging": "logging and anomaly monitoring, brute-force protection;",
+        "transport": "channel encryption (HTTPS), environment isolation, access control (RBAC);",
+        "updates": "regular updates and backups."
+      },
+      "sharing": {
+        "integrations_bold": "Client-selected integrations:",
+        "integrations_text": "ORCID, DOI providers, LMS/SRS (e.g., Platonus), SSO (SAML/OIDC).",
+        "law_bold": "Legal requirements:",
+        "law_text": "upon lawful requests from authorized authorities.",
+        "ops_bold": "Operators and partners:",
+        "ops_text": "hosting providers, email gateways, analytics systems, payment/document services."
+      },
+      "tech_bold": "Technical data: ",
+      "tech_text": "IP address, user-agent, log records for security and diagnostics.",
+      "use": {
+        "contracts": "fulfillment of contracts and legal obligations;",
+        "improve": "improving service quality (aggregated statistics without identifying users);",
+        "security": "ensuring security, preventing fraud and abuse;",
+        "services": "providing services: article submission, peer review, publication, analytics;",
+        "support": "user support and feedback;"
+      }
+    },
+    "note_strong": "Important:",
+    "note_text": "this document is general for the platform. Individual journals may have additional requirements or privacy notices on their public 'For Authors' pages.",
+    "p": {
+      "address": "Qalam Masters, RK, Astana, Mangilik El Ave, 1",
+      "changes": "We may update this Policy. The current version is always available at this address. Significant changes will be additionally notified in the interface or by email.",
+      "children": "The platform is not intended for users under 16 years of age without involvement of legal representatives. If you believe a child has provided us with data without consent, please contact us for removal.",
+      "contact_privacy_label": "Email for privacy questions:",
+      "contact_support_label": ". General support:",
+      "cookies": "We use cookies for authentication, interface settings, and usage statistics. Analytics uses anonymized data. You can restrict cookies in your browser settings, but some functions may become unavailable.",
+      "lawful": "We process data based on: (a) performance of a contract with the user or organization; (b) legitimate interests of the platform (without harming data subjects’ rights); (c) user consent — for specific options (e.g., certain integrations/newsletters); (d) compliance with legal obligations.",
+      "retention": "Data is retained only as long as necessary for processing purposes and to meet legal/contractual requirements. Certain logs and backups may be stored longer for security and audit purposes.",
+      "rights_contact_prefix": "To exercise your rights, write to us:",
+      "rights_intro": "Within applicable law you may:",
+      "scope": "This Policy applies to the {{brand}} website and services, including public journal pages, author/editor dashboards, and API. By using the platform, you agree to this Policy.",
+      "security_disclaimer": "Despite the measures taken, no method of transmission or storage guarantees absolute security.",
+      "sharing_contracts": "Sharing is carried out under contracts requiring protection and confidentiality.",
+      "transfer": "Data may be transferred across jurisdictions (e.g., data centers/providers). We ensure an equivalent level of protection and enter into necessary transfer agreements (including standard contractual clauses where required)."
+    },
+    "toc": {
+      "changes": "12. Policy Changes",
+      "children": "10. Children and Vulnerable Individuals",
+      "contact": "13. Contacts",
+      "cookies": "5. Cookies and Analytics",
+      "data": "2. What Data We Collect",
+      "lawful": "4. Legal Bases for Processing",
+      "retention": "7. Data Retention",
+      "rights": "9. User Rights",
+      "scope": "1. Scope",
+      "security": "8. Security",
+      "sharing": "6. Third-Party Sharing",
+      "title": "Table of Contents",
+      "transfer": "11. Cross-Border Transfer",
+      "use": "3. How We Use Data"
+    },
+    "updated_at": "Last updated: {{date}}"
+  }
+}

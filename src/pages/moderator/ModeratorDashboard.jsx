@@ -11,6 +11,7 @@ import { http, tokenStore, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import OrgMembersManager from "@/components/organizations/OrgMembersManager";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 
 /* ── helpers: images/urls ─────────────────────────────────── */
 const pickFirst = (obj, keys = []) => {
@@ -33,6 +34,7 @@ const resolveImageUrl = (raw) => {
 };
 
 const OrgLogo = ({ org }) => {
+  const { t } = useTranslation();
   const rawLogo =
     pickFirst(org, [
       "logo",
@@ -56,7 +58,12 @@ const OrgLogo = ({ org }) => {
     <div className="w-12 h-12 rounded-xl overflow-hidden bg-white ring-1 ring-slate-200 flex items-center justify-center">
       <img
         src={src}
-        alt={org?.title || "Организация"}
+        alt={org?.title ||
+            t(
+                "moderator_orgs:moderator_dashboard.org_image_alt",
+                "Организация"
+            )
+      }
         className="w-full h-full object-contain"
         loading="lazy"
         onError={(e) => {
@@ -72,6 +79,7 @@ const OrgLogo = ({ org }) => {
 };
 
 const JournalCover = ({ journal }) => {
+  const { t } = useTranslation();
   const raw =
     pickFirst(journal, [
       "logo",
@@ -85,10 +93,10 @@ const JournalCover = ({ journal }) => {
       "thumbnail",
     ]) || "";
   const src = resolveImageUrl(raw);
-  const title = journal?.title || "Журнал";
+  const title = journal?.title || t("moderator_orgs:moderator_dashboard.journal_fallback", "Журнал");
 
   return (
-    <div className="w-28 sm:w-36 h-40 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
+    <div className="w-32 sm:w-36 h-44 sm:h-48 rounded-md overflow-hidden relative flex-shrink-0 bg-indigo-50">
       {src ? (
         <img
           src={src}
@@ -272,6 +280,7 @@ async function fetchAllJournalMemberships({
 export default function ModeratorDashboard() {
   const navigate = useNavigate();
   const { user: me } = useAuth();
+  const { t } = useTranslation();
 
   const myId = getMyIdFromJWT();
 
@@ -377,7 +386,12 @@ export default function ModeratorDashboard() {
             );
             byOrgId.set(orgId, { org: orgDetail, journals: jOfOrg });
           } catch (err) {
-            console.warn("Не удалось загрузить организацию", orgId, err);
+            console.warn(
+                t(
+                    "moderator_orgs:moderator_dashboard.org_load_failed",
+                    "Не удалось загрузить организацию"
+                ),
+                orgId, err);
           }
         }
 
@@ -415,9 +429,18 @@ export default function ModeratorDashboard() {
           e?.response?.data?.detail ||
           e?.response?.data?.error ||
           e?.message ||
-          "Не удалось загрузить данные модератора";
-        if (e?.response?.status === 401) msg = "Сессия истекла. Войдите снова.";
-        if (e?.response?.status === 403) msg = "У вас нет прав модератора.";
+            t(
+                "moderator_orgs:moderator_dashboard.load_failed",
+                "Не удалось загрузить данные модератора"
+            );
+        if (e?.response?.status === 401) msg = t(
+            "moderator_orgs:moderator_dashboard.session_expired",
+            "Сессия истекла. Войдите снова."
+        );
+        if (e?.response?.status === 403) msg = t(
+            "moderator_orgs:moderator_dashboard.no_rights",
+            "У вас нет прав модератора."
+        );
         setError(String(msg));
         setOrgs([]);
       } finally {
@@ -432,27 +455,61 @@ export default function ModeratorDashboard() {
 
   /* ── UI helpers ───────────────────────────────────────────── */
   const frequencyLabel = (f) =>
-    ({
-      daily: "Ежедневно",
-      weekly: "Еженедельно",
-      monthly: "Ежемесячно",
-      quarterly: "Ежеквартально",
-      annually: "Ежегодно",
-    })[f] || "—";
+      (
+          {
+            daily: t("moderator_orgs:moderator_dashboard.freq.daily", "Ежедневно"),
+            weekly: t(
+                "moderator_orgs:moderator_dashboard.freq.weekly",
+                "Еженедельно"
+            ),
+            monthly: t(
+                "moderator_orgs:moderator_dashboard.freq.monthly",
+                "Ежемесячно"
+            ),
+            quarterly: t(
+                "moderator_orgs:moderator_dashboard.freq.quarterly",
+                "Ежеквартально"
+            ),
+            annually: t(
+                "moderator_orgs:moderator_dashboard.freq.annually",
+                "Ежегодно"
+            ),
+          }[f] || t("moderator_orgs:moderator_dashboard.dash", "—")
+      );
 
   const journalStatus = (pct) =>
     pct >= 80
-      ? { label: "Готов к публикации", cls: "bg-emerald-100 text-emerald-800" }
+      ? { label: t(
+              "moderator_orgs:moderator_dashboard.status.ready",
+              "Готов к публикации"
+          ),
+          cls: "bg-emerald-100 text-emerald-800" }
       : pct >= 40
-        ? { label: "Заполняется", cls: "bg-amber-100 text-amber-800" }
-        : { label: "Черновик", cls: "bg-slate-100 text-slate-700" };
+        ? { label: t(
+                  "moderator_orgs:moderator_dashboard.status.filling",
+                  "Заполняется"
+              ),
+              cls: "bg-amber-100 text-amber-800" }
+        : { label: t(
+                  "moderator_orgs:moderator_dashboard.status.draft",
+                  "Черновик"
+              ),
+              cls: "bg-slate-100 text-slate-700" };
 
   const handleCreateOrg = () => navigate("/moderator/organizations/new");
 
   /* ── render guards ────────────────────────────────────────── */
   if (allowed === null)
-    return <div className="p-6 text-gray-500">Загрузка…</div>;
-  if (loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
+    return (
+        <div className="p-6 text-gray-500">
+          {t("moderator_orgs:moderator_dashboard.loading", "Загрузка…")}
+        </div>);
+  if (loading)
+    return (
+        <div className="p-6 text-gray-500">
+          {t("moderator_orgs:moderator_dashboard.loading", "Загрузка…")}
+        </div>
+    );
 
   if (error) {
     return (
@@ -460,7 +517,9 @@ export default function ModeratorDashboard() {
         <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
           {error}
         </div>
-        <Button onClick={() => window.location.reload()}>Повторить</Button>
+        <Button onClick={() => window.location.reload()}>
+          {t("moderator_orgs:moderator_dashboard.retry", "Повторить")}
+        </Button>
       </div>
     );
   }
@@ -473,12 +532,14 @@ export default function ModeratorDashboard() {
             <Building2 className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
-              Модератор
+            <h1 className="text-2xl font-bold text-gray-900">
+              {t("moderator_orgs:moderator_dashboard.moderator", "Модератор")}
             </h1>
             <p className="text-gray-600">
-              У вас нет организаций или журналов с правами модерации. Создайте
-              свою организацию или попросите доступ.
+              {t(
+                  "moderator_orgs:moderator_dashboard.no_orgs_text",
+                  "У вас нет организаций или журналов с правами модерации. Создайте свою организацию или попросите доступ."
+              )}
             </p>
           </div>
         </div>
@@ -486,12 +547,24 @@ export default function ModeratorDashboard() {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-8 flex flex-col items-center text-center gap-4">
             <Building2 className="w-12 h-12 text-blue-600" />
-            <h2 className="text-xl font-semibold">Создайте организацию</h2>
+            <h2 className="text-xl font-semibold">
+              {t(
+                  "moderator_orgs:moderator_dashboard.create_org_title",
+                  "Создайте организацию"
+              )}
+            </h2>
             <p className="text-gray-600 max-w-xl">
-              Заполните основные данные (название, руководитель, контакты).
+              {t(
+                  "moderator_orgs:moderator_dashboard.create_org_hint",
+                  "Заполните основные данные (название, руководитель, контакты)."
+              )}
             </p>
             <Button size="lg" className="gap-2" onClick={handleCreateOrg}>
-              <Plus className="w-4 h-4" /> Создать организацию
+              <Plus className="w-4 h-4" />
+              {t(
+                  "moderator_orgs:moderator_dashboard.create_org_btn",
+                  "Создать организацию"
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -530,25 +603,33 @@ export default function ModeratorDashboard() {
         return (
           <div key={org.id} className="space-y-6">
             {/* Header */}
-            <div className="grid gap-3 sm:gap-4 sm:grid-cols-[1fr,auto] items-start">
-              <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-4">
                 <OrgLogo org={org} />
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
-                    {org.title || "Организация"}
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {org.title ||
+                        t(
+                            "moderator_orgs:moderator_dashboard.org_fallback",
+                            "Организация"
+                        )
+                  }
                   </h1>
-                  <p className="text-gray-600 text-sm">
-                    Управление журналами и данными организации
+                  <p className="text-gray-600">
+                    {t(
+                        "moderator_orgs:moderator_dashboard.org_subtitle",
+                        "Управление журналами и данными организации"
+                    )}
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:justify-end w-full sm:w-auto">
+              <div className="flex gap-2">
                 <Link to={`/moderator/organizations/${org.id}`}>
-                  <Button
-                    variant="outline"
-                    className="gap-2 w-full sm:w-auto sm:whitespace-nowrap"
-                  >
-                    <Eye className="w-4 h-4" /> Профиль организации
+                  <Button variant="outline" className="gap-2">
+                    <Eye className="w-4 h-4" /> {t(
+                      "moderator_orgs:moderator_dashboard.org_profile",
+                      "Профиль организации"
+                  )}
                   </Button>
                 </Link>
               </div>
@@ -558,13 +639,23 @@ export default function ModeratorDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               <Card className="border-0 shadow-sm bg-blue-600 text-white">
                 <CardContent className="p-5">
-                  <p className="opacity-90">Журналов</p>
+                  <p className="opacity-90">
+                    {t(
+                        "moderator_orgs:moderator_dashboard.kpi_journals",
+                        "Журналов"
+                    )}
+                  </p>
                   <p className="text-3xl font-bold">{stats.journals}</p>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-sm bg-purple-600 text-white">
                 <CardContent className="p-5">
-                  <p className="opacity-90">Рейтинг организации</p>
+                  <p className="opacity-90">
+                    {t(
+                        "moderator_orgs:moderator_dashboard.kpi_rating",
+                        "Рейтинг организации"
+                    )}
+                  </p>
                   <p className="text-3xl font-bold flex items-center gap-2">
                     {stats.orgRating || "—"} <Star className="w-6 h-6" />
                   </p>
@@ -572,15 +663,30 @@ export default function ModeratorDashboard() {
               </Card>
               <Card className="border-0 shadow-sm bg-emerald-600 text-white">
                 <CardContent className="p-5">
-                  <p className="opacity-90">Статус</p>
+                  <p className="opacity-90">
+                    {t("moderator_orgs:moderator_dashboard.kpi_status", "Статус")}
+                  </p>
                   <p className="text-3xl font-bold">
-                    {org.is_active ? "Активна" : "Не активна"}
+                    {org.is_active
+                        ? t(
+                            "moderator_orgs:moderator_dashboard.active",
+                            "Активна"
+                        )
+                        : t(
+                            "moderator_orgs:moderator_dashboard.inactive",
+                            "Не активна"
+                        )}
                   </p>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-sm bg-slate-700 text-white">
                 <CardContent className="p-5">
-                  <p className="opacity-90">Обновлено</p>
+                  <p className="opacity-90">
+                    {t(
+                        "moderator_orgs:moderator_dashboard.kpi_updated",
+                        "Обновлено"
+                    )}
+                  </p>
                   <p className="text-3xl font-bold flex items-center gap-2">
                     <Calendar className="w-6 h-6" /> {stats.updatedAt}
                   </p>
@@ -590,17 +696,30 @@ export default function ModeratorDashboard() {
             {/* Вкладки по организации */}
             <Tabs defaultValue="journals" className="mt-2">
               <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="journals">Журналы</TabsTrigger>
-                <TabsTrigger value="members">Сотрудники</TabsTrigger>
+                <TabsTrigger value="journals">
+                  {t("moderator_orgs:moderator_dashboard.tab_journals", "Журналы")}
+                </TabsTrigger>
+                <TabsTrigger value="members">
+                  {t("moderator_orgs:moderator_dashboard.tab_members", "Сотрудники")}
+                </TabsTrigger>
               </TabsList>
 
               {/* Вкладка ЖУРНАЛЫ (то, что уже было) */}
               <TabsContent value="journals" className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <h2 className="text-xl font-semibold">Журналы</h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">
+                    {t(
+                        "moderator_orgs:moderator_dashboard.journals_title",
+                        "Журналы"
+                    )}
+                  </h2>
                   <Link to={`/moderator/organizations/${org.id}/add-journal`}>
-                    <Button className="gap-2 bg-[#3972FE] w-full sm:w-auto sm:whitespace-nowrap">
-                      <FilePlus2 className="w-4 h-4" /> Создать журнал
+                    <Button className="gap-2 bg-[#3972FE]">
+                      <FilePlus2 className="w-4 h-4" />
+                      {t(
+                          "moderator_orgs:moderator_dashboard.create_journal_btn",
+                          "Создать журнал"
+                      )}
                     </Button>
                   </Link>
                 </div>
@@ -609,7 +728,10 @@ export default function ModeratorDashboard() {
                   <CardContent className="p-0">
                     {journals.length === 0 ? (
                       <div className="p-6 text-gray-500">
-                        Пока нет журналов. Добавьте первый.
+                        {t(
+                            "moderator_orgs:moderator_dashboard.no_journals_yet",
+                            "Пока нет журналов. Добавьте первый."
+                        )}
                       </div>
                     ) : (
                       <ul className="divide-y divide-slate-100">
@@ -621,14 +743,17 @@ export default function ModeratorDashboard() {
                               key={j.id}
                               className="p-4 hover:bg-slate-50/70 transition rounded-lg mx-2 my-2"
                             >
-                              <div className="flex flex-col sm:flex-row items-stretch gap-4">
-                                <div className="sm:self-start">
-                                  <JournalCover journal={j} />
-                                </div>
+                              <div className="flex items-stretch gap-4">
+                                <JournalCover journal={j} />
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-2">
-                                    <h3 className="font-semibold text-lg leading-tight line-clamp-2 break-words">
-                                      {j.title || "Без названия"}
+                                    <h3 className="font-semibold text-lg leading-tight truncate">
+                                      {j.title ||
+                                          t(
+                                              "moderator_orgs:moderator_dashboard.no_title",
+                                              "Без названия"
+                                          )
+                                      }
                                     </h3>
                                     <span
                                       className={`text-xs px-2 py-0.5 rounded shrink-0 ${st.cls}`}
@@ -637,9 +762,21 @@ export default function ModeratorDashboard() {
                                     </span>
                                   </div>
                                   <div className="text-sm text-gray-600 mt-0.5">
-                                    Язык: {j.language?.toUpperCase() || "—"} •
-                                    Периодичность: {frequencyLabel(j.frequency)}{" "}
-                                    • Создан:{" "}
+                                    {t(
+                                        "moderator_orgs:moderator_dashboard.lang",
+                                        "Язык"
+                                    )}
+                                    : {j.language?.toUpperCase() || "—"} •
+                                    {t(
+                                        "moderator_orgs:moderator_dashboard.frequency",
+                                        "Периодичность"
+                                    )}
+                                    : {frequencyLabel(j.frequency)} •{" "}
+                                    {t(
+                                      "moderator_orgs:moderator_dashboard.created_at",
+                                      "Создан"
+                                    )}
+                                    :{" "}
                                     {j.created_at
                                       ? new Date(
                                           j.created_at
@@ -649,7 +786,10 @@ export default function ModeratorDashboard() {
                                   <div className="mt-3 max-w-xl">
                                     <div className="flex items-center justify-between text-xs mb-1">
                                       <span className="text-gray-600">
-                                        Заполненность
+                                        {t(
+                                            "moderator_orgs:moderator_dashboard.completeness",
+                                            "Заполненность"
+                                        )}
                                       </span>
                                       <span className="font-medium">
                                         {pct}%
@@ -657,50 +797,78 @@ export default function ModeratorDashboard() {
                                     </div>
                                     <Progress value={pct} />
                                     {pct < 100 && (
-                                      <div className="mt-2 text-xs text-gray-500 break-words">
+                                      <div className="mt-2 text-xs text-gray-500">
                                         <p className="font-medium mb-1">
-                                          Советы для заполнения:
+                                          {t(
+                                              "moderator_orgs:moderator_dashboard.tips_title",
+                                              "Советы для заполнения:"
+                                          )}
                                         </p>
                                         <ul className="list-disc pl-5 space-y-0.5">
                                           {journalMissingFields(j)
-                                            .slice(0, 4)
-                                            .map((field) => (
-                                              <li key={field}>
-                                                Добавьте {field}
-                                              </li>
-                                            ))}
+                                              .slice(0, 4)
+                                              .map((field) => {
+                                                // обратный поиск ключа поля по русскому ярлыку
+                                                const fldKey = Object.keys(
+                                                    FIELD_LABELS
+                                                ).find(
+                                                    (k) => FIELD_LABELS[k] === field
+                                                );
+                                                const fldLabel = fldKey
+                                                    ? t(
+                                                        `moderator_orgs:moderator_dashboard.fields.${fldKey}`,
+                                                        FIELD_LABELS[fldKey]
+                                                    )
+                                                    : field;
+                                                return (
+                                                    <li key={field}>
+                                                      {
+                                                        t(
+                                                            "moderator_orgs:moderator_dashboard.tip_add_field",
+                                                            "Добавьте {{field}}"
+                                                            , {field: fldLabel})
+                                                      }
+                                                    </li>
+                                                );
+                                              })}
                                         </ul>
                                       </div>
                                     )}
                                   </div>
                                 </div>
-                                <div className="mt-3 sm:mt-0 flex w-full sm:w-auto flex-row sm:flex-col gap-2 self-stretch sm:self-center">
+                                <div className="flex flex-col gap-2 self-center shrink-0">
                                   <Link to={`/moderator/journals/${j.id}`}>
-                                    <Button
-                                      size="sm"
-                                      className="w-full sm:w-36"
-                                    >
-                                      Открыть
+                                    <Button size="sm" className="w-36">
+                                      {t(
+                                          "moderator_orgs:moderator_dashboard.open",
+                                          "Открыть"
+                                      )}
                                     </Button>
                                   </Link>
                                   <Link
-                                    to={`/moderator/journals/${j.id}/settings`}
+                                      to={`/moderator/journals/${j.id}/settings`}
                                   >
                                     <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-full sm:w-36 sm:whitespace-nowrap"
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-36"
                                     >
-                                      Настройки
+                                      {t(
+                                          "moderator_orgs:moderator_dashboard.settings",
+                                          "Настройки"
+                                      )}
                                     </Button>
                                   </Link>
                                   <Link to={`/moderator/journals/${j.id}/team`}>
                                     <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-full sm:w-36 sm:whitespace-nowrap"
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-36"
                                     >
-                                      Команда журнала
+                                      {t(
+                                          "moderator_orgs:moderator_dashboard.journal_team",
+                                          "Команда журнала"
+                                      )}
                                     </Button>
                                   </Link>
                                 </div>
@@ -717,7 +885,10 @@ export default function ModeratorDashboard() {
               {/* Вкладка УЧАСТНИКИ */}
               <TabsContent value="members" className="space-y-4">
                 <h2 className="text-xl font-semibold">
-                  Сотрудники организации
+                  {t(
+                      "moderator_orgs:moderator_dashboard.members_title",
+                      "Сотрудники организации"
+                  )}
                 </h2>
                 <OrgMembersManager orgId={org.id} />
               </TabsContent>

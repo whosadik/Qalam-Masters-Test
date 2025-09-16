@@ -1,0 +1,20 @@
+{
+  "authors": {
+    "for_authors": "For Authors",
+    "submit_article": "Submit Article",
+    "title": "Authors"
+  },
+  "copyright": "All rights reserved.",
+  "orgs": {
+    "contact_us": "Contact Us",
+    "create_journal": "Create Journal",
+    "create_org": "Create Organization",
+    "title": "For Organizations"
+  },
+  "platform": {
+    "journals_catalog": "Journals Catalog",
+    "privacy_policy": "Privacy Policy",
+    "title": "Platform"
+  },
+  "tagline": "Automated platform for publishing scientific articles and journals."
+}

@@ -9,8 +9,10 @@ import { updateMe, deleteMe } from "@/services/authService";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { getOrganization } from "@/services/organizationsService";
+import { useTranslation } from "react-i18next";
 
 export default function AuthorProfile() {
+  const { t } = useTranslation();
   const { user, refreshMe, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -86,14 +88,14 @@ export default function AuthorProfile() {
         for (const orgId of ids) {
           try {
             const od = await getOrganization(orgId);
-            items.push({ id: orgId, title: od?.title || `Организация #${orgId}` });
+            items.push({ id: orgId, title: od?.title || t("dashboards:author_profile.organization_fallback", "Организация #{{id}}", { id: orgId }) });
           } catch {
-            items.push({ id: orgId, title: `Организация #${orgId}` });
+            items.push({ id: orgId, title: t("dashboards:author_profile.organization_fallback", "Организация #{{id}}", { id: orgId }) });
           }
         }
         if (!ignore) setAdminOrgs(items);
       } catch (e) {
-        if (!ignore) setOrgError("Не удалось загрузить организации пользователя");
+        if (!ignore) setOrgError(t("dashboards:author_profile.orgs_load_error", "Не удалось загрузить организации пользователя"));
       } finally {
         if (!ignore) setOrgLoading(false);
       }
@@ -130,14 +132,14 @@ export default function AuthorProfile() {
       // PATCH — обновляем только изменённые поля
       await updateMe(form, "patch");
       await refreshMe(); // подтянуть свежего пользователя
-      setMsg("Профиль обновлён");
+      setMsg(t("dashboards:author_profile.profile_updated", "Профиль обновлён"));
       setEditMode(false);
     } catch (e) {
       const m =
         e?.response?.data?.detail ||
         e?.response?.data?.non_field_errors?.[0] ||
         e?.response?.data?.error ||
-        "Не удалось сохранить профиль.";
+          t("dashboards:author_profile.save_failed", "Не удалось сохранить профиль.");
       setErr(String(m));
     } finally {
       setBusy(false);
@@ -146,7 +148,7 @@ export default function AuthorProfile() {
 
   const handleDelete = async () => {
     setErr(""); setMsg("");
-    if (!confirm("Удалить аккаунт безвозвратно?")) return;
+    if (!confirm(t("dashboards:author_profile.delete_confirm", "Удалить аккаунт безвозвратно?"))) return;
     setBusy(true);
     try {
       await deleteMe(); // сервер удалит; токены чистятся в сервисе
@@ -156,7 +158,7 @@ export default function AuthorProfile() {
       const m =
         e?.response?.data?.detail ||
         e?.response?.data?.error ||
-        "Не удалось удалить аккаунт.";
+          t("dashboards:author_profile.delete_failed", "Не удалось удалить аккаунт.");
       setErr(String(m));
     } finally {
       setBusy(false);
@@ -170,7 +172,7 @@ export default function AuthorProfile() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Профиль автора
+              {t("dashboards:author_profile.title", "Профиль автора")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-8">
@@ -207,7 +209,7 @@ export default function AuthorProfile() {
                   {registeredAt && (
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      Регистрация: {registeredAt}
+                      {t("dashboards:author_profile.registered_label", "Регистрация")}: {registeredAt}
                     </span>
                   )}
                   {user?.website_link && (
@@ -218,7 +220,7 @@ export default function AuthorProfile() {
                       className="flex items-center gap-1 hover:underline"
                     >
                       <Globe className="h-4 w-4" />
-                      Веб-сайт
+                      {t("dashboards:author_profile.website", "Веб-сайт")}
                     </a>
                   )}
                 </div>
@@ -228,20 +230,24 @@ export default function AuthorProfile() {
               {/* Если пользователь админ/модератор хотя бы в одной организации */}
             {(orgLoading || adminOrgs.length > 0 || orgError) && (
               <section className="rounded-lg border bg-slate-50 p-4">
-                <h3 className="font-semibold mb-3">Мои организации (админ)</h3>
+                <h3 className="font-semibold mb-3">
+                  {t("dashboards:author_profile.my_orgs_admin", "Мои организации (админ)")}
+                </h3>
                 {orgLoading ? (
                   <div className="h-5 w-56 rounded bg-slate-200 animate-pulse" />
                 ) : orgError ? (
                   <p className="text-sm text-red-600">{orgError}</p>
                 ) : adminOrgs.length === 0 ? (
-                  <p className="text-sm text-slate-600">Вы не являетесь администратором ни одной организации.</p>
+                  <p className="text-sm text-slate-600">
+                    {t("dashboards:author_profile.no_admin_orgs", "Вы не являетесь администратором ни одной организации.")}
+                  </p>
                 ) : (
                   <ul className="flex flex-wrap gap-2">
                     {adminOrgs.map((o) => (
                       <li
                         key={o.id}
                         className="px-3 py-1.5 text-sm rounded-full bg-blue-100 text-blue-800"
-                        title={`Организация #${o.id}`}
+                        title={t("dashboards:author_profile.org_title_tooltip", "Организация #{{id}}", { id: o.id })}
                       >
                         {o.title}
                       </li>
@@ -256,30 +262,30 @@ export default function AuthorProfile() {
             <section className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Имя</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.first_name_label", "Имя")}</label>
                   <Input
                     name="first_name"
                     value={form.first_name}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="Имя"
+                    placeholder={t("dashboards:author_profile.first_name_ph", "Имя")}
                     autoComplete="given-name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Фамилия</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.last_name_label", "Фамилия")}</label>
                   <Input
                     name="last_name"
                     value={form.last_name}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="Фамилия"
+                    placeholder={t("dashboards:author_profile.last_name_ph", "Фамилия")}
                     autoComplete="family-name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Телефон</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.phone_label", "Телефон")}</label>
                   <Input
                     name="phone"
                     value={form.phone}
@@ -290,63 +296,63 @@ export default function AuthorProfile() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Страна</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.country_label", "Страна")}</label>
                   <Input
                     name="country"
                     value={form.country}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="Казахстан"
+                    placeholder={t("dashboards:author_profile.country_ph", "Казахстан")}
                     autoComplete="country-name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Город</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.city_label", "Город")}</label>
                   <Input
                     name="city"
                     value={form.city}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="Алматы"
+                    placeholder={t("dashboards:author_profile.city_ph", "Алматы")}
                     autoComplete="address-level2"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Академическое звание</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.academic_title_label", "Академическое звание")}</label>
                   <Input
                     name="academic_title"
                     value={form.academic_title}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="Кандидат наук / Профессор"
+                    placeholder={t("dashboards:author_profile.academic_title_ph", "Кандидат наук / Профессор")}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Академическая степень</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.academic_degree_label", "Академическая степень")}</label>
                   <Input
                     name="academic_degree"
                     value={form.academic_degree}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="PhD / MSc / ... "
+                    placeholder={t("dashboards:author_profile.academic_degree_ph", "PhD / MSc / ... ")}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Ссылка на сайт</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.website_link_label", "Ссылка на сайт")}</label>
                   <Input
                     name="website_link"
                     value={form.website_link}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="https://…"
+                    placeholder={t("dashboards:author_profile.website_link_ph", "https://…")}
                     type="url"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">URL аватара</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.avatar_url_label", "URL аватара")}</label>
                   <Input
                     name="avatar"
                     value={form.avatar}
@@ -357,13 +363,13 @@ export default function AuthorProfile() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">О себе</label>
+                  <label className="block text-sm font-medium mb-1">{t("dashboards:author_profile.bio_label", "О себе")}</label>
                   <textarea
                     name="bio"
                     value={form.bio}
                     onChange={handleChange}
                     disabled={!editMode || busy}
-                    placeholder="Краткая информация об исследованиях, интересах…"
+                    placeholder={t("dashboards:author_profile.bio_ph", "Краткая информация об исследованиях, интересах…")}
                     rows={4}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   />
@@ -378,20 +384,20 @@ export default function AuthorProfile() {
               <div className="flex flex-wrap gap-3">
                 {!editMode ? (
                   <>
-                    <Button onClick={() => setEditMode(true)}>Редактировать профиль</Button>
+                    <Button onClick={() => setEditMode(true)}>{t("dashboards:author_profile.edit_profile_btn", "Редактировать профиль")}</Button>
                     <Button
                       variant="destructive"
                       onClick={handleDelete}
                       disabled={busy}
-                      title="Удалить аккаунт навсегда"
+                      title={t("dashboards:author_profile.delete_account_title", "Удалить аккаунт навсегда")}
                     >
-                      Удалить аккаунт
+                      {t("dashboards:author_profile.delete_account_btn", "Удалить аккаунт")}
                     </Button>
                   </>
                 ) : (
                   <>
                     <Button onClick={handleSave} disabled={busy}>
-                      {busy ? "Сохраняем…" : "Сохранить"}
+                      {busy ? t("dashboards:author_profile.saving", "Сохраняем…") : t("dashboards:author_profile.save_btn", "Сохранить")}
                     </Button>
                     <Button
                       variant="outline"
@@ -416,7 +422,7 @@ export default function AuthorProfile() {
                       }}
                       disabled={busy}
                     >
-                      Отмена
+                      {t("dashboards:author_profile.cancel_btn", "Отмена")}
                     </Button>
                   </>
                 )}

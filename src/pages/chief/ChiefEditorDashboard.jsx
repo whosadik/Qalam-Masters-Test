@@ -30,6 +30,7 @@ import {
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { listArticles, updateArticleStatus } from "@/services/articlesService";
+import { useTranslation } from "react-i18next";
 
 /* ---------- helpers ---------- */
 const STATUS_LABEL = {
@@ -76,6 +77,7 @@ async function fetchAssignmentsFor(articleIds = []) {
 }
 
 function StatusPill({ status }) {
+  const { t } = useTranslation();
   const map = {
     under_review: "bg-indigo-100 text-indigo-700",
     accepted: "bg-emerald-100 text-emerald-700",
@@ -86,7 +88,10 @@ function StatusPill({ status }) {
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${map[status] || "bg-slate-100 text-slate-700"}`}
     >
-      {STATUS_LABEL[status] || status}
+      {t(
+          `dashboards:chief_editor_dashboard.status.${status}`,
+          STATUS_LABEL[status] || status
+      )}
     </span>
   );
 }
@@ -95,6 +100,8 @@ function StatusPill({ status }) {
    Main Dashboard (3-pane)
 ========================= */
 export default function ChiefEditorDashboard() {
+  const { t } = useTranslation();
+
   // layout
   const [dense, setDense] = useState(
     () => (localStorage.getItem("chief_dense") ?? "1") === "1"
@@ -223,13 +230,13 @@ export default function ChiefEditorDashboard() {
             const { data: j } = await http.get(API.JOURNAL_ID(jid));
             fetched.push({
               id: Number(j.id),
-              title: j.title || `Журнал #${jid}`,
+              title: j.title || t("dashboards:chief_editor_dashboard.journal_fallback", `Журнал #${jid}`),
               organization: j.organization,
             });
           } catch {
             fetched.push({
               id: Number(jid),
-              title: `Журнал #${jid}`,
+              title:  t("dashboards:chief_editor_dashboard.journal_fallback", `Журнал #${jid}`),
               organization: null,
             });
           }
@@ -274,7 +281,12 @@ export default function ChiefEditorDashboard() {
       await loadArticlesForJournal(journalId);
     } catch (e) {
       console.error("sendToProofreader failed", e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось отправить корректору");
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:chief_editor_dashboard.errors.send_to_proofreader",
+              "Не удалось отправить корректору"
+          )
+      );
     }
   }
   async function bulkSendToProofreader(ids) {
@@ -334,14 +346,21 @@ export default function ChiefEditorDashboard() {
   if (membershipsLoading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Проверяем права главреда…
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {t(
+          "dashboards:chief_editor_dashboard.loading.memberships",
+          "Проверяем права главреда…"
+      )}
       </div>
     );
   }
   if (!journals.length) {
     return (
       <div className="p-6">
-        Нет прав главреда — доступных журналов не найдено.
+        {t(
+            "dashboards:chief_editor_dashboard.no_rights",
+            "Нет прав главреда — доступных журналов не найдено."
+        )}
       </div>
     );
   }
@@ -362,10 +381,18 @@ export default function ChiefEditorDashboard() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Дашборд главного редактора
+                {t(
+                    "dashboards:chief_editor_dashboard.title",
+                    "Дашборд главного редактора"
+                )}
               </h1>
               <div className="mt-1 text-xs sm:text-sm text-slate-500">
-                {lastUpdated ? `Обновлено: ${fmt(lastUpdated)}` : "—"}
+                {lastUpdated
+                    ? `${t(
+                        "dashboards:chief_editor_dashboard.updated",
+                        "Обновлено:"
+                    )} ${fmt(lastUpdated)}`
+                    : t("dashboards:chief_editor_dashboard.dash", "—")}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -374,7 +401,10 @@ export default function ChiefEditorDashboard() {
                 onValueChange={(v) => setJournalId(Number(v))}
               >
                 <SelectTrigger className="w-72 bg-white">
-                  <SelectValue placeholder="Выберите журнал" />
+                  <SelectValue placeholder={t(
+                      "dashboards:chief_editor_dashboard.placeholders.select_journal",
+                      "Выберите журнал"
+                  )} />
                 </SelectTrigger>
                 <SelectContent>
                   {journals.map((j) => (
@@ -387,13 +417,36 @@ export default function ChiefEditorDashboard() {
 
               <Select value={ordering} onValueChange={setOrdering}>
                 <SelectTrigger className="w-44 bg-white">
-                  <SelectValue placeholder="Сортировка" />
+                  <SelectValue placeholder={t(
+                      "dashboards:chief_editor_dashboard.placeholders.sort",
+                      "Сортировка"
+                  )} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="-created_at">Новее → старее</SelectItem>
-                  <SelectItem value="created_at">Старее → новее</SelectItem>
-                  <SelectItem value="title">Заголовок A→Z</SelectItem>
-                  <SelectItem value="-title">Заголовок Z→A</SelectItem>
+                  <SelectItem value="-created_at">
+                    {t(
+                        "dashboards:chief_editor_dashboard.sort.new_old",
+                        "Новее → старее"
+                    )}
+                  </SelectItem>
+                  <SelectItem value="created_at">
+                    {t(
+                        "dashboards:chief_editor_dashboard.sort.old_new",
+                        "Старее → новее"
+                    )}
+                  </SelectItem>
+                  <SelectItem value="title">
+                    {t(
+                        "dashboards:chief_editor_dashboard.sort.title_az",
+                        "Заголовок A→Z"
+                    )}
+                  </SelectItem>
+                  <SelectItem value="-title">
+                    {t(
+                        "dashboards:chief_editor_dashboard.sort.title_za",
+                        "Заголовок Z→A"
+                    )}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -402,12 +455,18 @@ export default function ChiefEditorDashboard() {
                 onValueChange={(v) => setPageSize(Number(v))}
               >
                 <SelectTrigger className="w-28 bg-white">
-                  <SelectValue placeholder="Порог" />
+                  <SelectValue placeholder={t(
+                      "dashboards:chief_editor_dashboard.placeholders.limit",
+                      "Порог"
+                  )} />
                 </SelectTrigger>
                 <SelectContent>
                   {[10, 20, 50, 100].map((n) => (
                     <SelectItem key={n} value={String(n)}>
-                      {n}/стр
+                      {n}{t(
+                        "dashboards:chief_editor_dashboard.per_page",
+                        "/стр"
+                    )}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -418,7 +477,10 @@ export default function ChiefEditorDashboard() {
                 onClick={() => journalId && loadArticlesForJournal(journalId)}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Обновить
+                {t(
+                    "dashboards:chief_editor_dashboard.actions.refresh",
+                    "Обновить"
+                )}
               </Button>
 
               <Button
@@ -430,20 +492,37 @@ export default function ChiefEditorDashboard() {
                   });
                 }}
               >
-                {dense ? "Плотно" : "Обычно"}
+                {dense
+                    ? t(
+                        "dashboards:chief_editor_dashboard.view.compact",
+                        "Плотно"
+                    )
+                    : t(
+                        "dashboards:chief_editor_dashboard.view.normal",
+                        "Обычно"
+                    )}
               </Button>
 
               <Button
                 variant="outline"
                 onClick={() => setShowRight((v) => !v)}
-                title={showRight ? "Скрыть панель" : "Показать панель"}
+                title={showRight
+                    ? t(
+                        "dashboards:chief_editor_dashboard.titles.hide_panel",
+                        "Скрыть панель"
+                    )
+                    : t(
+                        "dashboards:chief_editor_dashboard.titles.show_panel",
+                        "Показать панель"
+                    )
+                }
               >
                 {showRight ? (
                   <PanelRightClose className="h-4 w-4 mr-2" />
                 ) : (
                   <PanelRightOpen className="h-4 w-4 mr-2" />
                 )}
-                Панель
+                {t("dashboards:chief_editor_dashboard.panel", "Панель")}
               </Button>
             </div>
           </div>
@@ -453,15 +532,21 @@ export default function ChiefEditorDashboard() {
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <Input
                 id="chief_global_search"
-                placeholder="Поиск по заголовку/автору…  (нажмите /)"
+                placeholder={t(
+                    "dashboards:chief_editor_dashboard.placeholders.search",
+                    "Поиск по заголовку/автору…  (нажмите /)"
+                )}
                 className="pl-9 bg-white"
                 value={globalQuery}
                 onChange={(e) => onGlobalSearch(e.target.value)}
               />
             </div>
             <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 px-2">
-              <KeyboardIcon className="h-3.5 w-3.5" /> / — поиск, R — обновить,
-              O — детали, S — отправить корректору
+              <KeyboardIcon className="h-3.5 w-3.5" />
+              {t(
+                  "dashboards:chief_editor_dashboard.hints.shortcuts",
+                  " / — поиск, R — обновить, O — детали, S — отправить корректору"
+              )}
             </span>
           </div>
         </div>
@@ -472,7 +557,7 @@ export default function ChiefEditorDashboard() {
         {/* LEFT: queues */}
         <aside className="rounded-xl border border-slate-200 bg-white p-2 sticky top-[68px] h-fit">
           <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-slate-500">
-            Очереди
+            {t("dashboards:chief_editor_dashboard.queues.title", "Очереди")}
           </div>
           <nav className="p-1 space-y-1">
             <button
@@ -481,14 +566,21 @@ export default function ChiefEditorDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Ожидают решения
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t(
+                      "dashboards:chief_editor_dashboard.queues.chief",
+                      "Ожидают решения"
+                  )}
                 </span>
                 <span className="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
                   {counts.chief}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                UR с accepted/completed отзывами
+                {t(
+                    "dashboards:chief_editor_dashboard.queues.chief_desc",
+                    "UR с accepted/completed отзывами"
+                )}
               </div>
             </button>
 
@@ -498,14 +590,21 @@ export default function ChiefEditorDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <Hammer className="h-4 w-4" /> В производстве
+                  <Hammer className="h-4 w-4" />
+                  {t(
+                      "dashboards:chief_editor_dashboard.queues.production",
+                      "В производстве"
+                  )}
                 </span>
                 <span className="text-xs rounded-full bg-cyan-100 text-cyan-700 px-2 py-0.5">
                   {counts.production}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Этап корректора/верстки
+                {t(
+                    "dashboards:chief_editor_dashboard.queues.production_desc",
+                    "Этап корректора/верстки"
+                )}
               </div>
             </button>
 
@@ -515,18 +614,32 @@ export default function ChiefEditorDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <BookOpenCheck className="h-4 w-4" /> Опубликовано
+                  <BookOpenCheck className="h-4 w-4" />
+                  {t(
+                          "dashboards:chief_editor_dashboard.queues.published",
+                          "Опубликовано"
+                      )}
                 </span>
                 <span className="text-xs rounded-full bg-green-100 text-green-700 px-2 py-0.5">
                   {counts.published}
                 </span>
               </div>
-              <div className="text-xs text-slate-500 mt-0.5">Для обзора</div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                {t(
+                    "dashboards:chief_editor_dashboard.queues.published_desc",
+                    "Для обзора"
+                )}
+              </div>
             </button>
           </nav>
 
           <div className="mt-2 border-t border-slate-200 pt-2 px-2">
-            <div className="text-xs text-slate-500 mb-1">Батч-операции</div>
+            <div className="text-xs text-slate-500 mb-1">
+              {t(
+                  "dashboards:chief_editor_dashboard.batch.title",
+                  "Батч-операции"
+              )}
+            </div>
             {queue === "chief" ? (
               <div className="grid grid-cols-1 gap-1.5">
                 <Button
@@ -535,12 +648,18 @@ export default function ChiefEditorDashboard() {
                   disabled={!selectedIds.size}
                   onClick={() => bulkSendToProofreader(selectedIds)}
                 >
-                  Отправить корректору ({selectedIds.size})
+                  {t(
+                      "dashboards:chief_editor_dashboard.actions.send_to_proofreader_count",
+                      "Отправить корректору"
+                  )}{" "} ({selectedIds.size})
                 </Button>
               </div>
             ) : (
               <div className="text-xs text-slate-400">
-                Нет групповых действий
+                {t(
+                    "dashboards:chief_editor_dashboard.batch.none",
+                    "Нет групповых действий"
+                )}
               </div>
             )}
           </div>
@@ -562,8 +681,14 @@ export default function ChiefEditorDashboard() {
                       }
                       title={
                         selectedIds.size === visibleRows.length
-                          ? "Снять все"
-                          : "Выбрать все"
+                            ? t(
+                                "dashboards:chief_editor_dashboard.table.deselect_all",
+                                "Снять все"
+                            )
+                            : t(
+                                "dashboards:chief_editor_dashboard.table.select_all",
+                                "Выбрать все"
+                            )
                       }
                     >
                       {selectedIds.size === visibleRows.length &&
@@ -574,15 +699,23 @@ export default function ChiefEditorDashboard() {
                       )}
                     </button>
                   </th>
-                  <th className="px-3 py-2 text-left">Статья</th>
-                  <th className="px-3 py-2 text-left w-[180px]">Создана</th>
-                  <th className="px-3 py-2 text-left w-[160px]">Статус</th>
-                  <th className="px-3 py-2 text-right w-[360px]">Действия</th>
+                  <th className="px-3 py-2 text-left">
+                    {t("dashboards:chief_editor_dashboard.table.article", "Статья")}
+                  </th>
+                  <th className="px-3 py-2 text-left w-[180px]">
+                    {t("dashboards:chief_editor_dashboard.table.created", "Создана")}
+                  </th>
+                  <th className="px-3 py-2 text-left w-[160px]">
+                    {t("dashboards:chief_editor_dashboard.table.status", "Статус")}
+                  </th>
+                  <th className="px-3 py-2 text-right w-[360px]">
+                    {t("dashboards:chief_editor_dashboard.table.actions", "Действия")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
-                  Array.from({ length: 8 }).map((_, i) => (
+              {loading ? (
+                  Array.from({length: 8}).map((_, i) => (
                     <tr
                       key={i}
                       className="border-b border-slate-200 animate-pulse"
@@ -612,7 +745,10 @@ export default function ChiefEditorDashboard() {
                           className="h-4 w-4"
                           checked={selectedIds.has(a.id)}
                           onChange={() => toggleSelect(a.id)}
-                          aria-label="Выбрать строку"
+                          aria-label={t(
+                              "dashboards:chief_editor_dashboard.table.aria.select_row",
+                              "Выбрать строку"
+                          )}
                         />
                       </td>
                       <td className={`px-3 ${rowPad}`}>
@@ -620,7 +756,16 @@ export default function ChiefEditorDashboard() {
                           {a.title}
                         </div>
                         <div className="text-xs text-slate-500">
-                          Журнал #{a.journal} • Автор {a.author_email ?? "—"}
+                          {t(
+                              "dashboards:chief_editor_dashboard.table.journal_author",
+                              "Журнал"
+                          )}{" "}
+                          #{a.journal} •{" "}
+                          {t(
+                              "dashboards:chief_editor_dashboard.table.author",
+                              "Автор"
+                          )}{" "}
+                          {a.author_email ?? t("dashboards:chief_editor_dashboard.dash", "—")}
                         </div>
                       </td>
                       <td className={`px-3 ${rowPad}`}>{fmt(a.created_at)}</td>
@@ -637,11 +782,11 @@ export default function ChiefEditorDashboard() {
                               setShowRight(true);
                             }}
                           >
-                            Детали
+                            {t("dashboards:chief_editor_dashboard.buttons.details", "Детали")}
                           </Button>
                           <Link to={`/articles/${a.id}`}>
                             <Button size="sm" variant="outline">
-                              Открыть
+                              {t("dashboards:chief_editor_dashboard.buttons.open", "Открыть")}
                             </Button>
                           </Link>
 
@@ -651,7 +796,10 @@ export default function ChiefEditorDashboard() {
                               className="bg-indigo-600 hover:bg-indigo-700"
                               onClick={() => sendToProofreader(a.id)}
                             >
-                              Отправить корректору
+                              {t(
+                                  "dashboards:chief_editor_dashboard.actions.send_to_proofreader",
+                                  "Отправить корректору"
+                              )}
                             </Button>
                           )}
                         </div>
@@ -662,17 +810,37 @@ export default function ChiefEditorDashboard() {
                   <tr>
                     <td colSpan={5} className="py-16 text-center">
                       <div className="mx-auto w-full max-w-md">
-                        <div className="text-2xl font-semibold">Пока пусто</div>
+                        <div className="text-2xl font-semibold">
+                          {t(
+                              "dashboards:chief_editor_dashboard.empty.title",
+                              "Пока пусто"
+                          )}
+                        </div>
                         <p className="mt-2 text-slate-500">
-                          В очереди{" "}
+                          {t(
+                              "dashboards:chief_editor_dashboard.empty.desc_prefix",
+                              "В очереди"
+                          )}{" "}
                           <b>
                             {queue === "chief"
-                              ? "Ожидают решения"
-                              : queue === "production"
-                                ? "В производстве"
-                                : "Опубликовано"}
+                                ? t(
+                                    "dashboards:chief_editor_dashboard.queues.chief",
+                                    "Ожидают решения"
+                                )
+                                : queue === "production"
+                                    ? t(
+                                        "dashboards:chief_editor_dashboard.queues.production",
+                                        "В производстве"
+                                    )
+                                    : t(
+                                        "dashboards:chief_editor_dashboard.queues.published",
+                                        "Опубликовано"
+                                    )}
                           </b>{" "}
-                          нет статей под текущие фильтры.
+                          {t(
+                              "dashboards:chief_editor_dashboard.empty.desc_suffix",
+                              "нет статей под текущие фильтры."
+                          )}
                         </p>
                         <div className="mt-4">
                           <Button
@@ -682,7 +850,10 @@ export default function ChiefEditorDashboard() {
                               journalId && loadArticlesForJournal(journalId);
                             }}
                           >
-                            Сбросить поиск
+                            {t(
+                                "dashboards:chief_editor_dashboard.actions.reset_search",
+                                "Сбросить поиск"
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -698,7 +869,10 @@ export default function ChiefEditorDashboard() {
             <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm text-slate-600">
-                  Выбрано: <b>{selectedIds.size}</b>
+                  {t(
+                      "dashboards:chief_editor_dashboard.selection.selected",
+                      "Выбрано:"
+                  )}{" "}<b>{selectedIds.size}</b>
                 </div>
                 <div className="flex items-center gap-2">
                   {queue === "chief" && (
@@ -707,12 +881,18 @@ export default function ChiefEditorDashboard() {
                       className="bg-indigo-600 hover:bg-indigo-700"
                       onClick={() => bulkSendToProofreader(selectedIds)}
                     >
-                      Отправить корректору
+                      {t(
+                          "dashboards:chief_editor_dashboard.actions.send_to_proofreader",
+                          "Отправить корректору"
+                      )}
                     </Button>
                   )}
                   <Button size="sm" variant="ghost" onClick={clearSelection}>
                     <X className="h-4 w-4 mr-1" />
-                    Снять выделение
+                    {t(
+                        "dashboards:chief_editor_dashboard.selection.clear",
+                        "Снять выделение"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -726,7 +906,12 @@ export default function ChiefEditorDashboard() {
         >
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
-              <div className="font-semibold">Панель деталей</div>
+              <div className="font-semibold">
+                {t(
+                    "dashboards:chief_editor_dashboard.details_panel.title",
+                    "Панель деталей"
+                )}
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -739,12 +924,26 @@ export default function ChiefEditorDashboard() {
             {detailArticle ? (
               <div className="p-3 space-y-4">
                 <div>
-                  <div className="text-sm text-slate-500">Статья</div>
+                  <div className="text-sm text-slate-500">
+                    {t(
+                        "dashboards:chief_editor_dashboard.details_panel.article",
+                        "Статья"
+                    )}
+                  </div>
                   <div className="font-medium break-words">
                     {detailArticle.title}
                   </div>
                   <div className="text-xs text-slate-500 mt-0.5">
-                    Автор: {detailArticle.author_email ?? "—"} • Создана:{" "}
+                    {t(
+                        "dashboards:chief_editor_dashboard.details_panel.author",
+                        "Автор:"
+                    )}{" "}
+                    {detailArticle.author_email ?? t("dashboards:chief_editor_dashboard.dash", "—")}{" "}
+                    •{" "}
+                    {t(
+                        "dashboards:chief_editor_dashboard.details_panel.created",
+                        "Создана:"
+                    )}{" "}
                     {fmt(detailArticle.created_at)}
                   </div>
                   <div className="mt-1">
@@ -758,10 +957,16 @@ export default function ChiefEditorDashboard() {
                       className="bg-indigo-600 hover:bg-indigo-700"
                       onClick={() => sendToProofreader(detailArticle.id)}
                     >
-                      Отправить корректору
+                      {t(
+                          "dashboards:chief_editor_dashboard.actions.send_to_proofreader",
+                          "Отправить корректору"
+                      )}
                     </Button>
                     <Link to={`/articles/${detailArticle.id}`}>
-                      <Button variant="outline">Открыть страницу статьи</Button>
+                      <Button variant="outline">{t(
+                          "dashboards:chief_editor_dashboard.details_panel.open_article",
+                          "Открыть страницу статьи"
+                      )}</Button>
                     </Link>
                   </div>
                 )}
@@ -769,15 +974,30 @@ export default function ChiefEditorDashboard() {
                 {queue !== "chief" && (
                   <Link to={`/articles/${detailArticle.id}`} className="w-full">
                     <Button variant="outline" className="w-full">
-                      Открыть страницу статьи
+                      {t(
+                          "dashboards:chief_editor_dashboard.details_panel.open_article",
+                          "Открыть страницу статьи"
+                      )}
                     </Button>
                   </Link>
                 )}
               </div>
             ) : (
               <div className="p-6 text-sm text-slate-500">
-                Выберите строку и нажмите <b>Детали</b>, чтобы принять решение и
-                перейти к статье.
+                {t(
+                    "dashboards:chief_editor_dashboard.details_panel.helper",
+                    "Выберите строку и нажмите "
+                )}
+                <b>
+                  {t(
+                      "dashboards:chief_editor_dashboard.buttons.details",
+                      "Детали"
+                  )}
+                </b>
+                {t(
+                    "dashboards:chief_editor_dashboard.details_panel.helper_tail",
+                    ", чтобы принять решение и перейти к статье."
+                )}
               </div>
             )}
           </div>

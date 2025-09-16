@@ -25,8 +25,11 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 export default function ContactsPage() {
+  const { t } = useTranslation(["info_pages"]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F6FAFF] via-[#EFF4FF] to-white text-slate-900">
       <Navbar />
@@ -44,14 +47,16 @@ export default function ContactsPage() {
         <div className="container mx-auto px-4 pt-16 pb-8 lg:pt-24 lg:pb-14">
           <div className="max-w-3xl">
             <Badge className="mb-3 bg-[#3972FE]/10 text-[#3972FE] hover:bg-[#3972FE]/10 border border-[#3972FE]/30">
-              Свяжитесь с нами
+              {t("info_pages:contacts.badge", "Свяжитесь с нами")}
             </Badge>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
-              Контакты и поддержка
+              {t("info_pages:contacts.title", "Контакты и поддержка")}
             </h1>
             <p className="mt-4 text-slate-600 text-lg">
-              Мы рядом, чтобы помочь: вопросы по публикации, интеграциям,
-              договорам и технической поддержке.
+              {t(
+                  "info_pages:contacts.subtitle",
+                  "Мы рядом, чтобы помочь: вопросы по публикации, интеграциям, договорам и технической поддержке."
+              )}
             </p>
           </div>
         </div>
@@ -72,13 +77,16 @@ export default function ContactsPage() {
               truemasters@inbox.ru
             </a>
             <p className="mt-1 text-sm text-slate-600">
-              Для авторов и редакций
+              {t(
+                  "info_pages:contacts.email.note",
+                  "Для авторов и редакций"
+              )}
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white/70 p-5">
             <div className="flex items-center gap-2 text-slate-700 font-medium">
-              <Phone className="size-5 text-[#3972FE]" /> Телефон
+              <Phone className="size-5 text-[#3972FE]" /> {t("info_pages:contacts.phone.label", "Телефон")}
             </div>
             <a
               className="mt-2 inline-block text-[#3972FE] hover:underline"
@@ -86,15 +94,15 @@ export default function ContactsPage() {
             >
               +7 771 282 78 01
             </a>
-            <p className="mt-1 text-sm text-slate-600">Пн–Пт, 9:00–18:00</p>
+            <p className="mt-1 text-sm text-slate-600">{t("info_pages:contacts.phone.hours", "Пн–Пт, 9:00–18:00")}</p>
           </div>
 
           {/* <div className="rounded-2xl border border-slate-200 bg-white/70 p-5">
             <div className="flex items-center gap-2 text-slate-700 font-medium">
-              <MapPin className="size-5 text-[#3972FE]" /> Офис
+              <MapPin className="size-5 text-[#3972FE]" /> {t("info_pages:contacts.office.label", "Офис")}
             </div>
             <p className="mt-2 text-slate-700">
-              г. Астана, пр‑т Мангилик Ел, 1
+              {t("info_pages:contacts.office.address", "г. Астана, пр-т Мангилик Ел, 1")}
             </p>
           </div> */}
         </div>
@@ -121,10 +129,16 @@ export default function ContactsPage() {
           <div className="grid lg:grid-cols-2 gap-6 items-center">
             <div>
               <h2 className="text-2xl lg:text-3xl font-semibold tracking-tight">
-                Есть вопрос по подаче или подключению журнала?
+                {t(
+                    "info_pages:contacts.cta.title",
+                    "Есть вопрос по подаче или подключению журнала?"
+                )}
               </h2>
               <p className="mt-2 text-slate-600">
-                Напишите нам — поможем настроить процесс и ускорить публикации.
+                {t(
+                    "info_pages:contacts.cta.subtitle",
+                    "Напишите нам — поможем настроить процесс и ускорить публикации."
+                )}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 lg:justify-end">
@@ -138,7 +152,7 @@ export default function ContactsPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-2"
                 >
-                  <MessageSquare className="size-4" /> Связаться с отделом
+                  <MessageSquare className="size-4" /> {t("info_pages:contacts.cta.button_label", "Связаться с отделом")}
                 </a>
               </Button>
             </div>

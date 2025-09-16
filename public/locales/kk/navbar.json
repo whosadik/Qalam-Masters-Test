@@ -1,0 +1,20 @@
+{
+  "about": "Басты бет",
+  "archive": "Мұрағат",
+  "author_info": "Авторларға ақпарат",
+  "contacts": "Байланыс",
+  "dashboard": "Жеке кабинет",
+  "editorial_board": "Редакциялық алқа",
+  "journals": "Журналдар",
+  "login": "Кіру",
+  "moderator": "Модератор",
+  "news": "Жаңалықтар",
+  "profile_menu": {
+    "logout": "Шығу",
+    "open_profile_menu": "Профиль мәзірін ашу",
+    "profile": "Профиль",
+    "profile_menu": "Профиль мәзірі"
+  },
+  "publication_terms": "Жариялау шарттары",
+  "register": "Тіркелу"
+}

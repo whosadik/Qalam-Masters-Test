@@ -14,6 +14,7 @@ import {
   UsersRound,
   ChevronLeft,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const TOPIC_OPTIONS = [
   "Естественные науки",
@@ -30,6 +31,8 @@ const key = (jid) => `jr_${jid}_reviewers`;
 export default function Reviewers() {
   const { jid } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
   const [list, setList] = useState([]);
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -110,7 +113,12 @@ export default function Reviewers() {
     );
     setList(next);
     save(next);
-    alert("Приглашение рецензенту отправлено (мок).");
+    alert(
+        t(
+            "moderator_journals:reviewers.invite_sent",
+            "Приглашение рецензенту отправлено (мок)."
+        )
+    );
   };
 
   const setTopics = (e) => {
@@ -120,9 +128,13 @@ export default function Reviewers() {
 
   const statusBadge = (s) =>
     s === "active" ? (
-      <Badge className="bg-emerald-100 text-emerald-800">Активен</Badge>
+      <Badge className="bg-emerald-100 text-emerald-800">
+        {t("moderator_journals:reviewers.status.active", "Активен")}
+      </Badge>
     ) : (
-      <Badge className="bg-slate-100 text-slate-700">На паузе</Badge>
+      <Badge className="bg-slate-100 text-slate-700">
+        {t("moderator_journals:reviewers.status.paused", "На паузе")}
+      </Badge>
     );
 
   return (
@@ -134,22 +146,28 @@ export default function Reviewers() {
             onClick={() => navigate(-1)}
             className="gap-2"
           >
-            <ChevronLeft className="w-4 h-4" /> Назад
+            <ChevronLeft className="w-4 h-4" />
+            {t("moderator_journals:reviewers.back", "Назад")}
           </Button>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <UsersRound className="w-6 h-6" /> Рецензенты журнала
+            <UsersRound className="w-6 h-6" />
+            {t("moderator_journals:reviewers.page_title", "Рецензенты журнала")}
           </h1>
         </div>
         <div className="flex gap-2">
           <div className="relative">
             <Input
-              placeholder="Поиск по имени/почте/тематике"
+              placeholder={t(
+                  "moderator_journals:reviewers.search_ph",
+                  "Поиск по имени/почте/тематике"
+              )}
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
           </div>
           <Button className="gap-2" onClick={() => setShowForm((v) => !v)}>
-            <Plus className="w-4 h-4" /> Добавить
+            <Plus className="w-4 h-4" />
+            {t("moderator_journals:reviewers.add_btn", "Добавить")}
           </Button>
         </div>
       </div>
@@ -158,11 +176,15 @@ export default function Reviewers() {
       {showForm && (
         <Card className="border-0 shadow-sm rounded-2xl">
           <CardHeader>
-            <CardTitle>Новый рецензент</CardTitle>
+            <CardTitle>
+              {t("moderator_journals:reviewers.form.title", "Новый рецензент")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm mb-1">ФИО *</label>
+              <label className="block text-sm mb-1">
+                {t("moderator_journals:reviewers.form.name_label", "ФИО *")}
+              </label>
               <Input
                 value={form.name}
                 onChange={(e) =>
@@ -184,7 +206,10 @@ export default function Reviewers() {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm mb-1">
-                Организация/должность
+                {t(
+                    "moderator_journals:reviewers.form.affiliation_label",
+                    "Организация/должность"
+                )}
               </label>
               <Input
                 value={form.affiliation}
@@ -194,7 +219,12 @@ export default function Reviewers() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm mb-1">О себе / опыт</label>
+              <label className="block text-sm mb-1">
+                {t(
+                    "moderator_journals:reviewers.form.about_label",
+                    "О себе / опыт"
+                )}
+              </label>
               <Textarea
                 rows={3}
                 value={form.about}
@@ -205,7 +235,10 @@ export default function Reviewers() {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm mb-1">
-                Тематики (множественный выбор)
+                {t(
+                    "moderator_journals:reviewers.form.topics_label",
+                    "Тематики (множественный выбор)"
+                )}
               </label>
               <select
                 multiple
@@ -229,9 +262,11 @@ export default function Reviewers() {
             </div>
             <div className="md:col-span-2 flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowForm(false)}>
-                Отмена
+                {t("moderator_journals:reviewers.form.cancel", "Отмена")}
               </Button>
-              <Button onClick={add}>Сохранить</Button>
+              <Button onClick={add}>
+                {t("moderator_journals:reviewers.form.save", "Сохранить")}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -241,7 +276,9 @@ export default function Reviewers() {
       <Card className="border-0 shadow-sm rounded-2xl">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
-            <div className="p-6 text-gray-500">Пока нет рецензентов.</div>
+            <div className="p-6 text-gray-500">
+              {t("moderator_journals:reviewers.empty", "Пока нет рецензентов.")}
+            </div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {filtered.map((r) => (
@@ -266,7 +303,12 @@ export default function Reviewers() {
                             <Link  className="underline" href={`mailto:${r.email}`}>
                               {r.email}
                             </Link>{" "}
-                            • Нагрузка: {r.load || 0}
+                            •{" "}
+                            {t(
+                                "moderator_journals:reviewers.load",
+                                "Нагрузка:"
+                            )}{" "}
+                            {r.load || 0}
                           </div>
                           {r.topics?.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -295,7 +337,11 @@ export default function Reviewers() {
                             className="w-36 gap-2"
                             onClick={() => invite(r.id)}
                           >
-                            <Mail className="w-4 h-4" /> Пригласить
+                            <Mail className="w-4 h-4" />
+                            {t(
+                                "moderator_journals:reviewers.actions.invite",
+                                "Пригласить"
+                            )}
                           </Button>
                           <Button
                             size="sm"
@@ -305,11 +351,19 @@ export default function Reviewers() {
                           >
                             {r.status === "active" ? (
                               <>
-                                <Pause className="w-4 h-4" /> Пауза
+                                <Pause className="w-4 h-4" />
+                                {t(
+                                    "moderator_journals:reviewers.actions.pause",
+                                    "Пауза"
+                                )}
                               </>
                             ) : (
                               <>
-                                <Play className="w-4 h-4" /> Активировать
+                                <Play className="w-4 h-4" />
+                                {t(
+                                    "moderator_journals:reviewers.actions.activate",
+                                    "Активировать"
+                                )}
                               </>
                             )}
                           </Button>
@@ -319,7 +373,10 @@ export default function Reviewers() {
                             className="w-36 gap-2"
                             onClick={() => remove(r.id)}
                           >
-                            <Trash2 className="w-4 h-4" /> Удалить
+                            <Trash2 className="w-4 h-4" /> {t(
+                              "moderator_journals:reviewers.actions.delete",
+                              "Удалить"
+                          )}
                           </Button>
                         </div>
                       </div>
@@ -335,7 +392,9 @@ export default function Reviewers() {
       {/* нижние кнопки */}
       <div className="flex justify-end gap-2">
         <Link to={`/moderator/journals/${jid}`}>
-          <Button variant="outline">К журналу</Button>
+          <Button variant="outline">
+            {t("moderator_journals:reviewers.to_journal", "К журналу")}
+          </Button>
         </Link>
       </div>
     </div>

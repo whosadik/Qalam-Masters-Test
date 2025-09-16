@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
+import { useTranslation } from "react-i18next";
 
 /* =========================
    Helpers
@@ -32,18 +33,45 @@ const daysLeft = (iso) => {
   const ms = new Date(iso).getTime() - Date.now();
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 };
-const duePill = (due_at) => {
+const duePill = (due_at, t) => {
   const d = daysLeft(due_at);
-  if (d === null) return <Badge variant="outline">Срок не назначен</Badge>;
-  if (d < 0)
-    return <Badge variant="destructive">Просрочено {Math.abs(d)} д.</Badge>;
+  if (d === null) {
+    return (
+        <Badge variant="outline">
+          {t(
+              "review:reviewer_dashboard.due.no_due",
+              "Срок не назначен"
+          )}
+        </Badge>
+    );
+  }
+  if (d < 0) {
+    return (
+    <Badge variant="destructive">
+      {t(
+          "review:reviewer_dashboard.due.overdue",
+          "Просрочено {{count}} д."
+      ).replace("{{count}}", Math.abs(d))}
+    </Badge>
+    );
+  }
   if (d <= 3)
     return (
       <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
-        До срока {d} д.
+        {t(
+            "review:reviewer_dashboard.due.until",
+            "До срока {{count}} д."
+        ).replace("{{count}}", d)}
       </Badge>
     );
-  return <Badge variant="secondary">До срока {d} д.</Badge>;
+  return (
+  <Badge variant="secondary">
+    {t(
+        "review:reviewer_dashboard.due.until",
+        "До срока {{count}} д."
+    ).replace("{{count}}", d)}
+  </Badge>
+  );
 };
 const statusBadge = (s) => {
   if (!s) return null;
@@ -64,10 +92,10 @@ const statusBadge = (s) => {
 };
 
 const RECS = [
-  { value: "accept", label: "Принять" },
+  { value: "accept", label: "Accept" },
   { value: "minor", label: "Minor revision" },
   { value: "major", label: "Major revision" },
-  { value: "reject", label: "Отклонить" },
+  { value: "reject", label: "Reject" },
 ];
 
 /* =========================
@@ -123,6 +151,7 @@ async function listReviewsForAssignment(assignmentId) {
    Review Form (inline)
 ========================= */
 function ReviewForm({ assignment, onSubmitted }) {
+  const { t } = useTranslation('review');
   const [open, setOpen] = useState(false);
   const [recommendation, setRecommendation] = useState("accept");
   const [body, setBody] = useState("");
@@ -145,7 +174,12 @@ function ReviewForm({ assignment, onSubmitted }) {
   }, [assignment.id, assignment.article]);
 
   async function submit() {
-    if (!body.trim()) return alert("Напишите текст отзыва.");
+    if (!body.trim()) return alert(
+        t(
+            "review:reviewer_dashboard.form.write_review",
+            "Напишите текст отзыва."
+        )
+    );
     setBusy(true);
     try {
       await createReview({ assignment: assignment.id, recommendation, body });
@@ -162,26 +196,44 @@ function ReviewForm({ assignment, onSubmitted }) {
       } catch {}
 
       const isCompleted = String(a?.status || "") === "completed";
-      const before = articleStatus ?? "(неизвестно)";
-      const after = artAfter?.status ?? "(неизвестно)";
+      const before = articleStatus ??  t("review:reviewer_dashboard.unknown", "(неизвестно)");
+      const after = artAfter?.status ?? t("review:reviewer_dashboard.unknown", "(неизвестно)");
 
       if (isCompleted) {
         if (before !== after) {
           alert(
-            `Отзыв отправлен. Назначение: completed. Статус статьи изменился: ${before} → ${after}`
+              t(
+                  "review:reviewer_dashboard.form.alert_completed_changed",
+                  "Отзыв отправлен. Назначение: completed. Статус статьи изменился: {{before}} → {{after}}"
+              )
+                  .replace("{{before}}", before)
+                  .replace("{{after}}", after)
           );
         } else {
           alert(
-            `Отзыв отправлен. Назначение: completed. Статус статьи не изменился (${after}).`
+              t(
+                  "review:reviewer_dashboard.form.alert_completed_same",
+                  "Отзыв отправлен. Назначение: completed. Статус статьи не изменился ({{after}})."
+              ).replace("{{after}}", after)
           );
         }
       } else {
-        alert("Отзыв отправлен. Обновляю список…");
+        alert(
+            t(
+                "review:reviewer_dashboard.form.alert_sent_refresh",
+                "Отзыв отправлен. Обновляю список…"
+            )
+        );
       }
       onSubmitted?.();
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось отправить отзыв");
+      alert(e?.response?.data?.detail ||
+          t(
+              "review:reviewer_dashboard.form.alert_failed",
+              "Не удалось отправить отзыв"
+          )
+      );
     } finally {
       setBusy(false);
     }
@@ -196,32 +248,63 @@ function ReviewForm({ assignment, onSubmitted }) {
         className="w-full justify-center border-dashed bg-slate-50 hover:bg-slate-100 text-slate-800"
       >
         {already
-          ? "Отзыв уже отправлен"
-          : open
-            ? "Свернуть форму"
-            : "Написать отзыв"}
+            ? t(
+                "review:reviewer_dashboard.form.already_sent",
+                "Отзыв уже отправлен"
+            )
+            : open
+                ? t(
+                    "review:reviewer_dashboard.form.collapse",
+                    "Свернуть форму"
+                )
+                : t(
+                    "review:reviewer_dashboard.form.open",
+                    "Написать отзыв"
+                )}
       </Button>
 
       {open && !already && (
-        <div className="rounded-xl border border-dashed bg-slate-50/60 p-3 space-y-3">
-          <div className="flex flex-wrap gap-4">
-            {RECS.map((r) => (
-              <label key={r.value} className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name={`rec_${assignment.id}`}
-                  value={r.value}
-                  checked={recommendation === r.value}
-                  onChange={(e) => setRecommendation(e.target.value)}
-                />
-                {r.label}
-              </label>
-            ))}
-          </div>
+          <div className="rounded-xl border border-dashed bg-slate-50/60 p-3 space-y-3">
+            <div className="flex flex-wrap gap-4">
+              {RECS.map((r) => {
+                const labelText =
+                    r.value === "accept"
+                        ? t("review:reviewer_dashboard.recommend.accept", "Принять")
+                        : r.value === "minor"
+                            ? t(
+                                "review:reviewer_dashboard.recommend.minor",
+                                "Minor revision"
+                            )
+                            : r.value === "major"
+                                ? t(
+                                    "review:reviewer_dashboard.recommend.major",
+                                    "Major revision"
+                                )
+                                : t(
+                                    "review:reviewer_dashboard.recommend.reject",
+                                    "Отклонить"
+                                );
+                return (
+                    <label key={r.value} className="flex items-center gap-2 text-sm">
+                      <input
+                          type="radio"
+                          name={`rec_${assignment.id}`}
+                          value={r.value}
+                          checked={recommendation === r.value}
+                          onChange={(e) => setRecommendation(e.target.value)}
+                      />
+                      {labelText}
+                    </label>
+                );
+              })}
+            </div>
           <textarea
             rows={5}
             className="w-full border rounded-md p-2 text-sm"
-            placeholder="Ваш подробный отзыв для редакции и автора…"
+            placeholder={t(
+                "review:reviewer_dashboard.form.placeholder",
+                "Ваш подробный отзыв для редакции и автора…"
+            )}
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
@@ -231,10 +314,20 @@ function ReviewForm({ assignment, onSubmitted }) {
               disabled={busy}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {busy ? "Отправляем…" : "Отправить отзыв"}
+              {busy ? t(
+                      "review:reviewer_dashboard.form.sending",
+                      "Отправляем…"
+                  )
+                  : t(
+                      "review:reviewer_dashboard.form.submit",
+                      "Отправить отзыв"
+                  )}
             </Button>
             <span className="text-xs text-gray-500">
-              После отправки статус назначения может измениться на «completed».
+              {t(
+                  "review:reviewer_dashboard.form.note_completed",
+                  "После отправки статус назначения может измениться на «completed»."
+              )}
             </span>
           </div>
         </div>
@@ -247,6 +340,8 @@ function ReviewForm({ assignment, onSubmitted }) {
    Main Dashboard (3-pane)
 ========================= */
 export default function ReviewerDashboard() {
+  const { t } = useTranslation('review');
+
   // layout
   const [dense, setDense] = useState(
     () => (localStorage.getItem("rev_dense") ?? "1") === "1"
@@ -350,7 +445,7 @@ export default function ReviewerDashboard() {
       await load();
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось принять назначение");
+      alert(e?.response?.data?.detail || t("review:reviewer_dashboard.errors.accept", "Не удалось принять назначение"));
     }
   }
   async function declineOne(id) {
@@ -359,7 +454,7 @@ export default function ReviewerDashboard() {
       await load();
     } catch (e) {
       console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось отклонить назначение");
+      alert(e?.response?.data?.detail ||  t("review:reviewer_dashboard.errors.decline", "Не удалось отклонить назначение"));
     }
   }
 
@@ -421,7 +516,7 @@ export default function ReviewerDashboard() {
   if (loading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Загрузка назначений…
+        <Loader2 className="h-4 w-4 animate-spin" /> {t("review:reviewer_dashboard.loading", "Загрузка назначений…")}
       </div>
     );
   }
@@ -442,16 +537,22 @@ export default function ReviewerDashboard() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Дашборд рецензента
+                {t(
+                    "review:reviewer_dashboard.title",
+                    "Дашборд рецензента"
+                )}
               </h1>
               <div className="mt-1 text-xs sm:text-sm text-slate-500">
-                {lastUpdated ? `Обновлено: ${fmt(lastUpdated)}` : "—"}
+                {lastUpdated ? `${t(
+                    "review:reviewer_dashboard.updated",
+                    "Обновлено:"
+                )} ${fmt(lastUpdated)}` : "—"}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" onClick={() => load()}>
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Обновить
+                {t("review:reviewer_dashboard.refresh", "Обновить")}
               </Button>
               <Button
                 variant="outline"
@@ -462,19 +563,30 @@ export default function ReviewerDashboard() {
                   });
                 }}
               >
-                {dense ? "Плотно" : "Обычно"}
+                {dense
+                    ? t("review:reviewer_dashboard.compact", "Плотно")
+                    : t("review:reviewer_dashboard.cozy", "Обычно")}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => setShowRight((v) => !v)}
-                title={showRight ? "Скрыть панель" : "Показать панель"}
+                title={showRight
+                    ? t(
+                        "review:reviewer_dashboard.right.hide",
+                        "Скрыть панель"
+                    )
+                    : t(
+                        "review:reviewer_dashboard.right.show",
+                        "Показать панель"
+                    )
+              }
               >
                 {showRight ? (
                   <PanelRightClose className="h-4 w-4 mr-2" />
                 ) : (
                   <PanelRightOpen className="h-4 w-4 mr-2" />
                 )}
-                Панель
+                {t("review:reviewer_dashboard.right.panel", "Панель")}
               </Button>
             </div>
           </div>
@@ -484,15 +596,21 @@ export default function ReviewerDashboard() {
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <Input
                 id="rev_global_search"
-                placeholder="Поиск по статьям/дедлайнам…  (нажмите /)"
+                placeholder={t(
+                    "review:reviewer_dashboard.search.placeholder",
+                    "Поиск по статьям/дедлайнам…  (нажмите /)"
+                )}
                 className="pl-9 bg-white"
                 value={globalQuery}
                 onChange={(e) => onGlobalSearch(e.target.value)}
               />
             </div>
             <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 px-2">
-              <KeyboardIcon className="h-3.5 w-3.5" /> / — поиск, R — обновить,
-              O — детали, A — принять, D — отклонить
+              <KeyboardIcon className="h-3.5 w-3.5" />
+              {t(
+                  "review:reviewer_dashboard.search.hint",
+                  " / — поиск, R — обновить, O — детали, A — принять, D — отклонить"
+              )}
             </span>
           </div>
         </div>
@@ -503,7 +621,7 @@ export default function ReviewerDashboard() {
         {/* LEFT: queues */}
         <aside className="rounded-xl border border-slate-200 bg-white p-2 sticky top-[68px] h-fit">
           <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-slate-500">
-            Очереди
+            {t("review:reviewer_dashboard.queues.title", "Очереди")}
           </div>
           <nav className="p-1 space-y-1">
             <button
@@ -512,14 +630,21 @@ export default function ReviewerDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <Inbox className="h-4 w-4" /> Новые назначения
+                  <Inbox className="h-4 w-4" />
+                  {t(
+                      "review:reviewer_dashboard.queues.assigned",
+                      "Новые назначения"
+                  )}
                 </span>
                 <span className="text-xs rounded-full bg-blue-100 text-blue-700 px-2 py-0.5">
                   {counts.assigned}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Требуют принять/отклонить
+                {t(
+                    "review:reviewer_dashboard.queues.assigned_hint",
+                    "Требуют принять/отклонить"
+                )}
               </div>
             </button>
 
@@ -529,14 +654,21 @@ export default function ReviewerDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Принятые
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t(
+                      "review:reviewer_dashboard.queues.accepted",
+                      "Принятые"
+                  )}
                 </span>
                 <span className="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
                   {counts.accepted}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Готовы к написанию отзыва
+                {t(
+                    "review:reviewer_dashboard.queues.accepted_hint",
+                    "Готовы к написанию отзыва"
+                )}
               </div>
             </button>
 
@@ -546,20 +678,28 @@ export default function ReviewerDashboard() {
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2">
-                  <History className="h-4 w-4" /> История
+                  <History className="h-4 w-4" /> {t("review:reviewer_dashboard.queues.history", "История")}
                 </span>
                 <span className="text-xs rounded-full bg-slate-200 text-slate-700 px-2 py-0.5">
                   {counts.completed}
                 </span>
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Завершённые назначения
+                {t(
+                    "review:reviewer_dashboard.queues.completed_hint",
+                    "Завершённые назначения"
+                )}
               </div>
             </button>
           </nav>
 
           <div className="mt-2 border-t border-slate-200 pt-2 px-2">
-            <div className="text-xs text-slate-500 mb-1">Батч-операции</div>
+            <div className="text-xs text-slate-500 mb-1">
+              {t(
+                  "review:reviewer_dashboard.batch.title",
+                  "Батч-операции"
+              )}
+            </div>
             {queue === "assigned" ? (
               <div className="grid grid-cols-1 gap-1.5">
                 <Button
@@ -568,7 +708,7 @@ export default function ReviewerDashboard() {
                   disabled={!selectedIds.size}
                   onClick={() => bulkAccept(selectedIds)}
                 >
-                  Принять ({selectedIds.size})
+                  {t("review:reviewer_dashboard.batch.accept", "Принять")} ({selectedIds.size})
                 </Button>
                 <Button
                   size="sm"
@@ -577,12 +717,15 @@ export default function ReviewerDashboard() {
                   disabled={!selectedIds.size}
                   onClick={() => bulkDecline(selectedIds)}
                 >
-                  Отклонить ({selectedIds.size})
+                  {t("review:reviewer_dashboard.batch.decline", "Отклонить")} ({selectedIds.size})
                 </Button>
               </div>
             ) : (
               <div className="text-xs text-slate-400">
-                Нет групповых действий
+                {t(
+                    "review:reviewer_dashboard.batch.none",
+                    "Нет групповых действий"
+                )}
               </div>
             )}
           </div>
@@ -604,8 +747,14 @@ export default function ReviewerDashboard() {
                       }
                       title={
                         selectedIds.size === visibleRows.length
-                          ? "Снять все"
-                          : "Выбрать все"
+                            ? t(
+                                "review:reviewer_dashboard.table.unselect_all",
+                                "Снять все"
+                            )
+                            : t(
+                                "review:reviewer_dashboard.table.select_all",
+                                "Выбрать все"
+                            )
                       }
                     >
                       {selectedIds.size === visibleRows.length &&
@@ -616,13 +765,21 @@ export default function ReviewerDashboard() {
                       )}
                     </button>
                   </th>
-                  <th className="px-3 py-2 text-left">Статья</th>
-                  <th className="px-3 py-2 text-left w-[180px]">Назначено</th>
-                  <th className="px-3 py-2 text-left w-[180px]">Дедлайн</th>
-                  <th className="px-3 py-2 text-left w-[160px]">
-                    Статус статьи
+                  <th className="px-3 py-2 text-left">
+                    {t("review:reviewer_dashboard.table.article", "Статья")}
                   </th>
-                  <th className="px-3 py-2 text-right w-[360px]">Действия</th>
+                  <th className="px-3 py-2 text-left w-[180px]">
+                    {t("review:reviewer_dashboard.table.assigned_at", "Назначено")}
+                  </th>
+                  <th className="px-3 py-2 text-left w-[180px]">
+                    {t("review:reviewer_dashboard.table.deadline", "Дедлайн")}
+                  </th>
+                  <th className="px-3 py-2 text-left w-[160px]">
+                    {t("review:reviewer_dashboard.table.article_status", "Статус статьи")}
+                  </th>
+                  <th className="px-3 py-2 text-right w-[360px]">
+                    {t("review:reviewer_dashboard.table.actions", "Действия")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -638,21 +795,30 @@ export default function ReviewerDashboard() {
                           className="h-4 w-4"
                           checked={selectedIds.has(as.id)}
                           onChange={() => toggleSelect(as.id)}
-                          aria-label="Выбрать строку"
+                          aria-label={t(
+                        "review:reviewer_dashboard.table.select_row",
+                        "Выбрать строку"
+                        )}
                         />
                       </td>
                       <td className={`px-3 ${rowPad}`}>
                         <div className="font-medium text-slate-900 truncate">
-                          Статья #{as.article}
+                          {t(
+                              "review:reviewer_dashboard.table.article_n",
+                              "Статья #{{id}}"
+                          ).replace("{{id}}", as.article)}
                         </div>
                         <div className="text-xs text-slate-500 truncate">
-                          Назначение #{as.id}
+                          {t(
+                              "review:reviewer_dashboard.table.assignment_n",
+                              "Назначение #{{id}}"
+                          ).replace("{{id}}", as.id)}
                         </div>
                       </td>
                       <td className={`px-3 ${rowPad}`}>{fmt(as.created_at)}</td>
                       <td className={`px-3 ${rowPad}`}>
                         <div className="flex items-center gap-2">
-                          {duePill(as.due_at)}
+                          {duePill(as.due_at, t)}
                         </div>
                       </td>
                       <td className={`px-3 ${rowPad}`}>
@@ -672,11 +838,11 @@ export default function ReviewerDashboard() {
                               setShowRight(true);
                             }}
                           >
-                            Детали
+                            {t("review:reviewer_dashboard.actions.details", "Детали")}
                           </Button>
                           <Link to={`/articles/${as.article}`}>
                             <Button size="sm" variant="outline">
-                              Открыть статью
+                              {t("review:reviewer_dashboard.actions.open_article", "Открыть статью")}
                             </Button>
                           </Link>
 
@@ -687,14 +853,14 @@ export default function ReviewerDashboard() {
                                 className="bg-emerald-600 hover:bg-emerald-700"
                                 onClick={() => acceptOne(as.id)}
                               >
-                                Принять
+                                {t("review:reviewer_dashboard.actions.accept", "Принять")}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => declineOne(as.id)}
                               >
-                                Отклонить
+                                {t("review:reviewer_dashboard.actions.decline", "Отклонить")}
                               </Button>
                             </>
                           )}
@@ -708,7 +874,7 @@ export default function ReviewerDashboard() {
                                 setShowRight(true);
                               }}
                             >
-                              Написать отзыв
+                              {t("review:reviewer_dashboard.actions.write_review", "Написать отзыв")}
                             </Button>
                           )}
 
@@ -721,17 +887,31 @@ export default function ReviewerDashboard() {
                   <tr>
                     <td colSpan={6} className="py-16 text-center">
                       <div className="mx-auto w-full max-w-md">
-                        <div className="text-2xl font-semibold">Пока пусто</div>
+                        <div className="text-2xl font-semibold">
+                          {t("review:reviewer_dashboard.empty.title", "Пока пусто")}
+                        </div>
                         <p className="mt-2 text-slate-500">
-                          В очереди{" "}
+                          {t("review:reviewer_dashboard.empty.text_1", "В очереди")}{" "}
                           <b>
                             {queue === "assigned"
-                              ? "Новые назначения"
-                              : queue === "accepted"
-                                ? "Принятые"
-                                : "История"}
+                                ? t(
+                                    "review:reviewer_dashboard.queues.assigned",
+                                    "Новые назначения"
+                                )
+                                : queue === "accepted"
+                                    ? t(
+                                        "review:reviewer_dashboard.queues.accepted",
+                                        "Принятые"
+                                    )
+                                    : t(
+                                        "review:reviewer_dashboard.queues.history",
+                                        "История"
+                                    )}
                           </b>{" "}
-                          нет записей под текущий поиск.
+                          {t(
+                              "review:reviewer_dashboard.empty.text_2",
+                              "нет записей под текущий поиск."
+                          )}
                         </p>
                         <div className="mt-4">
                           <Button
@@ -741,7 +921,10 @@ export default function ReviewerDashboard() {
                               load();
                             }}
                           >
-                            Сбросить поиск
+                            {t(
+                                "review:reviewer_dashboard.empty.reset",
+                                "Сбросить поиск"
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -757,7 +940,11 @@ export default function ReviewerDashboard() {
             <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm text-slate-600">
-                  Выбрано: <b>{selectedIds.size}</b>
+                  {t(
+                      "review:reviewer_dashboard.selection.selected",
+                      "Выбрано:"
+                  )}{" "}
+                  <b>{selectedIds.size}</b>
                 </div>
                 <div className="flex items-center gap-2">
                   {queue === "assigned" && (
@@ -767,20 +954,23 @@ export default function ReviewerDashboard() {
                         className="bg-emerald-600 hover:bg-emerald-700"
                         onClick={() => bulkAccept(selectedIds)}
                       >
-                        Принять
+                        {t("review:reviewer_dashboard.actions.accept", "Принять")}
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => bulkDecline(selectedIds)}
                       >
-                        Отклонить
+                        {t("review:reviewer_dashboard.actions.decline", "Отклонить")}
                       </Button>
                     </>
                   )}
                   <Button size="sm" variant="ghost" onClick={clearSelection}>
                     <X className="h-4 w-4 mr-1" />
-                    Снять выделение
+                    {t(
+                        "review:reviewer_dashboard.selection.clear",
+                        "Снять выделение"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -794,7 +984,9 @@ export default function ReviewerDashboard() {
         >
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
-              <div className="font-semibold">Панель деталей</div>
+              <div className="font-semibold">
+                {t("review:reviewer_dashboard.right.details_panel", "Панель деталей")}
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -807,18 +999,31 @@ export default function ReviewerDashboard() {
             {detailAssignment ? (
               <div className="p-3 space-y-4">
                 <div>
-                  <div className="text-sm text-slate-500">Назначение</div>
+                  <div className="text-sm text-slate-500">
+                    {t("review:reviewer_dashboard.right.assignment", "Назначение")}
+                  </div>
                   <div className="font-medium break-words">
-                    #{detailAssignment.id} • Статья #{detailAssignment.article}
+                    {t(
+                        "review:reviewer_dashboard.right.assignment_line",
+                        "#{{aid}} • Статья #{{art}}"
+                    )
+                        .replace("{{aid}}", detailAssignment.id)
+                        .replace("{{art}}", detailAssignment.article)}
                   </div>
                   <div className="text-xs text-slate-500 mt-0.5">
-                    Назначено: {fmt(detailAssignment.created_at)}{" "}
+                    {t(
+                        "review:reviewer_dashboard.right.assigned_at_inline",
+                        "Назначено: {{date}}"
+                    ).replace("{{date}}", fmt(detailAssignment.created_at))}{" "}
                     {detailAssignment.due_at
-                      ? `• Дедлайн: ${fmt(detailAssignment.due_at)}`
-                      : ""}
+                        ? `• ${t(
+                            "review:reviewer_dashboard.right.deadline_inline",
+                            "Дедлайн: {{date}}"
+                        ).replace("{{date}}", fmt(detailAssignment.due_at))}`
+                        : ""}
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    {duePill(detailAssignment.due_at)}
+                    {duePill(detailAssignment.due_at, t)}
                     {articleStatuses[detailAssignment.article]
                       ? statusBadge(articleStatuses[detailAssignment.article])
                       : null}
@@ -832,13 +1037,13 @@ export default function ReviewerDashboard() {
                       className="bg-emerald-600 hover:bg-emerald-700"
                       onClick={() => acceptOne(detailAssignment.id)}
                     >
-                      Принять
+                      {t("review:reviewer_dashboard.actions.accept", "Принять")}
                     </Button>
                     <Button
                       variant="destructive"
                       onClick={() => declineOne(detailAssignment.id)}
                     >
-                      Отклонить
+                      {t("review:reviewer_dashboard.actions.decline", "Отклонить")}
                     </Button>
                   </div>
                 )}
@@ -857,15 +1062,20 @@ export default function ReviewerDashboard() {
                     className="w-full"
                   >
                     <Button variant="outline" className="w-full">
-                      Открыть страницу статьи
+                      {t(
+                          "review:reviewer_dashboard.actions.open_article_page",
+                          "Открыть страницу статьи"
+                      )}
                     </Button>
                   </Link>
                 </div>
               </div>
             ) : (
               <div className="p-6 text-sm text-slate-500">
-                Выберите строку и нажмите <b>Детали</b>, чтобы принять/отклонить
-                назначение или написать отзыв.
+                {t(
+                    "review:reviewer_dashboard.right.empty_hint",
+                    "Выберите строку и нажмите Детали, чтобы принять/отклонить назначение или написать отзыв."
+                )}
               </div>
             )}
           </div>

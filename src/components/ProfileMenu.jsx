@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileMenu({
   name,
@@ -17,6 +18,7 @@ export default function ProfileMenu({
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const onClick = (e) => {
@@ -43,7 +45,7 @@ export default function ProfileMenu({
         }
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Открыть меню профиля"
+        aria-label={t("navbar:profile_menu.open_profile_menu", "Открыть меню профиля")}
       >
         {avatar || (
           <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -65,7 +67,7 @@ export default function ProfileMenu({
             dropdownClassName,
           ].join(" ")}
           role="menu"
-          aria-label="Меню профиля"
+          aria-label={t("navbar:profile_menu.profile_menu", "Меню профиля")}
         >
           <div className="px-4 py-2 border-b border-gray-100">
             <p className="font-semibold text-gray-900">{name}</p>
@@ -81,10 +83,10 @@ export default function ProfileMenu({
             }}
           >
             <UserIcon className="h-4 w-4" />
-            <span>Профиль</span>
+            <span>{t("navbar:profile_menu.profile", "Профиль")}</span>
           </button>
 
-          <hr className="my-2" />
+          <hr className="my-2"/>
 
           <button
             className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2"
@@ -95,7 +97,7 @@ export default function ProfileMenu({
             }}
           >
             <LogOut className="h-4 w-4" />
-            <span>Выйти</span>
+            <span>{t("navbar:profile_menu.logout", "Выйти")}</span>
           </button>
         </div>
       )}

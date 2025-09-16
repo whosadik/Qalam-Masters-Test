@@ -18,6 +18,7 @@ import {
   Plus,
   ClipboardCheck,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const KEY_JOURNALS = "myOrgJournals";
 const msKey = (jid) => `jr_${jid}_manuscripts`;
@@ -39,6 +40,7 @@ const uniqBy = (arr, f = (x) => x.id) => {
 export default function EditorialCouncil() {
   const { jid } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // данные
   const [journal, setJournal] = useState(null);
@@ -133,10 +135,10 @@ export default function EditorialCouncil() {
   };
 
   const voteOptions = [
-    ["accept", "Принять"],
-    ["minor", "Принять после небольших правок"],
-    ["major", "На доработку"],
-    ["reject", "Отклонить"],
+    ["accept", t("moderator_journals:editorial_council.vote.accept", "Принять")],
+    ["minor", t("moderator_journals:editorial_council.vote.minor", "Принять после небольших правок")],
+    ["major", t("moderator_journals:editorial_council.vote.major", "На доработку")],
+    ["reject", t("moderator_journals:editorial_council.vote.reject", "Отклонить")],
   ];
 
   // сохранить голос
@@ -180,25 +182,62 @@ export default function EditorialCouncil() {
 
   // генерация протокола
   const makeProtocol = (m) => {
-    const t = tally(m);
+    const tly = tally(m);
     const lines = (m.councilVotes || [])
       .map((v) => {
         const mem = council.find((c) => c.id === v.memberId);
-        return `- ${mem?.name || "Член совета"}: ${labelOf(v.vote)}${v.comment ? ` — ${v.comment}` : ""}`;
+        return `- ${mem?.name || t("moderator_journals:editorial_council.protocol.member_fallback","Член совета")}: ${labelOf(v.vote)}${v.comment ? ` — ${v.comment}` : ""}`;
       })
       .join("\n");
-    const txt = `Протокол заседания редакционного совета
-Журнал: ${journal?.name || "—"}
-Дата: ${fmt(new Date())}
+    const header = t(
+        "moderator_journals:editorial_council.protocol.header",
+        "Протокол заседания редакционного совета"
+    );
+    const journalLabel = t(
+        "moderator_journals:editorial_council.protocol.journal",
+        "Журнал:"
+    );
+    const dateLabel = t(
+        "moderator_journals:editorial_council.protocol.date",
+        "Дата:"
+    );
+    const manuscriptLabel = t(
+        "moderator_journals:editorial_council.protocol.manuscript",
+        "Рукопись:"
+    );
+    const receivedLabel = t(
+        "moderator_journals:editorial_council.protocol.received",
+        "Поступила:"
+    );
+    const votesLabel = t(
+        "moderator_journals:editorial_council.protocol.votes",
+        "Голоса"
+    );
+    const quorumLabel = t(
+        "moderator_journals:editorial_council.protocol.quorum",
+        "кворум"
+    );
+    const decisionLabel = t(
+        "moderator_journals:editorial_council.protocol.final_decision",
+        "Итоговое решение:"
+    );
+    const decisionDateLabel = t(
+        "moderator_journals:editorial_council.protocol.decision_date",
+        "Дата решения:"
+    );
 
-Рукопись: «${m.title}» (${m.authors || "—"})
-Поступила: ${fmt(m.submittedAt)}
+    const txt = `${header}
+${journalLabel} ${journal?.name || "—"}
+${dateLabel} ${fmt(new Date())}
 
-Голоса (${t.total}/${council.length}, кворум: ${t.quorum}):
+${manuscriptLabel} «${m.title}» (${m.authors || "—"})
+${receivedLabel} ${fmt(m.submittedAt)}
+
+${votesLabel} (${tly.total}/${council.length}, ${quorumLabel}: ${tly.quorum}):
 ${lines || "—"}
 
-Итоговое решение: ${m.finalDecision ? labelOf(m.finalDecision) : t.leader[0] ? labelOf(t.leader[0]) : "—"}
-Дата решения: ${fmt(m.finalizedAt || new Date())}
+${decisionLabel} ${m.finalDecision ? labelOf(m.finalDecision) : tly.leader[0] ? labelOf(tly.leader[0]) : "—"}
+${decisionDateLabel} ${fmt(m.finalizedAt || new Date())}
 `;
     setProtoText(txt);
   };
@@ -219,21 +258,33 @@ ${lines || "—"}
             onClick={() => navigate(-1)}
             className="gap-2"
           >
-            <ChevronLeft className="w-4 h-4" /> Назад
+            <ChevronLeft className="w-4 h-4" />
+            {t("moderator_journals:editorial_council.back", "Назад")}
           </Button>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <ClipboardList className="w-6 h-6" />
-              Редакционный совет — {journal?.name || "Журнал"}
+              {t(
+                  "moderator_journals:editorial_council.page_title",
+                  "Редакционный совет —"
+              )}{" "}
+              {journal?.name ||
+                  t("moderator_journals:editorial_council.journal_fallback", "Журнал")}
             </h1>
             <p className="text-slate-600">
-              Голоса, кворум, итоговые решения и протокол
+              {t(
+                  "moderator_journals:editorial_council.subtitle",
+                  "Голоса, кворум, итоговые решения и протокол"
+              )}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Input
-            placeholder="Поиск по названию/авторам"
+            placeholder={t(
+                "moderator_journals:editorial_council.search_ph",
+                "Поиск по названию/авторам"
+            )}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -245,16 +296,22 @@ ${lines || "—"}
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <Users className="w-5 h-5" /> Состав совета
+              <Users className="w-5 h-5" />
+              {t("moderator_journals:editorial_council.council_title", "Состав совета")}
             </span>
-            <Badge variant="secondary">Членов: {council.length}</Badge>
+            <Badge variant="secondary">
+              {t("moderator_journals:editorial_council.members_count", "Членов:")}{" "}
+              {council.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
             <Input
               className="md:col-span-5"
-              placeholder="ФИО"
+              placeholder={t(
+                  "moderator_journals:editorial_council.new_member_name_ph",
+                  "ФИО"
+              )}
               value={newMember.name}
               onChange={(e) =>
                 setNewMember((f) => ({ ...f, name: e.target.value }))
@@ -262,7 +319,10 @@ ${lines || "—"}
             />
             <Input
               className="md:col-span-5"
-              placeholder="Роль (напр. член совета)"
+              placeholder={t(
+                  "moderator_journals:editorial_council.new_member_role_ph",
+                  "Роль (напр. член совета)"
+              )}
               value={newMember.role}
               onChange={(e) =>
                 setNewMember((f) => ({ ...f, role: e.target.value }))
@@ -270,14 +330,18 @@ ${lines || "—"}
             />
             <div className="md:col-span-2 flex justify-end">
               <Button className="w-full md:w-auto gap-2" onClick={addMember}>
-                <Plus className="w-4 h-4" /> Добавить
+                <Plus className="w-4 h-4" />
+                {t("moderator_journals:editorial_council.add_member", "Добавить")}
               </Button>
             </div>
           </div>
 
           {council.length === 0 ? (
             <div className="text-slate-500">
-              Совет пока пуст. Добавьте участников для голосования.
+              {t(
+                  "moderator_journals:editorial_council.empty_council",
+                  "Совет пока пуст. Добавьте участников для голосования."
+              )}
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -291,7 +355,10 @@ ${lines || "—"}
                   <button
                     className="ml-2 text-slate-500 hover:text-rose-600"
                     onClick={() => removeMember(m.id)}
-                    title="Удалить"
+                    title={t(
+                        "moderator_journals:editorial_council.remove_member",
+                        "Удалить"
+                    )}
                   >
                     ×
                   </button>
@@ -309,13 +376,16 @@ ${lines || "—"}
             value="pending"
             className="whitespace-nowrap data-[state=active]:bg-slate-100"
           >
-            Ожидают решения
+            {t(
+                "moderator_journals:editorial_council.tab_pending",
+                "Ожидают решения"
+            )}
           </TabsTrigger>
           <TabsTrigger
             value="decided"
             className="whitespace-nowrap data-[state=active]:bg-slate-100"
           >
-            Решённые
+            {t("moderator_journals:editorial_council.tab_decided", "Решённые")}
           </TabsTrigger>
         </TabsList>
 
@@ -323,11 +393,13 @@ ${lines || "—"}
           <Card className="border-0 shadow-sm rounded-2xl">
             <CardContent className="p-0">
               {listFiltered.length === 0 ? (
-                <div className="p-6 text-slate-500">Нет записей.</div>
+                <div className="p-6 text-slate-500">
+                  {t("moderator_journals:editorial_council.no_records", "Нет записей.")}
+                </div>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {listFiltered.map((m) => {
-                    const t = tally(m);
+                    const tly = tally(m);
                     return (
                       <li
                         key={m.id}
@@ -337,7 +409,7 @@ ${lines || "—"}
                           {/* прогресс */}
                           <div className="hidden sm:block w-20">
                             <div className="text-xs text-slate-600 mb-1">
-                              Прогресс
+                              {t("moderator_journals:editorial_council.progress", "Прогресс")}
                             </div>
                             <Progress value={progressOf(m)} />
                           </div>
@@ -351,17 +423,33 @@ ${lines || "—"}
                                   </h3>
                                   {m.finalDecision ? (
                                     <Badge className="bg-emerald-100 text-emerald-800">
-                                      Решение: {labelOf(m.finalDecision)}
+                                      {t(
+                                          "moderator_journals:editorial_council.decision_prefix",
+                                          "Решение:"
+                                      )}{" "}
+                                      {labelOf(m.finalDecision)}
                                     </Badge>
                                   ) : (
                                     <Badge variant="secondary">
-                                      Голоса: {t.total}/{council.length} (кворум{" "}
-                                      {t.quorum})
+                                      {t(
+                                          "moderator_journals:editorial_council.votes_prefix",
+                                          "Голоса:"
+                                      )}{" "}
+                                      {tly.total}/{council.length} (
+                                      {t(
+                                          "moderator_journals:editorial_council.quorum",
+                                          "кворум"
+                                      )}{" "}
+                                      {tly.quorum})
                                     </Badge>
                                   )}
                                 </div>
                                 <div className="text-sm text-slate-600 truncate">
-                                  {m.authors || "—"} • Получена:{" "}
+                                  {m.authors || "—"} •{" "}
+                                  {t(
+                                      "moderator_journals:editorial_council.received",
+                                      "Получена:"
+                                  )}{" "}
                                   {fmt(m.submittedAt)}
                                 </div>
                               </div>
@@ -376,24 +464,34 @@ ${lines || "—"}
                                         setOpenId(openId === m.id ? null : m.id)
                                       }
                                     >
-                                      Открыть голосование
+                                      {t(
+                                          "moderator_journals:editorial_council.open_voting",
+                                          "Открыть голосование"
+                                      )}
                                     </Button>
-                                    {t.majorityReached && (
+                                    {tly.majorityReached && (
                                       <Button
                                         size="sm"
                                         className="gap-2"
                                         onClick={() =>
-                                          finalize(m.id, t.leader[0])
+                                          finalize(m.id, tly.leader[0])
                                         }
                                       >
                                         <ClipboardCheck className="w-4 h-4" />{" "}
-                                        Утвердить по большинству
+                                        {t(
+                                            "moderator_journals:editorial_council.approve_majority",
+                                            "Утвердить по большинству"
+                                        )}
                                       </Button>
                                     )}
                                   </>
                                 ) : (
                                   <Badge className="bg-emerald-100 text-emerald-800">
-                                    Итог от {fmt(m.finalizedAt)}
+                                    {t(
+                                        "moderator_journals:editorial_council.final_from",
+                                        "Итог от"
+                                    )}{" "}
+                                    {fmt(m.finalizedAt)}
                                   </Badge>
                                 )}
                               </div>
@@ -408,13 +506,29 @@ ${lines || "—"}
                                     <thead>
                                       <tr className="text-left text-slate-600">
                                         <th className="py-2 pr-3">
-                                          Член совета
+                                          {t(
+                                              "moderator_journals:editorial_council.table.member",
+                                              "Член совета"
+                                          )}
                                         </th>
-                                        <th className="py-2 pr-3">Голос</th>
                                         <th className="py-2 pr-3">
-                                          Комментарий
+                                          {t(
+                                              "moderator_journals:editorial_council.table.vote",
+                                              "Голос"
+                                          )}
                                         </th>
-                                        <th className="py-2">Действие</th>
+                                        <th className="py-2 pr-3">
+                                          {t(
+                                              "moderator_journals:editorial_council.table.comment",
+                                              "Комментарий"
+                                          )}
+                                        </th>
+                                        <th className="py-2">
+                                          {t(
+                                              "moderator_journals:editorial_council.table.action",
+                                              "Действие"
+                                          )}
+                                        </th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -460,7 +574,10 @@ ${lines || "—"}
                                                     e.target.value
                                                   )
                                                 }
-                                                placeholder="Комментарий (необяз.)"
+                                                placeholder={t(
+                                                    "moderator_journals:editorial_council.comment_ph",
+                                                    "Комментарий (необяз.)"
+                                                )}
                                               />
                                             </td>
                                             <td className="py-2">
@@ -505,18 +622,36 @@ ${lines || "—"}
                                 {/* резюме и финализация */}
                                 <div className="flex flex-wrap items-center gap-2">
                                   <span className="text-sm text-slate-700">
-                                    Голосов: <b>{t.total}</b> из{" "}
-                                    {council.length} • Лидирует:{" "}
-                                    <b>{labelOf(t.leader[0])}</b> (
-                                    {t.leader[1] || 0})
+                                    {t(
+                                        "moderator_journals:editorial_council.summary.votes",
+                                        "Голосов:"
+                                    )}{" "}
+                                    <b>{tly.total}</b>{" "}
+                                    {t(
+                                        "moderator_journals:editorial_council.summary.of",
+                                        "из"
+                                    )}{" "}
+                                    {council.length} •{" "}
+                                    {t(
+                                        "moderator_journals:editorial_council.summary.leading",
+                                        "Лидирует:"
+                                    )}{" "}
+                                    <b>{labelOf(tly.leader[0])}</b> (
+                                    {tly.leader[1] || 0})
                                   </span>
-                                  {t.majorityReached ? (
+                                  {tly.majorityReached ? (
                                     <Badge className="bg-emerald-100 text-emerald-800">
-                                      Большинство достигнуто
+                                      {t(
+                                          "moderator_journals:editorial_council.summary.majority",
+                                          "Большинство достигнуто"
+                                      )}
                                     </Badge>
                                   ) : (
                                     <Badge className="bg-amber-100 text-amber-800">
-                                      Ждём кворума
+                                      {t(
+                                          "moderator_journals:editorial_council.summary.waiting_quorum",
+                                          "Ждём кворума"
+                                      )}
                                     </Badge>
                                   )}
                                 </div>
@@ -534,7 +669,11 @@ ${lines || "—"}
                                       ) : v === "reject" ? (
                                         <XCircle className="w-4 h-4 mr-1" />
                                       ) : null}
-                                      Утвердить: {l}
+                                      {t(
+                                          "moderator_journals:editorial_council.finalize_prefix",
+                                          "Утвердить:"
+                                      )}{" "}
+                                      {l}
                                     </Button>
                                   ))}
                                   <Button
@@ -543,7 +682,10 @@ ${lines || "—"}
                                       makeProtocol(m);
                                     }}
                                   >
-                                    Сформировать протокол
+                                    {t(
+                                        "moderator_journals:editorial_council.make_protocol",
+                                        "Сформировать протокол"
+                                    )}
                                   </Button>
                                 </div>
 
@@ -564,13 +706,19 @@ ${lines || "—"}
                                           )
                                         }
                                       >
-                                        Скопировать
+                                        {t(
+                                            "moderator_journals:editorial_council.copy",
+                                            "Скопировать"
+                                        )}
                                       </Button>
                                       <Button
                                         variant="outline"
                                         onClick={() => setProtoText("")}
                                       >
-                                        Очистить
+                                        {t(
+                                            "moderator_journals:editorial_council.clear",
+                                            "Очистить"
+                                        )}
                                       </Button>
                                     </div>
                                   </div>
@@ -591,7 +739,7 @@ ${lines || "—"}
 
       <div className="flex justify-end gap-2">
         <Link to={`/moderator/journals/${jid}`}>
-          <Button variant="outline">К журналу</Button>
+          <Button variant="outline">{t("moderator_journals:editorial_council.to_journal", "К журналу")}</Button>
         </Link>
       </div>
     </div>

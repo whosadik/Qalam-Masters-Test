@@ -13,6 +13,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const KEY = "myOrgJournals";
 
@@ -30,6 +31,8 @@ const normalizeBoard = (arr) =>
 export default function EditorialBoard() {
   const { jid } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
   const [journal, setJournal] = useState(null);
   const [board, setBoard] = useState([]);
   const [boardPublic, setBoardPublic] = useState(true);
@@ -95,7 +98,12 @@ export default function EditorialBoard() {
       boardPublic,
     };
     localStorage.setItem(KEY, JSON.stringify(list));
-    alert("Редколлегия сохранена");
+    alert(
+        t(
+            "moderator_journals:editorial_board.saved",
+            "Редколлегия сохранена"
+        )
+    );
     navigate(`/moderator/journals/${journal.id}`);
   };
 
@@ -110,18 +118,22 @@ export default function EditorialBoard() {
             onClick={() => navigate(-1)}
             className="gap-2"
           >
-            <ChevronLeft className="w-4 h-4" /> Назад
+            <ChevronLeft className="w-4 h-4" />
+              {t("moderator_journals:editorial_board.back", "Назад")}
           </Button>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="w-6 h-6" /> Редколлегия —{" "}
-            {journal.name || "Журнал"}
+            <Users className="w-6 h-6" />{" "}
+              {t("moderator_journals:editorial_board.title", "Редколлегия —")}{" "}
+              {journal.name || t("moderator_journals:editorial_board.journal_fallback", "Журнал")}
           </h1>
         </div>
         <div className="flex gap-2">
           <Link to={`/moderator/journals/${journal.id}`}>
-            <Button variant="outline">К журналу</Button>
+            <Button variant="outline">
+                {t("moderator_journals:editorial_board.to_journal", "К журналу")}
+            </Button>
           </Link>
-          <Button onClick={save}>Сохранить</Button>
+          <Button onClick={save}>{t("moderator_journals:editorial_board.save", "Сохранить")}</Button>
         </div>
       </div>
 
@@ -130,10 +142,16 @@ export default function EditorialBoard() {
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <div className="font-semibold">
-              Показывать раздел «Редакционная коллегия» на публичной странице
+                {t(
+                    "moderator_journals:editorial_board.public_title",
+                    "Показывать раздел «Редакционная коллегия» на публичной странице"
+                )}
             </div>
             <div className="text-sm text-slate-600">
-              Если выключить, раздел целиком скрывается в «Паспорте журнала».
+                {t(
+                    "moderator_journals:editorial_board.public_hint",
+                    "Если выключить, раздел целиком скрывается в «Паспорте журнала»."
+                )}
             </div>
           </div>
           <Switch checked={boardPublic} onCheckedChange={setBoardPublic} />
@@ -144,10 +162,20 @@ export default function EditorialBoard() {
       <Card className="border-0 shadow-sm rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            Состав редколлегии
+              {t(
+                  "moderator_journals:editorial_board.members_title",
+                  "Состав редколлегии"
+              )}
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Всего: {board.length}</Badge>
-              <Button onClick={addRow}>Добавить строку</Button>
+              <Badge variant="secondary">
+                  {t("moderator_journals:editorial_board.total", "Всего:")}{" "}
+                  {board.length}</Badge>
+              <Button onClick={addRow}>
+                  {t(
+                      "moderator_journals:editorial_board.add_row",
+                      "Добавить строку"
+                  )}
+              </Button>
             </div>
           </CardTitle>
         </CardHeader>
@@ -155,7 +183,11 @@ export default function EditorialBoard() {
         <CardContent className="p-0">
           {ordered.length === 0 ? (
             <div className="p-6 text-slate-500">
-              Пока пусто. Добавьте первого члена редколлегии.
+                {t(
+                    "moderator_journals:editorial_board.empty",
+                    "Пока пусто. Добавьте первого члена редколлегии."
+                )}
+
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
@@ -170,7 +202,10 @@ export default function EditorialBoard() {
                         onClick={() => move(m.id, "up")}
                         disabled={i === 0}
                         className="w-9"
-                        title="Выше"
+                        title={t(
+                            "moderator_journals:editorial_board.move_up",
+                            "Выше"
+                        )}
                       >
                         <ArrowUp className="w-4 h-4" />
                       </Button>
@@ -180,7 +215,10 @@ export default function EditorialBoard() {
                         onClick={() => move(m.id, "down")}
                         disabled={i === ordered.length - 1}
                         className="w-9"
-                        title="Ниже"
+                        title={t(
+                            "moderator_journals:editorial_board.move_down",
+                            "Ниже"
+                        )}
                       >
                         <ArrowDown className="w-4 h-4" />
                       </Button>
@@ -189,54 +227,85 @@ export default function EditorialBoard() {
                         size="sm"
                         onClick={() => updateRow(m.id, "visible", !m.visible)}
                         className="w-28 gap-2"
-                        title="Показать/скрыть"
+                        title={t(
+                            "moderator_journals:editorial_board.toggle_visibility",
+                            "Показать/скрыть"
+                        )}
                       >
                         {m.visible ? (
                           <Eye className="w-4 h-4" />
                         ) : (
                           <EyeOff className="w-4 h-4" />
                         )}
-                        {m.visible ? "Виден" : "Скрыт"}
+                        {m.visible
+                            ? t(
+                                "moderator_journals:editorial_board.visible",
+                                "Виден"
+                            )
+                            : t(
+                                "moderator_journals:editorial_board.hidden",
+                                "Скрыт"
+                            )}
                       </Button>
                     </div>
 
                     {/* Роль */}
                     <div className="md:col-span-3">
-                      <label className="text-xs text-slate-500">Роль</label>
+                      <label className="text-xs text-slate-500">
+                          {t(
+                              "moderator_journals:editorial_board.role_label",
+                              "Роль"
+                          )}
+                      </label>
                       <Input
                         value={m.role}
                         onChange={(e) =>
                           updateRow(m.id, "role", e.target.value)
                         }
-                        placeholder="Главный редактор"
+                        placeholder={t(
+                            "moderator_journals:editorial_board.role_ph",
+                            "Главный редактор"
+                        )}
                       />
                     </div>
 
                     {/* Имя */}
                     <div className="md:col-span-4">
                       <label className="text-xs text-slate-500">
-                        ФИО, уч. степень
+                          {t(
+                              "moderator_journals:editorial_board.name_label",
+                              "ФИО, уч. степень"
+                          )}
                       </label>
                       <Input
                         value={m.name}
                         onChange={(e) =>
                           updateRow(m.id, "name", e.target.value)
                         }
-                        placeholder="Иванов Иван Иванович, д.ф.н., профессор"
+                        placeholder={t(
+                            "moderator_journals:editorial_board.name_ph",
+                            "Иванов Иван Иванович, д.ф.н., профессор"
+                        )}
                       />
                     </div>
 
                     {/* Афилиация / e-mail */}
                     <div className="md:col-span-2">
                       <label className="text-xs text-slate-500">
-                        Организация/страна
+                          {t(
+                              "moderator_journals:editorial_board.affiliation_label",
+                              "Организация/страна"
+                          )}
                       </label>
                       <Input
                         value={m.affiliation}
                         onChange={(e) =>
                           updateRow(m.id, "affiliation", e.target.value)
                         }
-                        placeholder="КазНУ, Казахстан"
+                        placeholder={t(
+                            "moderator_journals:editorial_board.affiliation_ph",
+                            "КазНУ, Казахстан"
+                        )}
                       />
                     </div>
                     <div className="md:col-span-1">
@@ -258,7 +327,10 @@ export default function EditorialBoard() {
                         size="sm"
                         onClick={() => removeRow(m.id)}
                         className="w-full md:w-10"
-                        title="Удалить"
+                        title={t(
+                            "moderator_journals:editorial_board.delete",
+                            "Удалить"
+                        )}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -273,9 +345,11 @@ export default function EditorialBoard() {
 
       <div className="flex justify-end gap-2">
         <Link to={`/moderator/journals/${journal.id}`}>
-          <Button variant="outline">К журналу</Button>
+          <Button variant="outline">
+              {t("moderator_journals:editorial_board.to_journal", "К журналу")}
+          </Button>
         </Link>
-        <Button onClick={save}>Сохранить</Button>
+        <Button onClick={save}>{t("moderator_journals:editorial_board.save", "Сохранить")}</Button>
       </div>
     </div>
   );

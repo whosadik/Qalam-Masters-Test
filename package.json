@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\" && gh-pages -d dist"
+    "deploy": "vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\" && gh-pages -d dist",
+    "i18n:extract": "i18next --config i18next-parser.config.cjs",
+    "i18n:clean": "i18next --config i18next-parser.config.cjs --clean",
+    "i18n:check": "i18next --config i18next-parser.config.cjs --fail-on-warnings"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -47,6 +50,10 @@
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
     "geist": "^1.3.1",
+    "i18next": "^25.5.2",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
+    "i18next-icu": "^2.4.0",
     "input-otp": "1.4.1",
     "jiti": "latest",
     "less": "latest",
@@ -59,6 +66,7 @@
     "react-day-picker": "9.8.0",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.1",
+    "react-i18next": "^15.7.3",
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "latest",
     "recharts": "2.15.0",
@@ -81,6 +89,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "gh-pages": "^6.3.0",
+    "i18n-extract": "^0.6.7",
+    "i18next-parser": "^9.3.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

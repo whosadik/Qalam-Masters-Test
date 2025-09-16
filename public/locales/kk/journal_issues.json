@@ -1,0 +1,22 @@
+{
+  "cover_alt": "Журнал мұқабасы",
+  "create_issue": {
+    "error": "Санды құру мүмкін болмады"
+  },
+  "download_pdf": "PDF жүктеп алу",
+  "issues_title": "Шығарылымдар",
+  "loading": "Шығарылымдар жүктелуде…",
+  "no_published_yet": "Әзірге жарияланған шығарылымдар жоқ.",
+  "pdf_missing": "PDF жүктелмеген",
+  "published_on": "Жарияланған күні:",
+  "toc": {
+    "back_to_all": "← Барлық сандарға оралу",
+    "empty": "Әзірге бос.",
+    "issue_fallback": "Шығарылым",
+    "journal_fallback": "Журнал",
+    "loading": "Мазмұн жүктелуде…",
+    "title": "Мазмұны",
+    "unavailable": "Мазмұн қолжетімсіз."
+  },
+  "toc_button": "Мазмұны"
+}
