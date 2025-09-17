@@ -28,6 +28,7 @@ import {
   BookOpen,
   ChevronsUpDown,
   Check,
+  QrCode,
 } from "lucide-react";
 
 import {
@@ -45,6 +46,7 @@ import {
 } from "@/components/ui/command";
 
 import { cn } from "@/lib/utils";
+import KASPI_QR from "@/assets/Kaspi_QR.jpg";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { createArticle, uploadArticleFile } from "@/services/articlesService";
@@ -69,7 +71,7 @@ function Toggle({ label, hint, checked, onChange }) {
   );
 }
 
-function FileDropZone({ label, value, onFileChange }) {
+function FileDropZone({ label, value, onFileChange, accept=".pdf,.doc,.docx", hint }) {
   const { t } = useTranslation();
   const [isDragActive, setIsDragActive] = useState(false);
   const inputRef = useRef(null);
@@ -113,7 +115,7 @@ function FileDropZone({ label, value, onFileChange }) {
               )}
         </p>
         <p className="text-gray-600 mb-4">
-          {t(
+          {hint || t(
               "submission:file_supported_formats",
               "Поддерживаемые форматы: PDF, DOC, DOCX"
           )}
@@ -121,7 +123,7 @@ function FileDropZone({ label, value, onFileChange }) {
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept={accept}
           className="hidden"
           onChange={handleChange}
         />
@@ -230,7 +232,8 @@ export default function SubmitArticle() {
     { id: 5, title: t("submission:step_keywords", "Ключевые слова"), icon: Target },
     { id: 6, title: t("submission:step_methods", "Цель/задачи/методы"), icon: Target },
     { id: 7, title: t("submission:step_files", "Файлы"), icon: Upload },
-    { id: 8, title: t("submission:step_confirmation", "Подтверждение"), icon: CheckSquare },
+    { id: 8, title: t("submission:step_payment","Оплата"), icon: QrCode },
+    { id: 9, title: t("submission:step_confirmation", "Подтверждение"), icon: CheckSquare },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -299,6 +302,7 @@ export default function SubmitArticle() {
     authorsConsent: null,
     conflictOfInterest: null,
     ethicsApproval: null,
+    paymentReceipt: null,
     dataConsent: false,
     textConsent: false,
   });
@@ -361,6 +365,9 @@ export default function SubmitArticle() {
               "Прикрепите файл рукописи (PDF/DOC/DOCX)"
           )
       );
+    if (!formData.paymentReceipt) {
+      return alert(t("submission:alert_attach_receipt","Прикрепите чек об оплате"));
+    }
     if (!formData.dataConsent || !formData.textConsent) return;
 
     try {
@@ -430,7 +437,7 @@ export default function SubmitArticle() {
           uploadArticleFile(
             created.id,
             formData.authorsConsent,
-            "Доп. материалы"
+            "supplement"
           )
         );
       }
@@ -439,7 +446,7 @@ export default function SubmitArticle() {
           uploadArticleFile(
             created.id,
             formData.conflictOfInterest,
-            "Доп. материалы"
+            "supplement"
           )
         );
       }
@@ -448,9 +455,17 @@ export default function SubmitArticle() {
           uploadArticleFile(
             created.id,
             formData.ethicsApproval,
-            "Доп. материалы"
+            "supplement"
           )
         );
+      }
+
+      if (formData.paymentReceipt) {
+        uploads.push(
+            uploadArticleFile(
+                created.id,
+                formData.paymentReceipt,
+                "payment_receipt"));
       }
 
       await Promise.all(uploads);
@@ -1135,8 +1150,51 @@ export default function SubmitArticle() {
             </div>
           )}
 
-          {/* Step 8: Подтверждение */}
+          {/* Step 8: Оплата */}
           {currentStep === 8 && (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">
+                    {t("submission:payment_title","Оплата")}
+                  </h2>
+                  <p className="text-gray-600">
+                    {t("submission:payment_text","Отсканируйте QR Kaspi и оплатите публикацию. Затем прикрепите чек об оплате.")}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="rounded-lg border p-4">
+                    <img
+                        src={KASPI_QR}
+                        alt="Kaspi QR"
+                        className="h-56 w-56 object-contain"
+                        loading="lazy"
+                    />
+                  </div>
+                  <div className="text-sm text-gray-700">
+                    <div className="font-medium mb-1">{t("submission:payment_amount","Сумма:")} 10 000 ₸</div>
+                    <div>{t("submission:payment_note","Получатель: ТОО «Qalam Masters»")}</div>
+                    <div>{t("submission:payment_comment","Назначение платежа: Публикация статьи")}</div>
+                  </div>
+                </div>
+
+                <FileDropZone
+                    label={t("submission:payment_receipt_label","Чек об оплате (обязательно)")}
+                    value={formData.paymentReceipt}
+                    onFileChange={(file) => handleInputChange("paymentReceipt", file)}
+                    accept=".pdf,.jpg,.jpeg,.png"                                   // ← allow images & pdf
+                    hint={t("submission:payment_receipt_hint","Форматы: PDF, JPG, PNG")}
+                />
+
+                <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
+                  {t("submission:payment_security","Проверка чека выполняется редакцией. При несоответствии с вами свяжутся.")}
+                </div>
+              </div>
+          )}
+
+
+          {/* Step 9: Подтверждение */}
+          {currentStep === 9 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -1257,20 +1315,28 @@ export default function SubmitArticle() {
                   "Рукопись сохранена как черновик. Откройте статью и нажмите “Отправить в редакцию”, когда будете готовы."
               )}
             </p>
+            {/*
+            <h2 className="text-2xl font-bold mb-4">
+              {t("submission:success_submitted", "Статья отправлена")}
+            </h2>
+            <p className="text-gray-700 mb-6">
+              {t("submission:success_submitted_text", "Материалы отправлены в редакцию. Отслеживайте статус на странице статьи.")}
+            </p>
+            */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                className="bg-blue-600 hover:bg-blue-700"
-                onClick={() => {
-                  setShowSuccessModal(false);
-                  if (createdId) navigate(`/articles/${createdId}`);
-                }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    if (createdId) navigate(`/articles/${createdId}`);
+                  }}
               >
                 {t("submission:btn_open_article", "Открыть статью")}
               </Button>
               <Link to="/author-dashboard">
                 <Button
-                  variant="outline"
-                  onClick={() => setShowSuccessModal(false)}
+                    variant="outline"
+                    onClick={() => setShowSuccessModal(false)}
                 >
                   {t("submission:btn_return_dashboard", "Вернуться в личный кабинет")}
                 </Button>
