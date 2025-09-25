@@ -21,6 +21,7 @@ import {
   PanelRightClose,
   X,
   Keyboard as KeyboardIcon,
+  Wand2
 } from "lucide-react";
 import {
   Select,
@@ -42,6 +43,7 @@ import {
   listIssues,
   createIssue,
   uploadIssuePdf,
+  generateIssuePdf,
   publishIssue,
   getIssue,
   addArticleToIssue,
@@ -491,6 +493,29 @@ export default function ProofreaderDashboard() {
       );
     }
   }
+
+  async function generateIssuePdfNow(id) {
+    setBusyIssueId(id);
+    try {
+      // Бэк соберёт обложку + статьи и вернёт ссылку на PDF
+      const res = await generateIssuePdf(id);
+      await loadIssues(journalId);         // обновим список выпусков, чтобы подтянулся issue.pdf
+      alert(
+          res?.pdf
+              ? t("dashboards:proofreader_dashboard.alert.generate_issue_passed", "PDF сгенерирован и прикреплён к выпуску.")
+              : t("dashboards:proofreader_dashboard.alert.generate_issue_pass", "PDF сгенерирован.")
+      );
+    } catch (e) {
+      console.error(e?.response?.data || e);
+      alert(
+          e?.response?.data?.detail ||
+          "Не удалось сгенерировать PDF. Убедитесь, что в выпуске есть хотя бы одна статья."
+      );
+    } finally {
+      setBusyIssueId(null);
+    }
+  }
+
 
   async function uploadIssuePdfAction(id, file) {
     if (!file) return;
@@ -1170,7 +1195,7 @@ export default function ProofreaderDashboard() {
               {/* Issue controls */}
               <div className="mt-4 border-t border-slate-200 pt-3">
                 <div className="text-sm font-medium mb-2">
-                  {t("dashboards:proofreader_dashboard.issue", "Выпуск")}
+                  {t("dashboards:proofreader_dashboard.issue.title", "Выпуск")}
                 </div>
                 {selectedIssueId ? (
                   <IssuePanel
@@ -1178,6 +1203,7 @@ export default function ProofreaderDashboard() {
                     busyIssueId={busyIssueId}
                     onUploadPdf={uploadIssuePdfAction}
                     onPublish={publishIssueNow}
+                    onGenerate={generateIssuePdfNow}
                   />
                 ) : (
                   <div className="text-sm text-slate-500">
@@ -1194,7 +1220,8 @@ export default function ProofreaderDashboard() {
 }
 
 /* ---------- Side: single issue controls ---------- */
-function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish }) {
+function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish, onGenerate  }) {
+  const { t } = useTranslation();
   const [issue, setIssue] = useState(null);
   const busy = busyIssueId === issueId;
 
@@ -1254,6 +1281,16 @@ function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish }) {
             <UploadIcon className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.pdf.upload", "Загрузить PDF")}
           </span>
         </label>
+
+        <Button
+            variant="outline"
+            onClick={() => onGenerate(issueId)}
+            disabled={busy || issue?.status === "published"}
+            title={t("dashboards:proofreader_dashboard.actions.generate_pdf_hint", "Собрать обложку и подшить статьи")}
+        >
+          {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Wand2 className="h-4 w-4 mr-2" />}
+          {t("dashboards:proofreader_dashboard.actions.generate_pdf", "Сгенерировать PDF")}
+        </Button>
 
         {issue.status === "published" ? (
           <Badge className="bg-emerald-600">{t("dashboards:proofreader_dashboard.badge.issue_published", "Опубликован")}</Badge>

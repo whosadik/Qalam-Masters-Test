@@ -64,6 +64,8 @@ export const API = {
   ISSUE_FILES: (id) => withBase(`/issuesissues/${id}/files/`), // GET/POST (аплоад PDF)
   ISSUE_PUBLISH: (id) => withBase(`/issuesissues/${id}/publish/`), // POST
   ISSUE_TOC: (id) => withBase(`/issuesissues/${id}/toc/`), // GET
+  ISSUE_GENERATE_PDF: (id) => withBase(`/issuesissues/${id}/generate-pdf/`), // POST
+  ISSUE_AUTOFILL: (id) => withBase(`/issuesissues/${id}/autofill/`),
 
   // ===== OPENAPI SCHEMA =====
   SCHEMA: withBase(`/schema/`), // GET

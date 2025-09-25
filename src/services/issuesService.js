@@ -9,7 +9,12 @@ export async function listIssues(
   journalId,
   { page_size = 200, ordering = "-created_at" } = {}
 ) {
-  const url = withParams(API.ISSUES, { page_size, ordering });
+  const url = withParams(API.ISSUES, {
+    page_size,
+    ordering,
+    journal: journalId || undefined,
+    status: status || undefined,
+  });
   const { data } = await http.get(url);
   const rows = Array.isArray(data?.results)
     ? data.results
@@ -17,9 +22,7 @@ export async function listIssues(
       ? data
       : [];
   // фильтруем по журналу на клиенте (в схеме фильтра по journal нет)
-  return journalId
-    ? rows.filter((i) => Number(i.journal) === Number(journalId))
-    : rows;
+  return rows;
 }
 
 export async function getIssue(issueId) {
@@ -73,21 +76,19 @@ export async function getNextOrder(issueId) {
   return maxOrder + 10; // шаг 10, чтобы было куда вставлять между
 }
 // файлы выпуска
-export async function uploadIssuePdf(
-  issueId,
-  file,
-  { includeType = true } = {}
-) {
+export async function uploadIssuePdf(issueId, file){
   const fd = new FormData();
-  if (includeType) fd.append("type", "issue_pdf"); // у вас работает и без, но поле не мешает
   fd.append("file", file);
-  const { data } = await http.post(API.ISSUE_FILES(issueId), fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const { data } = await http.post(API.ISSUE_FILES(issueId), fd);
   // сервер может вернуть либо весь Issue, либо объект с { pdf: url }
   if (data?.pdf) return data.pdf;
   const fresh = await getIssue(issueId);
   return fresh?.pdf ?? null;
+}
+
+export async function generateIssuePdf(issueId) {
+  const { data } = await http.post(API.ISSUE_GENERATE_PDF(issueId), {});
+  return data;
 }
 
 export async function publishIssue(issueId) {

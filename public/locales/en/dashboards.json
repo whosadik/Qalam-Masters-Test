@@ -442,6 +442,8 @@
       "create_issue": "Create issue",
       "delete_pdf": "Delete",
       "details": "Details",
+      "generate_pdf": "Generate PDF",
+      "generate_pdf_hint": "Assemble the cover and file the articles",
       "open": "Open",
       "open_card": "Open card",
       "publish": "Publish",
@@ -459,6 +461,8 @@
       "choose_issue": "Select an issue.",
       "create_issue_failed": "Failed to create issue",
       "delete_pdf_failed": "Failed to delete file",
+      "generate_issue_pass": "PDF generated.",
+      "generate_issue_passed": "PDF generated and attached to the issue.",
       "issue_publish_failed": "Failed to publish issue",
       "issue_published": "Issue published",
       "need_production_pdf": "Upload a production PDF before publishing.",
@@ -499,7 +503,8 @@
       "hint": "/ — search, R — refresh, A — add to issue, C — create issue and add"
     },
     "issue": {
-      "pick_left": "Select an issue on the left to upload a PDF and publish."
+      "pick_left": "Select an issue on the left to upload a PDF and publish.",
+      "title": "Issue"
     },
     "issues": {
       "none": "No issues",
