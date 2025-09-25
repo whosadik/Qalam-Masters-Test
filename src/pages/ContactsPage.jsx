@@ -72,9 +72,9 @@ export default function ContactsPage() {
             </div>
             <a
               className="mt-2 inline-block text-[#3972FE] hover:underline"
-              href="mailto:support@qalam-masters.kz"
+              href="mailto:info@truemasters.kz"
             >
-              truemasters@inbox.ru
+            info@truemasters.kz
             </a>
             <p className="mt-1 text-sm text-slate-600">
               {t(
