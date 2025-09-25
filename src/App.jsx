@@ -66,6 +66,8 @@ import ContactsPage from "./pages/ContactsPage";
 import JournalsPublicPage from "./pages/JournalsPublicPage";
 import NewsUpdatesPage from "./pages/NewsPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import PublicOffer from "./pages/PublicOffer";
+import PaymentAndRefund from "./pages/PaymentAndRefund";
 
 function PublicRoutes() {
   return (
@@ -88,6 +90,8 @@ function PublicRoutes() {
       <Route path="/journals/:jid" element={<JournalView />} />
       <Route path="/news" element={<NewsUpdatesPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/public-offer" element={<PublicOffer />} />
+      <Route path="/payment-and-refund" element={<PaymentAndRefund />} />
       {/* если зашли на несуществующий публичный путь */}
       <Route path="*" element={<Navigate to="/app" replace />} />
     </Routes>
@@ -242,6 +246,8 @@ function AppContent() {
     "/journals/:jid",
     "/news",
     "/privacy",
+    "/public-offer",
+    "/payment-and-refund",
     "/403",
   ]);
 

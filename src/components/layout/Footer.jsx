@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import {useTranslation} from "react-i18next";
-
+import { useTranslation } from "react-i18next";
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -15,14 +14,16 @@ export default function Footer() {
               </div>
               <p className="text-gray-300 text-sm leading-relaxed max-w-prose">
                 {t(
-                    "footer:tagline",
-                    "Автоматизированная платформа для публикации научных статей и журналов."
+                  "footer:tagline",
+                  "Автоматизированная платформа для публикации научных статей и журналов."
                 )}
               </p>
             </div>
 
             <nav className="space-y-3">
-              <h3 className="font-medium">{t("footer:platform.title", "Платформа")}</h3>
+              <h3 className="font-medium">
+                {t("footer:platform.title", "Платформа")}
+              </h3>
               <ul className="space-y-2 text-gray-300 text-sm">
                 <li>
                   <Link
@@ -38,16 +39,34 @@ export default function Footer() {
                     className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3972FE] rounded"
                   >
                     {t(
-                        "footer:platform.privacy_policy",
-                        "Политика конфиденциальности"
+                      "footer:platform.privacy_policy",
+                      "Политика конфиденциальности"
                     )}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/public-offer"
+                    className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3972FE] rounded"
+                  >
+                    Публичная оферта
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/payment-and-refund"
+                    className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3972FE] rounded"
+                  >
+                    Условия оплаты и возврата
                   </Link>
                 </li>
               </ul>
             </nav>
 
             <nav className="space-y-3">
-              <h3 className="font-medium">{t("footer:authors.title", "Авторам")}</h3>
+              <h3 className="font-medium">
+                {t("footer:authors.title", "Авторам")}
+              </h3>
               <ul className="space-y-2 text-gray-300 text-sm">
                 <li>
                   <Link
@@ -69,7 +88,9 @@ export default function Footer() {
             </nav>
 
             <nav className="space-y-3">
-              <h3 className="font-medium">{t("footer:orgs.title", "Организациям")}</h3>
+              <h3 className="font-medium">
+                {t("footer:orgs.title", "Организациям")}
+              </h3>
               <ul className="space-y-2 text-gray-300 text-sm">
                 <li>
                   <Link
