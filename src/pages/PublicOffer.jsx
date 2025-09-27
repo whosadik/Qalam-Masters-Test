@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 export default function PublicOffer() {
@@ -8,7 +8,7 @@ export default function PublicOffer() {
         <title>Публичная оферта — True Masters</title>
         <meta
           name="description"
-          content="Договор публичной оферты ТОО «True Masters»"
+          content="Публичная оферта ТОО «True Masters» на оказание IT-услуг и предоставление цифровых сервисов."
         />
       </Helmet>
 
@@ -21,35 +21,56 @@ export default function PublicOffer() {
           <span className="text-gray-700">Публичная оферта</span>
         </nav>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
           Публичная оферта
         </h1>
-        <p className="text-gray-500 mb-10">
-          Договор публичной оферты ТОО “True Masters”
-        </p>
 
-        <section className="prose prose-gray max-w-none">
+        <section className="prose prose-gray max-w-none space-y-4">
           <p>
-            Настоящий документ является официальным предложением ТОО “True
-            Masters” (БИН: 250540031246), именуемого в дальнейшем «Продавец»,
-            заключить договор на оказание услуг дистанционным способом
-            посредством сети Интернет.
+            Настоящий документ является официальным предложением{" "}
+            <strong>ТОО «True Masters»</strong> (БИН 250540031246), именуемого в
+            дальнейшем «Исполнитель», заключить договор на оказание IT-услуг и
+            предоставление цифровых сервисов дистанционным способом посредством
+            сети Интернет.
           </p>
+
           <p>
-            Оплата услуг Покупателем означает полное и безоговорочное принятие
+            Оплата услуг Заказчиком означает полное и безоговорочное принятие
             условий настоящей оферты.
           </p>
 
-          <h2>Реквизиты Продавца</h2>
+          <h2>Реквизиты компании</h2>
           <ul>
             <li>
-              <strong>Наименование:</strong> ТОО “True Masters”
+              <strong>Наименование:</strong> ТОО «True Masters»
             </li>
             <li>
               <strong>БИН:</strong> 250540031246
             </li>
             <li>
-              <strong>Банк:</strong> Филиал АО «ForteBank» в г. Астана
+              <strong>Адрес:</strong> Казахстан, г. Астана, р-н Сарыарка, ул.
+              Кенжебека Кумисбекова, д. 8, н.п. 2б, 010000
+            </li>
+            <li>
+              <strong>Телефон:</strong>{" "}
+              <a
+                href="tel:+77712827801"
+                className="text-blue-600 hover:underline"
+              >
+                +7 771 282 78 01
+              </a>
+            </li>
+            <li>
+              <strong>Email:</strong>{" "}
+              <a
+                href="mailto:info@truemasters.kz"
+                className="text-blue-600 hover:underline"
+              >
+                info@truemasters.kz
+              </a>
+            </li>
+            <li>
+              <strong>Банк:</strong> АО «ForteBank», филиал в г. Астана
             </li>
             <li>
               <strong>ИИК:</strong> KZ3996503F0014973858KZT
@@ -61,51 +82,11 @@ export default function PublicOffer() {
               <strong>КБЕ:</strong> 17
             </li>
             <li>
-              <strong>Адрес:</strong> Казахстан, г. Астана, р-н Сарыарка, ул.
-              Кенжебека Кумисбекова, д. 8, н.п. 2б, 010000
-            </li>
-            <li>
-              <strong>Телефон:</strong> +7 771 282 78 01
-            </li>
-            <li>
-              <strong>Email:</strong> info@truemasters.kz
-            </li>
-            <li>
-              <strong>Директор:</strong> Мукатаев Темирлан Ильшатович,
-              действующий на основании Устава
+              <strong>Директор:</strong> Мукатаев Темирлан Ильшатович
             </li>
           </ul>
 
-          <h2>Предмет договора</h2>
-          <p>
-            Продавец оказывает услуги по публикации, сопутствующим сервисам и
-            иным функциональным возможностям платформы Qalam Masters, а
-            Покупатель оплачивает их в соответствии с действующими тарифами и
-            правилами.
-          </p>
-
-          <h2>Порядок оплаты</h2>
-          <p>
-            Оплата осуществляется безналичным способом через доступные платежные
-            средства на сайте/в приложении. Факт оплаты подтверждает согласие с
-            условиями оферты.
-          </p>
-
-          <h2>Права и обязанности сторон</h2>
-          <p>
-            Стороны обязуются добросовестно выполнять условия договора. Продавец
-            правомочен изменять тарифы и правила оказания услуг с размещением
-            актуальной редакции на сайте.
-          </p>
-
-          <h2>Прочие условия</h2>
-          <p>
-            Ко всем отношениям, не урегулированным настоящей офертой,
-            применяются нормы действующего законодательства Республики
-            Казахстан.
-          </p>
-
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 mt-6">
             Последнее обновление: {new Date().toLocaleDateString("ru-RU")}
           </p>
         </section>
