@@ -1,16 +1,13 @@
-import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 export default function PublicOffer() {
   return (
     <div className="min-h-screen bg-white">
-      <Helmet>
-        <title>Публичная оферта — True Masters</title>
-        <meta
-          name="description"
-          content="Публичная оферта ТОО «True Masters» на оказание IT-услуг и предоставление цифровых сервисов."
-        />
-      </Helmet>
+      <title>Публичная оферта — True Masters</title>
+      <meta
+        name="description"
+        content="Публичная оферта ТОО «True Masters» на оказание IT-услуг и предоставление цифровых сервисов."
+      />
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
         <nav className="mb-6 text-sm text-gray-500">

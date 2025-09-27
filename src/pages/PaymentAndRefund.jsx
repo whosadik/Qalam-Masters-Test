@@ -1,16 +1,13 @@
-import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 export default function PaymentAndRefund() {
   return (
     <div className="min-h-screen bg-white">
-      <Helmet>
-        <title>Условия оплаты, возврата и доставки — True Masters</title>
-        <meta
-          name="description"
-          content="Оплата онлайн (Visa, MasterCard, ForteBank и др.), правила возврата средств и информация о доставке для IT-услуг True Masters (Казахстан)."
-        />
-      </Helmet>
+      <title>Условия оплаты, возврата и доставки — True Masters</title>
+      <meta
+        name="description"
+        content="Оплата онлайн (Visa, MasterCard, ForteBank и др.), правила возврата средств и информация о доставке для IT-услуг True Masters (Казахстан)."
+      />
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
         <nav className="mb-6 text-sm text-gray-500">
