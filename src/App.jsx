@@ -88,6 +88,8 @@ function PublicRoutes() {
       <Route path="/contacts" element={<ContactsPage />} />
       <Route path="/journals" element={<JournalsPublicPage />} />
       <Route path="/journals/:jid" element={<JournalView />} />
+      <Route path="/journals/:jid/issues" element={<IssuesList />} />
+      <Route path="/journals/:jid/issues/:iid" element={<IssueTocPage />} />
       <Route path="/news" element={<NewsUpdatesPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/public-offer" element={<PublicOffer />} />
@@ -166,8 +168,6 @@ function PrivateRoutes() {
             element={<EditorialCouncil />}
           />
 
-          <Route path="/journals/:jid" element={<JournalView />} />
-
           <Route
             path="/moderator/journals/:jid/articles"
             element={<JournalArticles />}
@@ -207,8 +207,6 @@ function PrivateRoutes() {
             path="/proofreafer-dashboard"
             element={<ProofreaderDashboard />}
           />
-          <Route path="/journals/:jid/issues" element={<IssuesList />} />
-          <Route path="/journals/:jid/issues/:iid" element={<IssueTocPage />} />
 
           {/* несуществующие приватные пути — на /app */}
           <Route path="*" element={<Navigate to="/app" replace />} />
@@ -244,6 +242,8 @@ function AppContent() {
     "/contacts",
     "/journals",
     "/journals/:jid",
+    "/journals/:jid/issues",
+    "/journals/:jid/issues/:iid",
     "/news",
     "/privacy",
     "/public-offer",
