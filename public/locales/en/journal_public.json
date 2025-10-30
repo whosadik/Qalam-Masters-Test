@@ -312,6 +312,7 @@
     "btn_about": "About Journal",
     "btn_next": "Next",
     "btn_prev": "Back",
+    "btn_submit": "Submit an article to a journal",
     "empty_results": "No results found for your query.",
     "error_prefix": "Error",
     "found_count_one": "Found: {{count}}",

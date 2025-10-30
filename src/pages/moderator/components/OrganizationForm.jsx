@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Field from "@/components/Field";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Link } from "react-router-dom";
 
 export default function OrganizationForm({
   onSubmit,
@@ -24,6 +27,10 @@ export default function OrganizationForm({
     social_link: initialData.social_link || "",
   });
 
+  const [agreedToOffer, setAgreedToOffer] = useState(false);
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
+  const [termsError, setTermsError] = useState("");
+
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -43,6 +50,11 @@ export default function OrganizationForm({
     if (!form.bin.trim()) errs.bin = "Укажите БИН";
     else if (!/^\d{12}$/.test(form.bin))
       errs.bin = "БИН должен содержать 12 цифр";
+    let terms_error = "";
+    if (!agreedToOffer || !agreedToPrivacy) {
+      terms_error = "Необходимо принять Условия оферты и Политику конфиденциальности.";
+    }
+    setTermsError(terms_error);
     return errs;
   };
 
@@ -50,7 +62,7 @@ export default function OrganizationForm({
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length || termsError) return;
     onSubmit(form);
   };
 
@@ -222,6 +234,47 @@ export default function OrganizationForm({
           </div>
         </div>
       </div>
+
+      {/* -> ДОБАВИТЬ НОВУЮ СЕКЦИЮ С ЧЕКБОКСАМИ ПЕРЕД КНОПКОЙ */}
+      <div className="rounded-lg border bg-white p-6 shadow-sm">
+        <div className="space-y-4">
+          <div className="flex items-start space-x-3">
+            <Checkbox
+                id="agreedToOffer"
+                checked={agreedToOffer}
+                onCheckedChange={setAgreedToOffer}
+                className="mt-1"
+                disabled={disabled}
+            />
+            <div className="grid gap-1.5 leading-none">
+              <Label htmlFor="agreedToOffer">
+                Я принимаю <Link to="/public-offer" className="font-medium text-blue-600 hover:text-blue-800 hover:underline" target="_blank">Условия Публичной оферты</Link>
+              </Label>
+              {/* Опциональный текст ошибки, если чекбокс обязателен */}
+            </div>
+          </div>
+
+          <div className="flex items-start space-x-3">
+            <Checkbox
+                id="agreedToPrivacy"
+                checked={agreedToPrivacy}
+                onCheckedChange={setAgreedToPrivacy}
+                className="mt-1"
+                disabled={disabled}
+            />
+            <div className="grid gap-1.5 leading-none">
+              <Label htmlFor="agreedToPrivacy">
+                Я согласен(на) с <Link to="/privacy" className="font-medium text-blue-600 hover:text-blue-800 hover:underline" target="_blank">Политикой конфиденциальности</Link>
+              </Label>
+            </div>
+          </div>
+
+          {termsError && (
+              <p className="text-sm font-medium text-destructive">{termsError}</p>
+          )}
+        </div>
+      </div>
+      {/* <- КОНЕЦ НОВОЙ СЕКЦИИ */}
 
       {/* Кнопка действия — единая, без внешней «белой карточки» */}
       <Button type="submit" disabled={disabled} className="w-full">

@@ -88,6 +88,8 @@ function PublicRoutes() {
       <Route path="/contacts" element={<ContactsPage />} />
       <Route path="/journals" element={<JournalsPublicPage />} />
       <Route path="/journals/:jid" element={<JournalView />} />
+      <Route path="/journals/:jid/issues" element={<IssuesList />} />
+      <Route path="/journals/:jid/issues/:iid" element={<IssueTocPage />} />
       <Route path="/news" element={<NewsUpdatesPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/public-offer" element={<PublicOffer />} />
@@ -166,8 +168,6 @@ function PrivateRoutes() {
             element={<EditorialCouncil />}
           />
 
-          <Route path="/journals/:jid" element={<JournalView />} />
-
           <Route
             path="/moderator/journals/:jid/articles"
             element={<JournalArticles />}
@@ -207,8 +207,6 @@ function PrivateRoutes() {
             path="/proofreafer-dashboard"
             element={<ProofreaderDashboard />}
           />
-          <Route path="/journals/:jid/issues" element={<IssuesList />} />
-          <Route path="/journals/:jid/issues/:iid" element={<IssueTocPage />} />
 
           {/* несуществующие приватные пути — на /app */}
           <Route path="*" element={<Navigate to="/app" replace />} />
@@ -216,6 +214,45 @@ function PrivateRoutes() {
       </DashboardLayout>
     </RequireAuth>
   );
+}
+
+// Функция для проверки, является ли путь публичным
+function isPublicPath(pathname) {
+    // Точные совпадения
+    const exactPublicPaths = [
+        "/",
+        "/about-journal",
+        "/editorial-board",
+        "/author-info",
+        "/for-journals",
+        "/requirements",
+        "/login",
+        "/register",
+        "/login/verify-email",
+        "/login/verify-result",
+        "/onboarding/create-org",
+        "/onboarding/join-org",
+        "/contacts",
+        "/journals",
+        "/news",
+        "/privacy",
+        "/public-offer",
+        "/payment-and-refund",
+        "/403",
+    ];
+
+    if (exactPublicPaths.includes(pathname)) {
+        return true;
+    }
+
+    // Паттерны для динамических маршрутов
+    const publicPatterns = [
+        /^\/journals\/[^/]+$/,                    // /journals/:jid
+        /^\/journals\/[^/]+\/issues$/,            // /journals/:jid/issues
+        /^\/journals\/[^/]+\/issues\/[^/]+$/,     // /journals/:jid/issues/:iid
+    ];
+
+    return publicPatterns.some(pattern => pattern.test(pathname));
 }
 
 function AppContent() {
@@ -228,30 +265,8 @@ function AppContent() {
     base && p.startsWith(base) ? p.slice(base.length) || "/" : p;
   const pathname = stripBase(location.pathname);
 
-  const publicPaths = new Set([
-    "/",
-    "/about-journal",
-    "/editorial-board",
-    "/author-info",
-    "/for-journals",
-    "/requirements",
-    "/login",
-    "/register",
-    "/login/verify-email",
-    "/login/verify-result",
-    "/onboarding/create-org",
-    "/onboarding/join-org",
-    "/contacts",
-    "/journals",
-    "/journals/:jid",
-    "/news",
-    "/privacy",
-    "/public-offer",
-    "/payment-and-refund",
-    "/403",
-  ]);
+  const isPublic = isPublicPath(pathname);
 
-  const isPublic = publicPaths.has(pathname);
   return isPublic ? <PublicRoutes /> : <PrivateRoutes />;
 }
 

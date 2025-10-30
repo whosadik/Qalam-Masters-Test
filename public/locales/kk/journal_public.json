@@ -312,6 +312,7 @@
     "btn_about": "Журнал туралы",
     "btn_next": "Алға",
     "btn_prev": "Артқа",
+    "btn_submit": "Журналға мақала жіберу",
     "empty_results": "Сұранысыңыз бойынша ештеңе табылмады.",
     "error_prefix": "Қате",
     "found_count_one": "Табылды: {{count}}",

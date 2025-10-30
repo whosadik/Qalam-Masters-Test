@@ -38,6 +38,34 @@ const SAMPLE = {
   frequency: "Ежеквартально",
 };
 
+const FREQUENCY_MAP = {
+  daily: "Ежедневно",
+  weekly: "Еженедельно",
+  monthly: "Ежемесячно",
+  quarterly: "Ежеквартально",
+  annually: "Ежегодно",
+};
+
+const THEME_MAP = {
+  science: "Наука",
+  arts: "Искусство",
+  technology: "Технологии",
+  business: "Бизнес",
+  health: "Здоровье",
+};
+
+const LANGUAGE_MAP = {
+  kz: "Казахский",
+  ru: "Русский",
+  en: "Английский",
+  uz: "Узбекский",
+  ky: "Кыргызский",
+  zh: "Китайский",
+  de: "Немецкий",
+  es: "Испанский",
+  // Добавьте другие языки, если используются
+};
+
 export default function JournalView() {
   const { t } = useTranslation(["journal_public", "auth", "common"]);
   const { jid } = useParams();
@@ -50,45 +78,94 @@ export default function JournalView() {
   const [forbidden, setForbidden] = useState(false);
   const { isOrgAdmin } = useAuth();
 
-  const normalize = (raw) => ({
-    id: raw?.id ?? SAMPLE.id,
-    name: raw?.title || raw?.name || SAMPLE.name,
-    description: raw?.description ?? SAMPLE.description,
-    mission: raw?.mission ?? SAMPLE.mission,
-    topics: raw?.topics?.length
-      ? raw.topics
-      : [
-          raw?.theme &&
-          `${t("journal_public:view.meta.theme", "Тема")}: ${raw.theme}`,
-          raw?.language &&
-          `${t("journal_public:view.meta.language", "Язык")}: ${raw.language}`,
-          raw?.frequency &&
-          `${t(
-              "journal_public:view.meta.frequency",
-              "Периодичность"
-          )}: ${raw.frequency}`,
-        ].filter(Boolean),
-    audience: raw?.audience ?? SAMPLE.audience,
-    ethics: raw?.ethics ?? SAMPLE.ethics,
-    periodicity: raw?.frequency ?? raw?.periodicity ?? SAMPLE.periodicity,
-    editorial:
-      Array.isArray(raw?.editorial) && raw.editorial.length
-        ? raw.editorial
-        : SAMPLE.editorial,
-    forAuthors: {
-      fee: raw?.fee ?? SAMPLE.forAuthors.fee,
-      firstDecision: raw?.first_decision ?? SAMPLE.forAuthors.firstDecision,
-      reviewTime: raw?.review_time ?? SAMPLE.forAuthors.reviewTime,
-      publication: raw?.publication ?? SAMPLE.forAuthors.publication,
-    },
-    coverUrl: raw?.logo || raw?.cover || "",
-    site: raw?.site || raw?.website || "",
-    email: raw?.email || SAMPLE.email,
-    issn: raw?.issn,
-    theme: raw?.theme,
-    language: raw?.language,
-    frequency: raw?.frequency,
-  });
+  const normalize = (raw) => {
+    // helper: привести значение (строку/массив/число) к массиву строк
+    const toList = (v) => {
+      if (v == null) return [];
+      if (Array.isArray(v)) return v.map((x) => (x == null ? "" : String(x).trim())).filter(Boolean);
+      // строка или другое
+      return String(v)
+          .split(/[,;/]\s*|\s+/) // "a, b", "a/b", "a b"
+          .map((s) => s.trim())
+          .filter(Boolean);
+    };
+
+    const mapList = (v, map, i18nNs, i18nKeyPrefix) => {
+      const list = toList(v);
+      const mapped = list
+          .map((item) => {
+            const key = String(item).trim();
+            // сначала попробуем по карте (case-insensitive)
+            const mappedByMap = map[String(key).toLowerCase()];
+            if (mappedByMap) return mappedByMap;
+            // затем попробуем i18n ключ (если нужен перевод)
+            try {
+              const translated = t(`${i18nNs}:${i18nKeyPrefix}.${key}`, undefined);
+              if (translated && translated !== `${i18nNs}:${i18nKeyPrefix}.${key}`) return translated;
+            } catch (e) {
+              // ignore
+            }
+            // fallback — вернуть исходный item
+            return key;
+          })
+          .filter(Boolean);
+      return mapped;
+    };
+
+    const mapTheme = (val) => {
+      const mapped = mapList(val, THEME_MAP, "journal_public", "view.theme");
+      return mapped.length ? mapped.join(", ") : SAMPLE.theme;
+    };
+
+    const mapLanguage = (val) => {
+      const mapped = mapList(val, LANGUAGE_MAP, "journal_public", "view.language");
+      return mapped.length ? mapped.join(", ") : SAMPLE.language;
+    };
+
+    const mapFrequency = (val) => {
+      // частотность иногда приходит как 'monthly' или как ['monthly','quarterly']
+      const mapped = mapList(val, FREQUENCY_MAP, "journal_public", "view.frequency");
+      return mapped.length ? mapped.join(", ") : SAMPLE.frequency;
+    };
+
+    // topics: если есть явные topics — используем их (они могут быть уже человекочитаемыми)
+    // иначе — собираем fallback из theme/language/frequency (человекочитаемые)
+    const fallbackTopics =
+        raw?.topics?.length && Array.isArray(raw.topics)
+            ? raw.topics
+            : raw?.theme || raw?.language || raw?.frequency
+                ? [
+                  raw?.theme && `${t("journal_public:view.meta.theme", "Тема")}: ${mapTheme(raw.theme)}`,
+                  raw?.language && `${t("journal_public:view.meta.language", "Язык")}: ${mapLanguage(raw.language)}`,
+                  raw?.frequency && `${t("journal_public:view.meta.frequency", "Периодичность")}: ${mapFrequency(raw.frequency)}`,
+                ].filter(Boolean)
+                : SAMPLE.topics;
+
+    return {
+      id: raw?.id ?? SAMPLE.id,
+      name: raw?.title || raw?.name || SAMPLE.name,
+      description: raw?.description ?? SAMPLE.description,
+      mission: raw?.mission ?? SAMPLE.mission,
+      topics: Array.isArray(raw?.topics) && raw.topics.length ? raw.topics : fallbackTopics,
+      audience: raw?.audience ?? SAMPLE.audience,
+      ethics: raw?.ethics ?? SAMPLE.ethics,
+      periodicity: mapFrequency(raw?.frequency ?? raw?.periodicity),
+      editorial: Array.isArray(raw?.editorial) && raw.editorial.length ? raw.editorial : SAMPLE.editorial,
+      forAuthors: {
+        fee: raw?.fee ?? SAMPLE.forAuthors.fee,
+        firstDecision: raw?.first_decision ?? SAMPLE.forAuthors.firstDecision,
+        reviewTime: raw?.review_time ?? SAMPLE.forAuthors.reviewTime,
+        publication: raw?.publication ?? SAMPLE.forAuthors.publication,
+      },
+      coverUrl: raw?.logo || raw?.cover || "",
+      site: raw?.site || raw?.website || "",
+      email: raw?.email || SAMPLE.email,
+      issn: raw?.issn,
+      theme: raw?.theme ? mapTheme(raw.theme) : undefined,
+      language: raw?.language ? mapLanguage(raw.language) : undefined,
+      frequency: raw?.frequency ? mapFrequency(raw.frequency) : undefined,
+    };
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -102,8 +179,16 @@ export default function JournalView() {
         if (!ignore) setJournal(normalize(data));
       } catch (e) {
         const code = e?.response?.status;
-        if (code === 403) {
-          if (!ignore) setForbidden(true);
+        if (code === 403 || code === 401) {
+          if (!ignore) {
+            setErr(
+                t(
+                    "journal_public:view.errors.load_failed_auth",
+                    "Не удалось загрузить данные журнала (требуется авторизация). Показан пример."
+                )
+            );
+            setJournal(SAMPLE);
+          }
         } else if (code === 404) {
           navigate("/journals", { replace: true });
           return;
@@ -139,6 +224,7 @@ export default function JournalView() {
 
   if (loading) return <div className="p-6 text-gray-500">{t("journal_public:view.loading", "Загрузка…")}</div>;
 
+  {/*}
   if (forbidden) {
     return (
       <div className="max-w-xl mx-auto p-6 text-center space-y-4">
@@ -160,6 +246,7 @@ export default function JournalView() {
       </div>
     );
   }
+  */}
 
   if (!journal) return null;
 
