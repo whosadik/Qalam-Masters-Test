@@ -312,6 +312,7 @@
     "btn_about": "О журнале",
     "btn_next": "Вперёд",
     "btn_prev": "Назад",
+    "btn_submit": "Подать статью в журнал",
     "empty_results": "По вашему запросу ничего не найдено.",
     "error_prefix": "Ошибка",
     "found_count_one": "Найдено: {{count}}",

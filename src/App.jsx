@@ -216,6 +216,45 @@ function PrivateRoutes() {
   );
 }
 
+// Функция для проверки, является ли путь публичным
+function isPublicPath(pathname) {
+    // Точные совпадения
+    const exactPublicPaths = [
+        "/",
+        "/about-journal",
+        "/editorial-board",
+        "/author-info",
+        "/for-journals",
+        "/requirements",
+        "/login",
+        "/register",
+        "/login/verify-email",
+        "/login/verify-result",
+        "/onboarding/create-org",
+        "/onboarding/join-org",
+        "/contacts",
+        "/journals",
+        "/news",
+        "/privacy",
+        "/public-offer",
+        "/payment-and-refund",
+        "/403",
+    ];
+
+    if (exactPublicPaths.includes(pathname)) {
+        return true;
+    }
+
+    // Паттерны для динамических маршрутов
+    const publicPatterns = [
+        /^\/journals\/[^/]+$/,                    // /journals/:jid
+        /^\/journals\/[^/]+\/issues$/,            // /journals/:jid/issues
+        /^\/journals\/[^/]+\/issues\/[^/]+$/,     // /journals/:jid/issues/:iid
+    ];
+
+    return publicPatterns.some(pattern => pattern.test(pathname));
+}
+
 function AppContent() {
   // Выбираем набор роутов по «публичности» текущего пути
   const location = useLocation();
@@ -226,32 +265,8 @@ function AppContent() {
     base && p.startsWith(base) ? p.slice(base.length) || "/" : p;
   const pathname = stripBase(location.pathname);
 
-  const publicPaths = new Set([
-    "/",
-    "/about-journal",
-    "/editorial-board",
-    "/author-info",
-    "/for-journals",
-    "/requirements",
-    "/login",
-    "/register",
-    "/login/verify-email",
-    "/login/verify-result",
-    "/onboarding/create-org",
-    "/onboarding/join-org",
-    "/contacts",
-    "/journals",
-    "/journals/:jid",
-    "/journals/:jid/issues",
-    "/journals/:jid/issues/:iid",
-    "/news",
-    "/privacy",
-    "/public-offer",
-    "/payment-and-refund",
-    "/403",
-  ]);
+  const isPublic = isPublicPath(pathname);
 
-  const isPublic = publicPaths.has(pathname);
   return isPublic ? <PublicRoutes /> : <PrivateRoutes />;
 }
 

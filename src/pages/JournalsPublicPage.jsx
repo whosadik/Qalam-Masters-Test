@@ -42,19 +42,83 @@ function LetterAvatar({ name }) {
   );
 }
 
+const FREQUENCY_MAP = {
+  daily: "Ежедневно",
+  weekly: "Еженедельно",
+  monthly: "Ежемесячно",
+  quarterly: "Ежеквартально",
+  annually: "Ежегодно",
+};
+
+const THEME_MAP = {
+  science: "Наука",
+  arts: "Искусство",
+  technology: "Технологии",
+  business: "Бизнес",
+  health: "Здоровье",
+};
+
+// Для языков в КЗ, где вы используете коды:
+const LANGUAGE_MAP = {
+  kz: "Казахский",
+  ru: "Русский",
+  en: "Английский",
+  uz: "Узбекский",
+  ky: "Кыргызский",
+  zh: "Китайский",
+  de: "Немецкий",
+  es: "Испанский",
+  // Добавьте другие языки, если они используются
+};
+
 // Карточка журнала
 function JournalCard({ j }) {
   const { t } = useTranslation(["journal_public"]);
+
+  // helper: приводим вход к массиву строк
+  const toArray = (v) => {
+    if (!v && v !== 0) return [];
+    if (Array.isArray(v)) return v.map((x) => (x == null ? "" : String(x)));
+    if (typeof v === "string") {
+      // поддерживаем "a, b", "a/b", "a b"
+      return v
+          .split(/[,;/]\s*|\s+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+    }
+    // другое (число / объект) — просто привести в строку
+    return [String(v)];
+  };
+
+  const mapCodes = (arr, map) =>
+      arr
+          .map((x) => {
+            const key = String(x).trim().toLowerCase();
+            return map[key] || (String(x).trim() || null);
+          })
+          .filter(Boolean);
 
   // безопасные маппинги полей
   const id = j.id ?? j.pk ?? j.uuid ?? j.slug;
   const title = j.title || t("journal_public:public_page.unknown_title", "Без названия");
   const description = j.description || j.short_description || "";
   const issn = j.issn || j.ISSN || null;
-  const language = j.language || j.lang || "—";
-  const theme = j.theme || j.subject || "—";
-  const frequency = j.frequency || j.publish_frequency || "—";
+  const rawLanguage = j.language || j.lang || "—";
+  const language = rawLanguage.split(',').map(code => LANGUAGE_MAP[code.trim().toLowerCase()] || code.trim()).join(", ") || "—";
+
+  const rawTheme = j.theme || j.subject || "—";
+  const theme = mapCodes(toArray(rawTheme), THEME_MAP);
+
+  const rawFrequency = j.frequency || j.publish_frequency || "—";
+  const freqs = mapCodes(toArray(rawFrequency), FREQUENCY_MAP);
+  const frequency = freqs.length ? freqs.join(", ") : "—";
   const logo = j.logo || j.logo_url || j.cover || null;
+
+  // Ссылка для подачи статьи: внешний URL или внутренняя страница с journalId
+  const submissionUrlRaw = j.submission_url ?? j.submission ?? "";
+  const isExternalSubmission =
+      typeof submissionUrlRaw === "string" && /^(https?:)?\/\//i.test(submissionUrlRaw);
+  const internalSubmissionPath = id ? `/submit-article?journalId=${encodeURIComponent(id)}` : "/submit-article";
 
   return (
     <Card className="border-0 shadow-sm hover:shadow-md transition">
@@ -101,17 +165,64 @@ function JournalCard({ j }) {
               </div>
 
               {description && (
-                <p className="mt-3 text-sm text-gray-600 line-clamp-2">
-                  {description}
-                </p>
+                  <p className="mt-3 text-sm text-gray-600 line-clamp-2">
+                    {description}
+                  </p>
               )}
-              <div className="mt-5 flex flex-col gap-2 self-center shrink-0">
+              <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:gap-3">
                 {id && (
-                  <Link to={`/journals/${id}`}>
-                    <Button size="sm" className="w-40">
-                      <BookOpen className="w-4 h-4 mr-2" /> {t("journal_public:public_page.btn_about", "О журнале")}
-                    </Button>
-                  </Link>
+                    <Link to={`/journals/${id}`} className="w-full sm:w-auto">
+                      <Button
+                          size="sm"
+                          className="w-full sm:w-auto inline-flex items-center gap-2 whitespace-normal break-words justify-center px-4 py-2"
+                      >
+                        <BookOpen className="w-4 h-4"/>
+                        <span
+                            className="text-sm leading-tight">{t("journal_public:public_page.btn_about", "О журнале")}</span>
+                      </Button>
+                    </Link>
+                )}
+
+                {submissionUrlRaw ? (
+                    isExternalSubmission ? (
+                        <a
+                            href={submissionUrlRaw}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto"
+                        >
+                          <Button
+                              size="sm"
+                              className="w-full sm:w-auto inline-flex items-center gap-2 whitespace-normal break-words justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                          >
+                            <Upload className="w-4 h-4"/>
+                            <span
+                                className="text-sm leading-tight">{t("journal_public:public_page.btn_submit", "Подать статью в журнал")}</span>
+                          </Button>
+                        </a>
+                    ) : (
+                        <Link to={submissionUrlRaw} className="w-full sm:w-auto">
+                          <Button
+                              size="sm"
+                              className="w-full sm:w-auto inline-flex items-center gap-2 whitespace-normal break-words justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                          >
+                            <Upload className="w-4 h-4"/>
+                            <span
+                                className="text-sm leading-tight">{t("journal_public:public_page.btn_submit", "Подать статью в журнал")}</span>
+                          </Button>
+                        </Link>
+                    )
+                ) : (
+                    <Link to={internalSubmissionPath} className="w-full sm:w-auto">
+                      <Button
+                          size="sm"
+                          className="w-full sm:w-auto inline-flex items-center gap-2 whitespace-normal break-words justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                      >
+                        <Upload className="w-4 h-4"/>
+                        <span
+                            className="text-sm leading-tight">{t("journal_public:public_page.btn_submit", "Подать статью в журнал")}</span>
+                      </Button>
+                    </Link>
                 )}
               </div>
             </div>
@@ -127,27 +238,27 @@ function JournalCard({ j }) {
 // Скелетоны
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-xl border p-4">
-      <div className="flex items-center gap-4">
-        <div className="h-12 w-12 rounded-xl bg-muted" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-2/3 bg-muted rounded" />
-          <div className="h-3 w-1/3 bg-muted rounded" />
+      <div className="animate-pulse rounded-xl border p-4">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-muted"/>
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-2/3 bg-muted rounded"/>
+            <div className="h-3 w-1/3 bg-muted rounded"/>
+          </div>
         </div>
+        <div className="mt-4 space-y-2">
+          <div className="h-3 w-full bg-muted rounded"/>
+          <div className="h-3 w-5/6 bg-muted rounded"/>
+          <div className="h-3 w-3/4 bg-muted rounded"/>
+        </div>
+        <div className="mt-4 h-8 w-28 bg-muted rounded"/>
       </div>
-      <div className="mt-4 space-y-2">
-        <div className="h-3 w-full bg-muted rounded" />
-        <div className="h-3 w-5/6 bg-muted rounded" />
-        <div className="h-3 w-3/4 bg-muted rounded" />
-      </div>
-      <div className="mt-4 h-8 w-28 bg-muted rounded" />
-    </div>
   );
 }
 
 export default function JournalsPublicPage() {
   const [params, setParams] = useSearchParams();
-  const { t } = useTranslation(["journal_public"]);
+  const {t} = useTranslation(["journal_public"]);
 
   // читаем состояние из URL
   const initial = useMemo(() => {
@@ -155,7 +266,7 @@ export default function JournalsPublicPage() {
     const ordering = params.get("ordering") || "-created";
     const page = Number(params.get("page") || "1");
     const page_size = Number(params.get("page_size") || "12");
-    return { q, ordering, page, page_size };
+    return {q, ordering, page, page_size};
   }, [params]);
 
   const [query, setQuery] = useState(initial.q);
@@ -174,18 +285,18 @@ export default function JournalsPublicPage() {
       page: String(patch.page ?? params.get("page") ?? "1"),
       page_size: String(patch.page_size ?? params.get("page_size") ?? "12"),
     };
-    setParams(next, { replace: true });
+    setParams(next, {replace: true});
   };
 
   const debouncedSetUrlParams = useMemo(
-    () => debounce(setUrlParams, 450),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+      () => debounce(setUrlParams, 450),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      []
   );
 
   // когда меняется query (в инпуте) — дебаунсим запись в URL и сбрасываем на 1-ю страницу
   useEffect(() => {
-    debouncedSetUrlParams({ q: query, page: 1 });
+    debouncedSetUrlParams({q: query, page: 1});
   }, [query, debouncedSetUrlParams]);
 
   // загрузка данных при изменении URL-параметров

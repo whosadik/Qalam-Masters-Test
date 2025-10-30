@@ -6,16 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+//import { CheckboxGroup } from "@/components/ui/checkbox-group";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
 import { useTranslation } from "react-i18next";
 
+const LANGUAGES = [
+  { value: "kz", label: "Казахский" },
+  { value: "ru", label: "Русский" },
+  { value: "en", label: "Английский" },
+  { value: "uz", label: "Узбекский" },
+  { value: "ky", label: "Кыргызский" },
+  { value: "zh", label: "Китайский" },
+  { value: "de", label: "Немецкий" },
+  { value: "es", label: "Испанский" },
+];
+
 const THEMES = [
-  { value: "science", label: "Science" },
-  { value: "arts", label: "Arts" },
-  { value: "technology", label: "Technology" },
-  { value: "business", label: "Business" },
-  { value: "health", label: "Health" },
+  { value: "science", label: "Наука" },
+  { value: "arts", label: "Искусство" },
+  { value: "technology", label: "Технологии" },
+  { value: "business", label: "Бизнес" },
+  { value: "health", label: "Здоровье" },
+];
+
+const TARGET_AUDIENCES = [
+  { value: "students", label: "Студенты" },
+  { value: "researchers", label: "Исследователи" },
+  { value: "professors", label: "Преподаватели" },
+  { value: "general_public", label: "Широкая общественность" },
 ];
 
 const FREQUENCIES = [
@@ -34,15 +54,15 @@ export default function AddJournal() {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    theme: "science",
+    theme: ["science"],
     frequency: "quarterly",
-    language: "kz",
+    language: ["kz"],
     phone: "",
     email: "",
     address: "",
     issn: "",
     year: new Date().getFullYear(),
-    target_audience: "",
+    target_audience: [""],
   });
 
   const [busy, setBusy] = useState(false);
@@ -56,9 +76,11 @@ export default function AddJournal() {
     if (!form.title.trim()) return false;
     if (!form.email.trim()) return false;
     if (!form.phone.trim()) return false;
-    if (!form.language.trim()) return false;
+    if (form.language.length === 0) return false;
     if (!form.issn.trim()) return false;
     if (!String(form.year).trim()) return false;
+    if (form.theme.length === 0) return false;
+    if (form.target_audience.length === 0) return false;
     return true;
   }, [form]);
 
@@ -86,10 +108,21 @@ export default function AddJournal() {
   const onChange = (e) => {
     setErr("");
     setFieldErrors({});
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    if (name !== "theme" && name !== "language" && name !== "target_audience") {
+      setForm((f) => ({
+        ...f,
+        [name]: name === "year" ? Number(value) || "" : value,
+      }));
+    }
+  };
+
+  const onArrayChange = (name, value) => {
+    setErr("");
+    setFieldErrors({});
     setForm((f) => ({
       ...f,
-      [name]: name === "year" ? Number(value) || "" : value,
+      [name]: value,
     }));
   };
 
@@ -106,16 +139,16 @@ export default function AddJournal() {
     const fd = new FormData();
     fd.append("title", form.title.trim());
     if (form.description) fd.append("description", form.description);
-    fd.append("theme", form.theme);
+    fd.append("theme", form.theme.join(","));
     fd.append("frequency", form.frequency);
-    fd.append("language", form.language.trim());
+    fd.append("language", form.language.join(","));
     fd.append("phone", form.phone.trim());
     fd.append("email", form.email.trim());
     if (form.address) fd.append("address", form.address);
     fd.append("issn", form.issn.trim());
     fd.append("year", String(Number(form.year) || new Date().getFullYear()));
-    if (form.target_audience)
-      fd.append("target_audience", form.target_audience);
+    if (form.target_audience.length > 0)
+      fd.append("target_audience", form.target_audience.join(","));
     if (logoFile) fd.append("logo", logoFile); // ВАЖНО: имя поля из схемы
     if (id) fd.append("organization", String(Number(id)));
 
@@ -208,26 +241,33 @@ export default function AddJournal() {
                 )}
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <Label className="mb-2 block">
                   {t("moderator_journals:add_journal.theme_label", "Тема")} *
                 </Label>
-                <select
-                  name="theme"
-                  value={form.theme}
-                  onChange={onChange}
-                  className="w-full border rounded-md p-2 h-10"
-                >
+                <div className="flex flex-wrap gap-4">
                   {THEMES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
+                      <div key={t.value} className="flex items-center space-x-2">
+                        <Checkbox
+                            id={`theme-${t.value}`}
+                            checked={form.theme.includes(t.value)}
+                            onCheckedChange={(checked) => {
+                              const next = checked
+                                  ? [...form.theme, t.value]
+                                  : form.theme.filter((v) => v !== t.value);
+                              onArrayChange("theme", next);
+                            }}
+                        />
+                        <label htmlFor={`theme-${t.value}`} className="text-sm font-medium leading-none cursor-pointer">
+                          {t.label}
+                        </label>
+                      </div>
                   ))}
-                </select>
+                </div>
                 {fieldErrors.theme && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {String(fieldErrors.theme)}
-                  </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {String(fieldErrors.theme)}
+                    </p>
                 )}
               </div>
 
@@ -240,40 +280,52 @@ export default function AddJournal() {
                   *
                 </Label>
                 <select
-                  name="frequency"
-                  value={form.frequency}
-                  onChange={onChange}
-                  className="w-full border rounded-md p-2 h-10"
+                    name="frequency"
+                    value={form.frequency}
+                    onChange={onChange}
+                    className="w-full border rounded-md p-2 h-10"
                 >
                   {FREQUENCIES.map((f) => (
-                    <option key={f.value} value={f.value}>
-                      {f.label}
-                    </option>
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
                   ))}
                 </select>
                 {fieldErrors.frequency && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {String(fieldErrors.frequency)}
-                  </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {String(fieldErrors.frequency)}
+                    </p>
                 )}
               </div>
 
-              <div>
-                <Label className="mb-2 block">{t("moderator_journals:add_journal.language_label", "Язык")} *</Label>
-                <Input
-                  name="language"
-                  value={form.language}
-                  onChange={onChange}
-                  placeholder={t(
-                      "moderator_journals:add_journal.language_ph",
-                      "kz / ru / en …"
-                  )}
-                  required
-                />
+              <div className="md:col-span-2">
+                <Label className="mb-2 block">
+                  {t("moderator_journals:add_journal.language_label", "Язык")} *
+                </Label>
+                <div className="flex flex-wrap gap-4">
+                  {LANGUAGES.map((lang) => (
+                      <div key={lang.value} className="flex items-center space-x-2">
+                        <Checkbox
+                            id={`lang-${lang.value}`}
+                            checked={form.language.includes(lang.value)}
+                            onCheckedChange={(checked) => {
+                              const next = checked
+                                  ? [...form.language, lang.value]
+                                  : form.language.filter((v) => v !== lang.value);
+                              onArrayChange("language", next);
+                            }}
+                        />
+                        <label htmlFor={`lang-${lang.value}`}
+                               className="text-sm font-medium leading-none cursor-pointer">
+                          {lang.label}
+                        </label>
+                      </div>
+                  ))}
+                </div>
                 {fieldErrors.language && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {String(fieldErrors.language)}
-                  </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {String(fieldErrors.language)}
+                    </p>
                 )}
               </div>
 
@@ -282,33 +334,33 @@ export default function AddJournal() {
                   {t("moderator_journals:add_journal.phone_label", "Телефон")} *
                 </Label>
                 <Input
-                  name="phone"
-                  value={form.phone}
-                  onChange={onChange}
-                  placeholder="+7 777 000 00 00"
-                  required
+                    name="phone"
+                    value={form.phone}
+                    onChange={onChange}
+                    placeholder="+7 777 000 00 00"
+                    required
                 />
                 {fieldErrors.phone && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {String(fieldErrors.phone)}
-                  </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {String(fieldErrors.phone)}
+                    </p>
                 )}
               </div>
 
               <div>
                 <Label className="mb-2 block">Email *</Label>
                 <Input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={onChange}
-                  placeholder="editor@journal.kz"
-                  required
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={onChange}
+                    placeholder="editor@journal.kz"
+                    required
                 />
                 {fieldErrors.email && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {String(fieldErrors.email)}
-                  </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {String(fieldErrors.email)}
+                    </p>
                 )}
               </div>
 
@@ -401,21 +453,32 @@ export default function AddJournal() {
                   {t(
                       "moderator_journals:add_journal.target_audience_label",
                       "Целевая аудитория"
-                  )}
+                  )} *
                 </Label>
-                <Input
-                  name="target_audience"
-                  value={form.target_audience}
-                  onChange={onChange}
-                  placeholder={t(
-                      "moderator_journals:add_journal.target_audience_ph",
-                      "Преподаватели, исследователи, аспиранты…"
-                  )}
-                />
+                <div className="flex flex-wrap gap-4">
+                  {TARGET_AUDIENCES.map((ta) => (
+                      <div key={ta.value} className="flex items-center space-x-2">
+                        <Checkbox
+                            id={`target_audience-${ta.value}`}
+                            checked={form.target_audience.includes(ta.value)}
+                            onCheckedChange={(checked) => {
+                              const next = checked
+                                  ? [...form.target_audience, ta.value]
+                                  : form.target_audience.filter((v) => v !== ta.value);
+                              onArrayChange("target_audience", next);
+                            }}
+                        />
+                        <label htmlFor={`target_audience-${ta.value}`}
+                               className="text-sm font-medium leading-none cursor-pointer">
+                          {ta.label}
+                        </label>
+                      </div>
+                  ))}
+                </div>
                 {fieldErrors.target_audience && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {String(fieldErrors.target_audience)}
-                  </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {String(fieldErrors.target_audience)}
+                    </p>
                 )}
               </div>
 
@@ -427,28 +490,28 @@ export default function AddJournal() {
                   )}
                 </Label>
                 <div
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    onDrop(e.dataTransfer.files);
-                  }}
-                  className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center text-sm text-gray-600 hover:bg-gray-50"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      onDrop(e.dataTransfer.files);
+                    }}
+                    className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center text-sm text-gray-600 hover:bg-gray-50"
                 >
                   {logoPreview ? (
-                    <img
-                      src={logoPreview}
-                      alt={t(
-                          "moderator_journals:add_journal.logo_preview_alt",
-                          "Предпросмотр обложки"
-                      )}
-                      className="w-full max-w-sm h-48 object-contain"
-                    />
+                      <img
+                          src={logoPreview}
+                          alt={t(
+                              "moderator_journals:add_journal.logo_preview_alt",
+                              "Предпросмотр обложки"
+                          )}
+                          className="w-full max-w-sm h-48 object-contain"
+                      />
                   ) : (
-                    <div className="text-center">
-                      {t(
-                          "moderator_journals:add_journal.drop_here",
-                          "Перетащите файл сюда"
-                      )}
+                      <div className="text-center">
+                        {t(
+                            "moderator_journals:add_journal.drop_here",
+                            "Перетащите файл сюда"
+                        )}
                       <br />
                       <span className="text-xs text-gray-500">
                         {t(
