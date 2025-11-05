@@ -1,0 +1,5 @@
+name = "qalam-masters"
+compatibility_date = "2024-11-01"
+
+[vars]
+STRIKE_BASE = "https://lmsapi.plagiat.pl"
