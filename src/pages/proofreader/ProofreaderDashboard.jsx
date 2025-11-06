@@ -1,22 +1,26 @@
 // src/pages/proofreader/ProofreaderDashboard.jsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2,
-  Trash2,
+  Search,
+  RefreshCw,
+  CheckSquare,
+  Square,
   Upload as UploadIcon,
-  CheckCircle2,
-  Plus,
   BookOpen,
-  Wrench,
-  CheckCircle,
+  Plus,
+  Hammer,
+  CheckCircle2,
+  PanelRightOpen,
+  PanelRightClose,
+  X,
+  Keyboard as KeyboardIcon,
 } from "lucide-react";
 import {
   Select,
@@ -34,7 +38,6 @@ import {
   uploadProductionPdf,
   deleteArticleFile,
 } from "@/services/articlesService";
-
 import {
   listIssues,
   createIssue,
@@ -45,6 +48,7 @@ import {
   listIssueArticles,
   getNextOrder,
 } from "@/services/issuesService";
+import { useTranslation } from "react-i18next";
 
 /* ---------- helpers ---------- */
 const STATUS_LABEL = {
@@ -61,314 +65,166 @@ const STATUS_LABEL = {
 };
 const fmt = (iso) => (iso ? new Date(iso).toLocaleString("ru-RU") : "—");
 
-function statusAccent(status) {
-  switch (status) {
-    case "accepted":
-      return "border-l-4 border-l-blue-500";
-    case "in_production":
-      return "border-l-4 border-l-amber-500";
-    case "published":
-      return "border-l-4 border-l-emerald-500";
-    default:
-      return "border-l-4 border-l-slate-300";
-  }
+function StatusPill({ status }) {
+  const { t } = useTranslation();
+  const map = {
+    accepted: "bg-blue-100 text-blue-700",
+    in_production: "bg-amber-100 text-amber-700",
+    published: "bg-emerald-100 text-emerald-700",
+  };
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${map[status] || "bg-slate-100 text-slate-700"}`}
+    >
+      {t(`dashboards:proofreader_dashboard.status.${status}`, STATUS_LABEL[status] || status)}
+    </span>
+  );
 }
 
-/* ---------- Production PDF block (UI освежён, функционал прежний) ---------- */
-function ProductionPdfBlock({ article, onChanged }) {
-  const [files, setFiles] = useState([]);
+/* ---------- Files: production PDF mini-view ---------- */
+function ProductionFilesCell({ article, onChanged }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [loadingFiles, setLoadingFiles] = useState(true);
+  const [files, setFiles] = useState(null);
 
-  const isAccepted = article.status === "accepted";
-  const isInProd = article.status === "in_production";
-  const isPublished = article.status === "published";
-
-  const prodPdfs = files.filter((f) => f.type === "production_pdf");
-  const hasPdf = prodPdfs.length > 0;
-
-  async function refreshFiles() {
-    setLoadingFiles(true);
+  async function refresh() {
     try {
-      const list = await listArticleFiles(article.id, { page_size: 100 });
-      setFiles(list);
-    } finally {
-      setLoadingFiles(false);
+      const list = await listArticleFiles(article.id, { page_size: 50 });
+      setFiles(list.filter((f) => f.type === "production_pdf"));
+    } catch {
+      setFiles([]);
     }
   }
 
   useEffect(() => {
-    refreshFiles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    refresh(); /* eslint-disable-next-line */
   }, [article.id]);
-
-  async function startProduction() {
-    setBusy(true);
-    try {
-      await updateArticleStatus(article.id, "in_production");
-      await onChanged?.();
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось перевести в производство");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function backToAccepted() {
-    setBusy(true);
-    try {
-      await updateArticleStatus(article.id, "accepted");
-      await onChanged?.();
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось вернуть в 'Принята'");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function publish() {
-    if (!hasPdf) {
-      alert("Нельзя опубликовать без загруженного production_pdf.");
-      return;
-    }
-    setPublishing(true);
-    try {
-      await updateArticleStatus(article.id, "published");
-      await onChanged?.();
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось опубликовать статью");
-    } finally {
-      setPublishing(false);
-    }
-  }
 
   async function onUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.type !== "application/pdf") {
-      alert("Загрузите, пожалуйста, PDF-файл.");
+      alert(
+          t("dashboards:proofreader_dashboard.alert.upload_pdf_only", "Загрузите PDF.")
+      );
+      e.target.value = "";
       return;
     }
     setBusy(true);
     try {
       await uploadProductionPdf(article.id, file);
-      await refreshFiles();
+      await refresh();
     } catch (err) {
       console.error(err?.response?.data || err);
-      alert(err?.response?.data?.detail || "Не удалось загрузить PDF");
+      alert(err?.response?.data?.detail ||
+          t("dashboards:proofreader_dashboard.alert.upload_pdf_failed", "Не удалось загрузить PDF"));
     } finally {
       setBusy(false);
       e.target.value = "";
     }
   }
 
-  async function removeFile(fileId) {
-    if (!confirm("Удалить этот файл?")) return;
+  async function removeFile(id) {
+    if (!confirm(t("dashboards:proofreader_dashboard.confirm.delete_pdf", "Удалить PDF?"))) return;
     setBusy(true);
     try {
-      await deleteArticleFile(article.id, fileId);
-      await refreshFiles();
+      await deleteArticleFile(article.id, id);
+      await refresh();
     } catch (err) {
       console.error(err?.response?.data || err);
-      alert(err?.response?.data?.detail || "Не удалось удалить файл");
+      alert(err?.response?.data?.detail ||
+          t("dashboards:proofreader_dashboard.alert.delete_pdf_failed", "Не удалось удалить файл"));
     } finally {
       setBusy(false);
     }
   }
 
+  const hasPdf = (files || []).length > 0;
+
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        {isAccepted && (
-          <Button
-            onClick={startProduction}
-            disabled={busy}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Начать производство
-          </Button>
-        )}
-
-        {isInProd && (
-          <>
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                onChange={onUpload}
-                disabled={busy}
-              />
-              <span className="inline-flex items-center gap-2 border border-dashed rounded-md px-3 py-2 cursor-pointer bg-slate-50 hover:bg-slate-100">
-                <UploadIcon className="w-4 h-4" /> Загрузить production PDF
-              </span>
-            </label>
-
-            <Button
-              onClick={publish}
-              disabled={publishing || busy || !hasPdf}
-              className="bg-emerald-600 hover:bg-emerald-700"
-              title={
-                hasPdf
-                  ? "Опубликовать статью"
-                  : "Сначала загрузите production_pdf"
-              }
+    <div className="flex items-center gap-2">
+      <label className="inline-flex items-center gap-2">
+        <input
+          type="file"
+          accept="application/pdf"
+          className="hidden"
+          disabled={busy || article.status === "published"}
+          onChange={onUpload}
+        />
+        <span className="inline-flex items-center gap-2 rounded-md border border-dashed px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 cursor-pointer text-xs">
+          <UploadIcon className="h-4 w-4" /> PDF
+        </span>
+      </label>
+      {files === null ? (
+        <span className="text-xs text-slate-500">—</span>
+      ) : hasPdf ? (
+        <div className="flex items-center gap-2">
+          {files.map((f) => (
+            <a
+              key={f.id}
+              href={f.file}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs underline truncate max-w-[140px]"
+              title={f.file}
             >
-              {publishing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Публикуем…
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Опубликовать
-                </>
-              )}
-            </Button>
-
-            <Button variant="outline" onClick={backToAccepted} disabled={busy}>
-              Снять из продакшна → Принята
-            </Button>
-          </>
-        )}
-
-        {isPublished && <Badge className="bg-emerald-600">Опубликована</Badge>}
-      </div>
-
-      <div className="rounded-xl border border-dashed bg-slate-50/60 p-3">
-        <div className="text-sm font-medium mb-2">Файлы статьи</div>
-        {loadingFiles ? (
-          <div className="text-gray-500 flex items-center gap-2 text-sm">
-            <Loader2 className="w-4 h-4 animate-spin" /> Загрузка файлов…
-          </div>
-        ) : prodPdfs.length ? (
-          <ul className="space-y-2">
-            {prodPdfs.map((f) => (
-              <li key={f.id} className="flex items-center justify-between">
-                <a
-                  href={f.file}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline truncate"
-                  title={f.file}
-                >
-                  production_pdf — {fmt(f.uploaded_at)}
-                </a>
-                {article.status !== "published" && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFile(f.id)}
-                    title="Удалить файл"
-                    disabled={busy}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="text-sm text-gray-500">
-            Нет загруженных production PDF.
-          </div>
-        )}
-      </div>
+              {fmt(f.uploaded_at)}
+            </a>
+          ))}
+          {article.status !== "published" && (
+            <button
+              className="text-xs text-slate-500 hover:text-rose-600"
+              onClick={() => removeFile(files[0].id)}
+              disabled={busy}
+              title={t("dashboards:proofreader_dashboard.tooltip.delete_pdf", "Удалить PDF")}
+            >
+              {t("dashboards:proofreader_dashboard.actions.delete_pdf", "Удалить")}
+            </button>
+          )}
+        </div>
+      ) : (
+        <span className="text-xs text-slate-500">{t("dashboards:proofreader_dashboard.pdf.none", "нет")}</span>
+      )}
     </div>
   );
 }
 
-/* ---------- Главная страница корректуры ---------- */
+/* =========================
+   Main: Proofreader console
+========================= */
 export default function ProofreaderDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [membershipsLoading, setMembershipsLoading] = useState(true);
+  const { t } = useTranslation();
 
-  // журналы, где есть роль proofreader
+  // layout & UX
+  const [dense, setDense] = useState(
+    () => (localStorage.getItem("proof_dense") ?? "1") === "1"
+  );
+  const [showRight, setShowRight] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  // access / journals
+  const [membershipsLoading, setMembershipsLoading] = useState(true);
   const [journals, setJournals] = useState([]);
   const [journalId, setJournalId] = useState(null);
 
-  // очереди статей
+  // queues
+  const [queue, setQueue] = useState("accepted"); // accepted | in_production | published
   const [accepted, setAccepted] = useState([]);
   const [inProd, setInProd] = useState([]);
   const [published, setPublished] = useState([]);
+  const visibleRows = useMemo(
+    () =>
+      queue === "accepted"
+        ? accepted
+        : queue === "in_production"
+          ? inProd
+          : published,
+    [queue, accepted, inProd, published]
+  );
 
-  // Выпуски
+  // issues
   const [issues, setIssues] = useState([]);
   const [issuesLoading, setIssuesLoading] = useState(true);
-  const [busyIssueId, setBusyIssueId] = useState(null);
-
-  // Поиск по вкладкам статей
-  const [qAccepted, setQAccepted] = useState("");
-  const [qProd, setQProd] = useState("");
-  const [qPub, setQPub] = useState("");
-  const searchTimer = useRef(null);
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const [targetIssueId, setTargetIssueId] = useState(null);
-
-  function debouncedReload(queue, value) {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    if (queue === "acc") setQAccepted(value);
-    if (queue === "prod") setQProd(value);
-    if (queue === "pub") setQPub(value);
-    searchTimer.current = setTimeout(() => {
-      if (journalId) loadArticlesForJournal(journalId);
-    }, 400);
-  }
-
-  async function loadArticlesForJournal(jid) {
-    if (!jid) return;
-    setLoading(true);
-    try {
-      const [a, p, pub] = await Promise.all([
-        listArticles({
-          status: "accepted",
-          journal: jid,
-          ordering: "-created_at",
-          page_size: 50,
-          search: qAccepted || undefined,
-        }),
-        listArticles({
-          status: "in_production",
-          journal: jid,
-          ordering: "-created_at",
-          page_size: 50,
-          search: qProd || undefined,
-        }),
-        listArticles({
-          status: "published",
-          journal: jid,
-          ordering: "-created_at",
-          page_size: 50,
-          search: qPub || undefined,
-        }),
-      ]);
-      const norm = (x) =>
-        Array.isArray(x?.results) ? x.results : Array.isArray(x) ? x : [];
-      setAccepted(norm(a));
-      setInProd(norm(p));
-      setPublished(norm(pub));
-    } finally {
-      setLoading(false);
-    }
-  }
-  function toggleSelect(id, on = undefined) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      const has = next.has(id);
-      const shouldAdd = on === undefined ? !has : !!on;
-      if (shouldAdd) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  }
-  function clearSelection() {
-    setSelectedIds(new Set());
-  }
-  const selectedCount = selectedIds.size;
-
   const candidateIssues = useMemo(
     () =>
       issues.filter(
@@ -377,130 +233,79 @@ export default function ProofreaderDashboard() {
       ),
     [issues, journalId]
   );
+  const [selectedIssueId, setSelectedIssueId] = useState(null);
+  const [busyIssueId, setBusyIssueId] = useState(null);
 
-  // загрузка выпусков
+  // filters
+  const [globalQuery, setGlobalQuery] = useState("");
+  const [ordering, setOrdering] = useState("-created_at");
+  const [pageSize, setPageSize] = useState(50);
+  const searchTimer = useRef(null);
+
+  // selection
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const clearSelection = () => setSelectedIds(new Set());
+  const toggleSelect = (id) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const selectAllVisible = () =>
+    setSelectedIds(new Set(visibleRows.map((r) => r.id)));
+
+  // details
+  const [detailArticle, setDetailArticle] = useState(null);
+
+  /* ------------ data loaders ------------ */
+  async function loadArticlesForJournal(jid) {
+    if (!jid) return;
+    try {
+      const [a, p, pub] = await Promise.all([
+        listArticles({
+          status: "accepted",
+          journal: jid,
+          ordering,
+          page_size: pageSize,
+          search: globalQuery || undefined,
+        }),
+        listArticles({
+          status: "in_production",
+          journal: jid,
+          ordering,
+          page_size: pageSize,
+          search: globalQuery || undefined,
+        }),
+        listArticles({
+          status: "published",
+          journal: jid,
+          ordering,
+          page_size: pageSize,
+          search: globalQuery || undefined,
+        }),
+      ]);
+      const norm = (x) =>
+        Array.isArray(x?.results) ? x.results : Array.isArray(x) ? x : [];
+      setAccepted(norm(a));
+      setInProd(norm(p));
+      setPublished(norm(pub));
+      setLastUpdated(new Date());
+      clearSelection();
+    } catch (e) {
+      console.error(e);
+    }
+  }
   async function loadIssues(jid) {
     setIssuesLoading(true);
     try {
       const list = await listIssues(jid);
-      setIssues(list);
+      setIssues(Array.isArray(list) ? list : []);
     } finally {
       setIssuesLoading(false);
     }
   }
 
-  useEffect(() => {
-    setSelectedIds(new Set());
-    setTargetIssueId(null);
-  }, [journalId]);
-
-  // создать выпуск
-  async function createIssueAction() {
-    const label = window.prompt("Название выпуска (например: Август 2025):");
-    if (!label) return;
-    try {
-      await createIssue(journalId, label);
-      await loadIssues(journalId);
-      alert("Выпуск создан. Загрузите PDF и опубликуйте.");
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(
-        e?.message || e?.response?.data?.detail || "Не удалось создать выпуск"
-      );
-    }
-  }
-  async function addSelectedToIssue(issueId) {
-    if (!issueId) {
-      alert("Выберите выпуск.");
-      return;
-    }
-    if (!selectedCount) {
-      alert("Выберите статьи чекбоксами.");
-      return;
-    }
-    try {
-      let order = await getNextOrder(issueId);
-      for (const articleId of selectedIds) {
-        try {
-          await addArticleToIssue(issueId, { article: articleId, order });
-          order += 10;
-        } catch (e) {
-          console.warn(
-            `Не удалось добавить статью ${articleId}:`,
-            e?.response?.data || e
-          );
-        }
-      }
-      clearSelection();
-      await loadIssues(journalId);
-      alert("Статьи добавлены в выпуск.");
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось добавить статьи.");
-    }
-  }
-
-  async function createIssueAndAdd() {
-    const label = window.prompt("Название выпуска (например: Август 2025):");
-    if (!label) return;
-    try {
-      const issue = await createIssue(journalId, label);
-      await addSelectedToIssue(issue.id);
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(
-        e?.message || e?.response?.data?.detail || "Не удалось создать выпуск"
-      );
-    }
-  }
-
-  async function uploadIssueAction(id, file) {
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      alert("Загрузите PDF.");
-      return;
-    }
-    setBusyIssueId(id);
-    try {
-      await uploadIssuePdf(id, file);
-      await loadIssues(journalId);
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(e?.response?.data?.detail || "Не удалось загрузить PDF");
-    } finally {
-      setBusyIssueId(null);
-    }
-  }
-
-  // публикация выпуска
-  async function publishIssueNow(id) {
-    const issue = await getIssue(id);
-    const items = await listIssueArticles(id);
-    if (!items.length) {
-      alert("Сначала добавьте в выпуск хотя бы одну статью.");
-      return;
-    }
-    if (!issue?.pdf) {
-      alert("Сначала загрузите PDF выпуска.");
-      return;
-    }
-    setBusyIssueId(id);
-    try {
-      await publishIssue(id);
-      await loadIssues(journalId);
-      alert("Выпуск опубликован");
-    } catch (e) {
-      console.error(e?.response?.data || e);
-      alert(
-        e?.message ||
-          e?.response?.data?.detail ||
-          "Не удалось опубликовать выпуск"
-      );
-    } finally {
-      setBusyIssueId(null);
-    }
-  }
-
+  // memberships where role === proofreader
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -516,32 +321,30 @@ export default function ProofreaderDashboard() {
           : Array.isArray(data)
             ? data
             : [];
-        const proofRows = rows.filter(
+        const my = rows.filter(
           (m) => String(m.role) === "proofreader" && m.journal
         );
-
-        const uniqueJids = [
-          ...new Set(proofRows.map((m) => Number(m.journal)).filter(Boolean)),
+        const jids = [
+          ...new Set(my.map((m) => Number(m.journal)).filter(Boolean)),
         ];
 
         const fetched = [];
-        for (const jid of uniqueJids) {
+        for (const jid of jids) {
           try {
             const { data: j } = await http.get(API.JOURNAL_ID(jid));
             fetched.push({
               id: Number(j.id),
-              title: j.title || `Журнал #${jid}`,
+              title: j.title || t("dashboards:proofreader_dashboard.journal.fallback_title", "Журнал") + ` #${jid}`,
               organization: j.organization,
             });
           } catch {
             fetched.push({
               id: Number(jid),
-              title: `Журнал #${jid}`,
+              title: t("dashboards:proofreader_dashboard.journal.fallback_title", "Журнал") + ` #${jid}`,
               organization: null,
             });
           }
         }
-
         if (!mounted) return;
         setJournals(fetched);
         setJournalId(
@@ -560,484 +363,915 @@ export default function ProofreaderDashboard() {
     if (!journalId) return;
     loadArticlesForJournal(journalId);
     loadIssues(journalId);
+    setSelectedIssueId(null);
+    clearSelection();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [journalId]);
+  }, [journalId, ordering, pageSize]);
 
-  const currentJournal = useMemo(
-    () => journals.find((j) => Number(j.id) === Number(journalId)),
-    [journals, journalId]
-  );
+  // debounced search
+  function onGlobalSearch(v) {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    setGlobalQuery(v);
+    searchTimer.current = setTimeout(
+      () => journalId && loadArticlesForJournal(journalId),
+      400
+    );
+  }
 
-  async function backIssueToProduction(id) {
-    // сохраняем как было (функция не используется здесь)
-    setBusyIssueId(id);
+  /* ------------ actions ------------ */
+  async function startProduction(id) {
     try {
-      await forceIssueToProduction(id);
+      await updateArticleStatus(id, "in_production");
+      await loadArticlesForJournal(journalId);
+    } catch (e) {
+      console.error(e?.response?.data || e);
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.to_production_failed",
+              "Не удалось перевести в производство"
+          )
+      );
+    }
+  }
+  async function backToAccepted(id) {
+    try {
+      await updateArticleStatus(id, "accepted");
+      await loadArticlesForJournal(journalId);
+    } catch (e) {
+      console.error(e?.response?.data || e);
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.back_to_accepted_failed",
+              "Не удалось вернуть в 'Принята'"
+          )
+      );
+    }
+  }
+  async function publishArticle(id) {
+    // Требуем наличие production PDF — проверим быстро
+    try {
+      const files = await listArticleFiles(id, { page_size: 20 });
+      const hasPdf = (files || []).some((f) => f.type === "production_pdf");
+      if (!hasPdf) {
+        alert(
+            t(
+                "dashboards:proofreader_dashboard.alert.need_production_pdf",
+                "Перед публикацией загрузите production PDF."
+            )
+        );
+        return;
+      }
+    } catch {}
+    try {
+      await updateArticleStatus(id, "published");
+      await loadArticlesForJournal(journalId);
+    } catch (e) {
+      console.error(e?.response?.data || e);
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.publish_article_failed",
+              "Не удалось опубликовать статью"
+          )
+      );
+    }
+  }
+
+  async function addSelectedToIssue(issueId) {
+    if (!issueId) return alert(
+        t("dashboards:proofreader_dashboard.alert.choose_issue", "Выберите выпуск.")
+    );
+    if (selectedIds.size === 0) return alert(
+        t(
+            "dashboards:proofreader_dashboard.alert.choose_articles",
+            "Выберите статьи чекбоксами."
+        )
+    );
+    try {
+      let order = await getNextOrder(issueId);
+      for (const articleId of selectedIds) {
+        try {
+          await addArticleToIssue(issueId, { article: articleId, order });
+          order += 10;
+        } catch (e) {
+          console.warn(
+              t(
+                  "dashboards:proofreader_dashboard.alert.add_article_to_issue_failed_prefix",
+                  "Не удалось добавить"
+              ) +
+              ` ${articleId}:`,
+              e?.response?.data || e
+          );
+        }
+      }
+      clearSelection();
       await loadIssues(journalId);
+      alert(t("dashboards:proofreader_dashboard.alert.added_to_issue", "Статьи добавлены в выпуск."));
+    } catch (e) {
+      console.error(e?.response?.data || e);
+      alert(e?.response?.data?.detail ||  t("dashboards:proofreader_dashboard.alert.add_to_issue_failed", "Не удалось добавить статьи."));
+    }
+  }
+
+  async function createIssueAndAdd() {
+    const label = window.prompt(
+        t(
+            "dashboards:proofreader_dashboard.prompt.issue_title",
+            "Название выпуска (например: Август 2025):"
+        )
+    );
+    if (!label) return;
+    try {
+      const issue = await createIssue(journalId, label);
+      setSelectedIssueId(issue.id);
+      await addSelectedToIssue(issue.id);
     } catch (e) {
       console.error(e?.response?.data || e);
       alert(
-        e?.message || e?.response?.data?.detail || "Не удалось сменить статус"
+        e?.message || e?.response?.data?.detail || t("dashboards:proofreader_dashboard.alert.create_issue_failed", "Не удалось создать выпуск")
+      );
+    }
+  }
+
+  async function uploadIssuePdfAction(id, file) {
+    if (!file) return;
+    if (file.type !== "application/pdf") return alert(t("dashboards:proofreader_dashboard.alert.upload_pdf_only", "Загрузите PDF."));
+    setBusyIssueId(id);
+    try {
+      await uploadIssuePdf(id, file);
+      await loadIssues(journalId);
+    } catch (e) {
+      console.error(e?.response?.data || e);
+      alert(e?.response?.data?.detail ||
+          t(
+              "dashboards:proofreader_dashboard.alert.upload_issue_pdf_failed",
+              "Не удалось загрузить PDF выпуска"
+          )
       );
     } finally {
       setBusyIssueId(null);
     }
   }
 
-  // guards
+  async function publishIssueNow(id) {
+    const issue = await getIssue(id);
+    const items = await listIssueArticles(id);
+    if (!items.length) return alert(
+        t(
+            "dashboards:proofreader_dashboard.alert.add_at_least_one_article",
+            "Добавьте в выпуск хотя бы одну статью."
+        )
+    );
+    if (!issue?.pdf) return alert(
+        t(
+            "dashboards:proofreader_dashboard.alert.upload_issue_pdf_first",
+            "Сначала загрузите PDF выпуска."
+        )
+    );
+    setBusyIssueId(id);
+    try {
+      await publishIssue(id);
+      await loadIssues(journalId);
+      alert(t("dashboards:proofreader_dashboard.alert.issue_published", "Выпуск опубликован"));
+    } catch (e) {
+      console.error(e?.response?.data || e);
+      alert(
+        e?.message ||
+          e?.response?.data?.detail ||
+          t("dashboards:proofreader_dashboard.alert.issue_publish_failed", "Не удалось опубликовать выпуск")
+      );
+    } finally {
+      setBusyIssueId(null);
+    }
+  }
+
+  // keyboard shortcuts
+  const keydown = useCallback(
+    (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea") return;
+
+      if (e.key === "/") {
+        e.preventDefault();
+        document.getElementById("proof_global_search")?.focus();
+      }
+      if (e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        journalId && loadArticlesForJournal(journalId);
+      }
+      if (e.key.toLowerCase() === "a") {
+        if (selectedIds.size) {
+          e.preventDefault();
+          if (selectedIssueId) addSelectedToIssue(selectedIssueId);
+          else createIssueAndAdd();
+        }
+      }
+      if (e.key.toLowerCase() === "c") {
+        if (selectedIds.size) {
+          e.preventDefault();
+          createIssueAndAdd();
+        }
+      }
+    },
+    [journalId, selectedIds, selectedIssueId]
+  );
+  useEffect(() => {
+    window.addEventListener("keydown", keydown);
+    return () => window.removeEventListener("keydown", keydown);
+  }, [keydown]);
+
+  const currentJournal = useMemo(
+    () => journals.find((j) => Number(j.id) === Number(journalId)),
+    [journals, journalId]
+  );
+
+  /* ------------ guards & constants ------------ */
   if (membershipsLoading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Проверяем права корректуры…
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {t("dashboards:proofreader_dashboard.loading.membership", "Проверяем права корректуры…")}
       </div>
     );
   }
   if (!journals.length) {
     return (
       <div className="p-6">
-        Нет прав корректуры — доступных журналов не найдено.
+        {t(
+            "dashboards:proofreader_dashboard.empty.no_journals",
+            "Нет прав корректуры — доступных журналов не найдено."
+        )}
       </div>
     );
   }
 
+  const rowPad = dense ? "py-2.5" : "py-4";
+  const rowText = dense ? "text-[13px]" : "text-sm";
+
+  const counts = {
+    accepted: accepted.length,
+    in_production: inProd.length,
+    published: published.length,
+  };
+
+  /* ------------ UI ------------ */
   return (
-    <div className="space-y-6 p-4 lg:p-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Дашборд корректуры</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-600">Журнал:</span>
-          <Select
-            value={journalId ? String(journalId) : undefined}
-            onValueChange={(v) => setJournalId(Number(v))}
-          >
-            <SelectTrigger className="w-72">
-              <SelectValue placeholder="Выберите журнал" />
-            </SelectTrigger>
-            <SelectContent>
-              {journals.map((j) => (
-                <SelectItem key={j.id} value={String(j.id)}>
-                  {j.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <div className="min-h-[100dvh] bg-slate-50">
+      {/* Top toolbar */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="mx-auto max-w-[1400px] px-4 py-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+                {t("dashboards:proofreader_dashboard.title", "Дашборд корректуры")}
+              </h1>
+              <div className="mt-1 text-xs sm:text-sm text-slate-500">
+                {currentJournal ? (
+                  <>
+                    {t("dashboards:proofreader_dashboard.journal.label", "Журнал:")}{" "}
+                    <b>{currentJournal.title}</b> •{" "}
+                    {t("dashboards:proofreader_dashboard.organization.label", "Организация:")}{" "}
+                    <b>{currentJournal.organization ?? "—"}</b>
+                  </>
+                ) : (
+                  "—"
+                )}
+                {"  "}
+                {lastUpdated
+                    ? `• ${t("dashboards:proofreader_dashboard.updated", "Обновлено:")} ${fmt(lastUpdated)}`
+                    : ""}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={journalId ? String(journalId) : undefined}
+                onValueChange={(v) => setJournalId(Number(v))}
+              >
+                <SelectTrigger className="w-72 bg-white">
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.select_journal", "Выберите журнал")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {journals.map((j) => (
+                    <SelectItem key={j.id} value={String(j.id)}>
+                      {j.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={ordering} onValueChange={setOrdering}>
+                <SelectTrigger className="w-44 bg-white">
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.sort", "Сортировка")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="-created_at">{t("dashboards:proofreader_dashboard.sort.new_old", "Новее → старее")}</SelectItem>
+                  <SelectItem value="created_at">{t("dashboards:proofreader_dashboard.sort.old_new", "Старее → новее")}</SelectItem>
+                  <SelectItem value="title">{t("dashboards:proofreader_dashboard.sort.title_az", "Заголовок A→Z")}</SelectItem>
+                  <SelectItem value="-title">{t("dashboards:proofreader_dashboard.sort.title_za", "Заголовок Z→A")}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={String(pageSize)}
+                onValueChange={(v) => setPageSize(Number(v))}
+              >
+                <SelectTrigger className="w-28 bg-white">
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.page_size", "Порог")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {[10, 20, 50, 100].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}/{t("dashboards:proofreader_dashboard.per_page", "стр")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                onClick={() => journalId && loadArticlesForJournal(journalId)}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" /> {t("dashboards:proofreader_dashboard.actions.refresh", "Обновить")}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDense((v) => {
+                    localStorage.setItem("proof_dense", v ? "0" : "1");
+                    return !v;
+                  });
+                }}
+              >
+                {dense
+                    ? t("dashboards:proofreader_dashboard.density.compact", "Плотно")
+                    : t("dashboards:proofreader_dashboard.density.normal", "Обычно")}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowRight((v) => !v)}
+                title={showRight
+                    ? t("dashboards:proofreader_dashboard.tooltip.hide_panel", "Скрыть панель")
+                    : t("dashboards:proofreader_dashboard.tooltip.show_panel", "Показать панель")}
+              >
+                {showRight ? (
+                  <PanelRightClose className="h-4 w-4 mr-2" />
+                ) : (
+                  <PanelRightOpen className="h-4 w-4 mr-2" />
+                )}
+                {t("dashboards:proofreader_dashboard.panel.title", "Панель")}
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2">
+            <div className="relative w-full">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input
+                id="proof_global_search"
+                placeholder={t("dashboards:proofreader_dashboard.search.placeholder", "Поиск по заголовку/автору…  (нажмите /)")}
+                className="pl-9 bg-white"
+                value={globalQuery}
+                onChange={(e) => onGlobalSearch(e.target.value)}
+              />
+            </div>
+            <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 px-2">
+              <KeyboardIcon className="h-3.5 w-3.5" />
+              {t("dashboards:proofreader_dashboard.hotkeys.hint", "/ — поиск, R — обновить, A — добавить в выпуск, C — создать выпуск и добавить")}
+            </span>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {currentJournal && (
-        <div className="text-sm text-gray-600">
-          Организация: <b>{currentJournal.organization ?? "—"}</b>
-        </div>
-      )}
+      {/* Content layout */}
+      <div className="mx-auto max-w-[1400px] px-4 py-4 grid grid-cols-1 lg:grid-cols-[280px,1fr,420px] gap-4">
+        {/* LEFT: queues + issues */}
+        <aside className="rounded-xl border border-slate-200 bg-white p-2 sticky top-[68px] h-fit">
+          <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-slate-500">
+            {t("dashboards:proofreader_dashboard.queues.title", "Очереди")}
+          </div>
+          <nav className="p-1 space-y-1">
+            <button
+              className={`w-full text-left rounded-lg px-3 py-2.5 ${queue === "accepted" ? "bg-blue-50 text-blue-700" : "hover:bg-slate-50"}`}
+              onClick={() => setQueue("accepted")}
+            >
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.queues.accepted", "Приняты")}
+                </span>
+                <span className="text-xs rounded-full bg-blue-100 text-blue-700 px-2 py-0.5">
+                  {counts.accepted}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                {t("dashboards:proofreader_dashboard.queues.accepted_desc", "Готовы к старту производства")}
+              </div>
+            </button>
+            <button
+              className={`w-full text-left rounded-lg px-3 py-2.5 ${queue === "in_production" ? "bg-amber-50 text-amber-700" : "hover:bg-slate-50"}`}
+              onClick={() => setQueue("in_production")}
+            >
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2">
+                  <Hammer className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.queues.in_production", "В производстве")}
+                </span>
+                <span className="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
+                  {counts.in_production}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                {t("dashboards:proofreader_dashboard.queues.in_production_desc", "PDF, корректура, добавление в выпуск")}
+              </div>
+            </button>
+            <button
+              className={`w-full text-left rounded-lg px-3 py-2.5 ${queue === "published" ? "bg-emerald-50 text-emerald-700" : "hover:bg-slate-50"}`}
+              onClick={() => setQueue("published")}
+            >
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.queues.published", "Опубликовано")}
+                </span>
+                <span className="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
+                  {counts.published}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                {t("dashboards:proofreader_dashboard.queues.published_desc", "Готово, для обзора")}
+              </div>
+            </button>
+          </nav>
 
-      {/* ===== TABS ===== */}
-      <Tabs
-        defaultValue="issues"
-        className="space-y-6"
-        aria-label="Разделы корректуры"
-      >
-        <TabsList className="flex w-full overflow-x-auto gap-2 p-1 bg-white shadow-sm rounded-lg sticky top-0 z-10">
-          <TabsTrigger
-            value="issues"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <BookOpen className="h-4 w-4" />
-            <span>Выпуски</span>
-            <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-slate-200 text-slate-700">
-              {issues.length}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="accepted"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <CheckCircle className="h-4 w-4" />
-            <span>Accepted</span>
-            <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
-              {accepted.length}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="in_production"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <Wrench className="h-4 w-4" />
-            <span>In production</span>
-            <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">
-              {inProd.length}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="published"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            <span>Published</span>
-            <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-700">
-              {published.length}
-            </span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* ===== TAB: ISSUES ===== */}
-        <TabsContent value="issues" className="space-y-4">
-          {/* Header card for issues */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Выпуски журнала</span>
-                <Button
-                  onClick={createIssueAction}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" /> Создать выпуск
-                </Button>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          {/* Issues list (separate cards) */}
-          <Card className="border-0">
-            <CardContent className="p-0">
+          <div className="mt-3 border-t border-slate-200 pt-2 px-2">
+            <div className="text-xs text-slate-500 mb-1">
+              {t("dashboards:proofreader_dashboard.issues.title", "Выпуски")}
+            </div>
+            <div className="space-y-2 max-h-[38vh] overflow-auto pr-1">
               {issuesLoading ? (
-                <div className="p-4 text-gray-500 flex items-center gap-2 text-sm">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Загрузка
-                  выпусков…
+                <div className="text-xs text-slate-500 flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t("dashboards:proofreader_dashboard.loading.issues", "Загрузка…")}
                 </div>
               ) : issues.length ? (
-                <div className="space-y-4">
-                  {issues.map((i) => {
-                    const busy = busyIssueId === i.id;
-                    return (
-                      <Card
-                        key={i.id}
-                        className="shadow-sm border border-slate-200 rounded-2xl"
-                      >
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="font-medium break-words">
-                                {i.label}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                Выпуск #{i.id} • Статус: <b>{i.status}</b> •
-                                Создан {fmt(i.created_at)}
-                              </div>
-                            </div>
-                            <Badge>{i.status}</Badge>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-2">
-                            {i.pdf ? (
-                              <a href={i.pdf} target="_blank" rel="noreferrer">
-                                <Button
-                                  variant="outline"
-                                  className="bg-transparent"
-                                >
-                                  Скачать PDF
-                                </Button>
-                              </a>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                className="bg-transparent"
-                                disabled
-                              >
-                                PDF не загружен
-                              </Button>
-                            )}
-
-                            <label className="inline-flex items-center gap-2">
-                              <input
-                                type="file"
-                                accept="application/pdf"
-                                className="hidden"
-                                disabled={busy}
-                                onChange={(e) => {
-                                  const f = e.target.files?.[0];
-                                  uploadIssueAction(i.id, f);
-                                  e.target.value = "";
-                                }}
-                              />
-                              <span className="inline-flex items-center gap-2 border border-dashed rounded-md px-3 py-2 cursor-pointer bg-slate-50 hover:bg-slate-100">
-                                <UploadIcon className="w-4 h-4" /> Загрузить PDF
-                              </span>
-                            </label>
-
-                            {i.status === "published" ? (
-                              <Badge className="bg-emerald-600">
-                                Опубликован
-                              </Badge>
-                            ) : (
-                              <Button
-                                onClick={() => publishIssueNow(i.id)}
-                                disabled={busy || !i.pdf}
-                                className="bg-emerald-600 hover:bg-emerald-700"
-                              >
-                                {busy ? (
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                                )}
-                                Опубликовать
-                              </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                issues.map((i) => (
+                  <button
+                    key={i.id}
+                    onClick={() => setSelectedIssueId(i.id)}
+                    className={`w-full text-left rounded-md px-2 py-1.5 border ${selectedIssueId === i.id ? "border-slate-400 bg-slate-50" : "border-slate-200 hover:bg-slate-50"}`}
+                    title={`${t("dashboards:proofreader_dashboard.issue", "Выпуск")} #${i.id} • ${i.status}`}
+                  >
+                    <div className="truncate text-sm">{i.label}</div>
+                    <div className="text-xs text-slate-500">
+                      #{i.id} • {i.status}
+                    </div>
+                  </button>
+                ))
               ) : (
-                <div className="p-4 text-gray-500">
-                  Выпусков пока нет — создайте первый.
+                <div className="text-xs text-slate-500">
+                  {t("dashboards:proofreader_dashboard.issues.none", "Выпусков нет")}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ===== TAB: ACCEPTED ===== */}
-        <TabsContent value="accepted" className="space-y-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>
-                  Приняты (Accepted){" "}
-                  <span className="text-gray-400">({accepted.length})</span>
-                </span>
-                <div className="relative w-full max-w-[480px] ml-4">
-                  <Input
-                    placeholder="Поиск по Accepted…"
-                    value={qAccepted}
-                    onChange={(e) => debouncedReload("acc", e.target.value)}
-                  />
-                </div>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          {loading ? (
-            <div className="p-4 text-gray-500 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Загрузка статей…
             </div>
-          ) : accepted.length ? (
-            <div className="space-y-4">
-              {accepted.map((a) => (
-                <Card
-                  key={a.id}
-                  className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-                >
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="font-medium break-words">{a.title}</div>
-                        <div className="text-xs text-gray-500">
-                          Журнал #{a.journal} • Автор {a.author_email} •{" "}
-                          {fmt(a.created_at)}
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 shrink-0">
-                        <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                        <Link to={`/articles/${a.id}`}>
-                          <Button variant="outline" className="bg-transparent">
-                            Открыть
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
 
-                    <ProductionPdfBlock
-                      article={a}
-                      onChanged={() => loadArticlesForJournal(journalId)}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="mt-2 grid grid-cols-1 gap-1.5">
+              <Button
+                size="sm"
+                className="justify-start"
+                onClick={async () => {
+                  const label = window.prompt(
+                      t(
+                          "dashboards:proofreader_dashboard.prompt.issue_title",
+                          "Название выпуска (например: Август 2025):"
+                      )
+                  );
+                  if (!label) return;
+                  const iss = await createIssue(journalId, label);
+                  await loadIssues(journalId);
+                  setSelectedIssueId(iss.id);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" /> {t("dashboards:proofreader_dashboard.actions.create_issue", "Создать выпуск")}
+              </Button>
             </div>
-          ) : (
-            <div className="text-gray-500">
-              Нет статей в состоянии “Принята”.
+          </div>
+
+          {/* Batch */}
+          <div className="mt-3 border-t border-slate-200 pt-2 px-2">
+            <div className="text-xs text-slate-500 mb-1">
+              {t("dashboards:proofreader_dashboard.batch.title", "Групповые действия")}
             </div>
-          )}
-        </TabsContent>
-
-        {/* ===== TAB: IN PRODUCTION ===== */}
-        <TabsContent value="in_production" className="space-y-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>
-                  В производстве (In production){" "}
-                  <span className="text-gray-400">({inProd.length})</span>
-                </span>
-                <div className="relative w-full max-w-[480px] ml-4">
-                  <Input
-                    placeholder="Поиск по In production…"
-                    value={qProd}
-                    onChange={(e) => debouncedReload("prod", e.target.value)}
-                  />
-                  <div className="flex flex-wrap items-center gap-2 ml-4">
-                    <span className="text-sm text-slate-600">
-                      Выбрано: <b>{selectedCount}</b>
-                    </span>
-
-                    <Select
-                      value={targetIssueId ? String(targetIssueId) : undefined}
-                      onValueChange={(v) => setTargetIssueId(Number(v))}
-                    >
-                      <SelectTrigger className="w-64">
-                        <SelectValue placeholder="Выберите выпуск…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {candidateIssues.map((iss) => (
-                          <SelectItem key={iss.id} value={String(iss.id)}>
-                            #{iss.id} — {iss.label} ({iss.status})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Button
-                      onClick={() => addSelectedToIssue(targetIssueId)}
-                      disabled={!selectedCount || !targetIssueId}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Добавить в выпуск
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onClick={createIssueAndAdd}
-                      disabled={!selectedCount}
-                    >
-                      + Создать выпуск и добавить
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      onClick={clearSelection}
-                      disabled={!selectedCount}
-                    >
-                      Сбросить выбор
-                    </Button>
-                  </div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          {loading ? (
-            <div className="p-4 text-gray-500 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Загрузка статей…
+            <div className="grid grid-cols-1 gap-1.5">
+              <Select
+                value={selectedIssueId ? String(selectedIssueId) : undefined}
+                onValueChange={(v) => setSelectedIssueId(Number(v))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.choose_issue", "Выбрать выпуск…")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {candidateIssues.map((iss) => (
+                    <SelectItem key={iss.id} value={String(iss.id)}>
+                      #{iss.id} — {iss.label} ({iss.status})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={!selectedIds.size || !selectedIssueId}
+                onClick={() => addSelectedToIssue(selectedIssueId)}
+              >
+                {t("dashboards:proofreader_dashboard.actions.add_to_issue_count", "Добавить в выпуск")} ({selectedIds.size})
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!selectedIds.size}
+                onClick={createIssueAndAdd}
+              >
+                {t("dashboards:proofreader_dashboard.actions.create_and_add", "+ Создать выпуск и добавить")}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={!selectedIds.size}
+                onClick={clearSelection}
+              >
+                <X className="h-4 w-4 mr-1" /> {t("dashboards:proofreader_dashboard.actions.clear_selection", "Снять выделение")}
+              </Button>
             </div>
-          ) : inProd.length ? (
-            <div className="space-y-4">
-              {inProd.map((a) => (
-                <Card
-                  key={a.id}
-                  className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-                >
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="font-medium break-words">{a.title}</div>
-                        <div className="text-xs text-gray-500">
-                          Журнал #{a.journal} • Автор {a.author_email} •{" "}
-                          {fmt(a.created_at)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
+          </div>
+        </aside>
+
+        {/* CENTER: table */}
+        <main className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div className="overflow-auto">
+            <table className={`w-full ${rowText}`}>
+              <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0 z-10">
+                <tr>
+                  <th className="px-3 py-2 w-[44px] text-left">
+                    <button
+                      className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900"
+                      onClick={() =>
+                        selectedIds.size === visibleRows.length
+                          ? clearSelection()
+                          : selectAllVisible()
+                      }
+                      title={
+                        selectedIds.size === visibleRows.length
+                            ? t("dashboards:proofreader_dashboard.tooltip.unselect_all", "Снять все")
+                            : t("dashboards:proofreader_dashboard.tooltip.select_all", "Выбрать все")
+                      }
+                    >
+                      {selectedIds.size === visibleRows.length &&
+                      visibleRows.length > 0 ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2 text-left">{t("dashboards:proofreader_dashboard.table.article", "Статья")}</th>
+                  <th className="px-3 py-2 text-left w-[180px]">{t("dashboards:proofreader_dashboard.table.created", "Создана")}</th>
+                  <th className="px-3 py-2 text-left w-[150px]">{t("dashboards:proofreader_dashboard.table.status", "Статус")}</th>
+                  <th className="px-3 py-2 text-left w-[170px]">Production PDF</th>
+                  <th className="px-3 py-2 text-right w-[420px]">{t("dashboards:proofreader_dashboard.table.actions", "Действия")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleRows.length ? (
+                  visibleRows.map((a) => (
+                    <tr
+                      key={a.id}
+                      className="border-b border-slate-200 hover:bg-slate-50"
+                    >
+                      <td className={`px-3 ${rowPad}`}>
                         <input
                           type="checkbox"
                           className="h-4 w-4"
                           checked={selectedIds.has(a.id)}
-                          onChange={(e) => toggleSelect(a.id, e.target.checked)}
-                          title="Добавить статью в выбранный выпуск"
+                          onChange={() => toggleSelect(a.id)}
                         />
-                        <Badge>{STATUS_LABEL[a.status] || a.status}</Badge>
-                        <Link to={`/articles/${a.id}`}>
-                          <Button variant="outline" className="bg-transparent">
-                            Открыть
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-
-                    <ProductionPdfBlock
-                      article={a}
-                      onChanged={() => loadArticlesForJournal(journalId)}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-gray-500">
-              Сейчас нет статей в производстве.
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ===== TAB: PUBLISHED ===== */}
-        <TabsContent value="published" className="space-y-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>
-                  Опубликованы (Published){" "}
-                  <span className="text-gray-400">({published.length})</span>
-                </span>
-                <div className="relative w-full max-w-[480px] ml-4">
-                  <Input
-                    placeholder="Поиск по Published…"
-                    value={qPub}
-                    onChange={(e) => debouncedReload("pub", e.target.value)}
-                  />
-                </div>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          {loading ? (
-            <div className="p-4 text-gray-500 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Загрузка статей…
-            </div>
-          ) : published.length ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {published.map((a) => (
-                <Card
-                  key={a.id}
-                  className={`shadow-sm border border-slate-200 rounded-2xl ${statusAccent(a.status)}`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="font-medium break-words">{a.title}</div>
-                        <div className="text-xs text-gray-500">
-                          Журнал #{a.journal} • Автор {a.author_email} •{" "}
-                          {fmt(a.created_at)}
+                      </td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <div className="font-medium text-slate-900 truncate">
+                          {a.title}
                         </div>
-                      </div>
-                      <Badge className="bg-emerald-600">Опубликована</Badge>
-                    </div>
-                    <div className="mt-3">
-                      <Link to={`/articles/${a.id}`}>
-                        <Button variant="outline" className="bg-transparent">
-                          Открыть карточку
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <div className="text-xs text-slate-500">
+                          {t("dashboards:proofreader_dashboard.row.journal", "Журнал")} #{a.journal} • {t("dashboards:proofreader_dashboard.row.author", "Автор")} {a.author_email ?? "—"}
+                        </div>
+                      </td>
+                      <td className={`px-3 ${rowPad}`}>{fmt(a.created_at)}</td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <StatusPill status={a.status} />
+                      </td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <ProductionFilesCell
+                          article={a}
+                          onChanged={() => loadArticlesForJournal(journalId)}
+                        />
+                      </td>
+                      <td className={`px-3 ${rowPad}`}>
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                          {a.status === "accepted" && (
+                            <Button
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700"
+                              onClick={() => startProduction(a.id)}
+                            >
+                              {t("dashboards:proofreader_dashboard.actions.start_production", "Начать производство")}
+                            </Button>
+                          )}
+                          {a.status === "in_production" && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => backToAccepted(a.id)}
+                              >
+                                {t("dashboards:proofreader_dashboard.actions.remove_from_prod", "Снять из прод.")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                                onClick={() => publishArticle(a.id)}
+                              >
+                                {t("dashboards:proofreader_dashboard.actions.publish", "Опубликовать")}
+                              </Button>
+                            </>
+                          )}
+                          {a.status === "published" && (
+                            <Badge className="bg-emerald-600">
+                              {t("dashboards:proofreader_dashboard.badge.published", "Опубликована")}
+                            </Badge>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setDetailArticle(a);
+                              setShowRight(true);
+                            }}
+                          >
+                            {t("dashboards:proofreader_dashboard.actions.details", "Детали")}
+                          </Button>
+                          <Link to={`/articles/${a.id}`}>
+                            <Button size="sm" variant="outline">
+                              {t("dashboards:proofreader_dashboard.actions.open", "Открыть")}
+                            </Button>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-16 text-center">
+                      {accepted.length + inProd.length + published.length ===
+                      0 ? (
+                        <div className="text-slate-500">
+                          {t("dashboards:proofreader_dashboard.empty.no_articles_for_journal", "Нет статей под выбранный журнал.")}
+                        </div>
+                      ) : (
+                        <div className="text-slate-500">
+                          {t("dashboards:proofreader_dashboard.empty.queue_or_search_empty", "Пусто в этой очереди или ничего не найдено.")}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* selection bar */}
+          {selectedIds.size > 0 && (
+            <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white px-3 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm text-slate-600">
+                  {t("dashboards:proofreader_dashboard.selected", "Выбрано:")} <b>{selectedIds.size}</b>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={
+                      selectedIssueId ? String(selectedIssueId) : undefined
+                    }
+                    onValueChange={(v) => setSelectedIssueId(Number(v))}
+                  >
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder={t("dashboards:proofreader_dashboard.placeholders.choose_issue", "Выберите выпуск…")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {candidateIssues.map((iss) => (
+                        <SelectItem key={iss.id} value={String(iss.id)}>
+                          #{iss.id} — {iss.label} ({iss.status})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={!selectedIssueId}
+                    onClick={() => addSelectedToIssue(selectedIssueId)}
+                  >
+                    {t("dashboards:proofreader_dashboard.actions.add_to_issue", "Добавить в выпуск")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={createIssueAndAdd}
+                  >
+                    {t("dashboards:proofreader_dashboard.actions.create_and_add", "+ Создать выпуск и добавить")}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={clearSelection}>
+                    <X className="h-4 w-4 mr-1" />
+                    {t("dashboards:proofreader_dashboard.actions.clear_selection", "Снять выделение")}
+                  </Button>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-gray-500">Опубликованных статей пока нет.</div>
           )}
-        </TabsContent>
-      </Tabs>
+        </main>
+
+        {/* RIGHT: details & issue panel */}
+        <aside
+          className={`relative transition-all duration-200 ${showRight ? "opacity-100 translate-x-0" : "pointer-events-none -translate-x-2 opacity-0"}`}
+        >
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
+              <div className="font-semibold">
+                {t("dashboards:proofreader_dashboard.panel.title", "Панель")}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowRight(false)}
+              >
+                <PanelRightClose className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Article detail */}
+            <div className="p-3 space-y-4">
+              {detailArticle ? (
+                <div className="space-y-2">
+                  <div className="text-sm text-slate-500">
+                    {t("dashboards:proofreader_dashboard.detail.article", "Статья")}
+                  </div>
+                  <div className="font-medium break-words">
+                    {detailArticle.title}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {t("dashboards:proofreader_dashboard.detail.author", "Автор:")} {detailArticle.author_email ?? "—"} •{" "}
+                    {t("dashboards:proofreader_dashboard.detail.created", "Создана:")} {fmt(detailArticle.created_at)}
+                  </div>
+                  <div>
+                    <StatusPill status={detailArticle.status} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {detailArticle.status === "accepted" && (
+                      <Button
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => startProduction(detailArticle.id)}
+                      >
+                        {t("dashboards:proofreader_dashboard.actions.start_production", "Начать производство")}
+                      </Button>
+                    )}
+                    {detailArticle.status === "in_production" && (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => backToAccepted(detailArticle.id)}
+                        >
+                          {t("dashboards:proofreader_dashboard.actions.remove_from_prod", "Снять из прод.")}
+                        </Button>
+                        <Button
+                          className="bg-emerald-600 hover:bg-emerald-700"
+                          onClick={() => publishArticle(detailArticle.id)}
+                        >
+                          {t("dashboards:proofreader_dashboard.actions.publish", "Опубликовать")}
+                        </Button>
+                      </>
+                    )}
+                    <Link to={`/articles/${detailArticle.id}`}>
+                      <Button variant="outline">
+                        {t("dashboards:proofreader_dashboard.actions.open_card", "Открыть карточку")}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-slate-500">
+                  {t("dashboards:proofreader_dashboard.detail.pick_row", "Выберите строку и нажмите")} <b>{t("dashboards:proofreader_dashboard.actions.details", "Детали")}</b>.
+                </div>
+              )}
+
+              {/* Issue controls */}
+              <div className="mt-4 border-t border-slate-200 pt-3">
+                <div className="text-sm font-medium mb-2">
+                  {t("dashboards:proofreader_dashboard.issue", "Выпуск")}
+                </div>
+                {selectedIssueId ? (
+                  <IssuePanel
+                    issueId={selectedIssueId}
+                    busyIssueId={busyIssueId}
+                    onUploadPdf={uploadIssuePdfAction}
+                    onPublish={publishIssueNow}
+                  />
+                ) : (
+                  <div className="text-sm text-slate-500">
+                    {t("dashboards:proofreader_dashboard.issue.pick_left", "Выберите выпуск слева, чтобы загрузить PDF и опубликовать.")}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Side: single issue controls ---------- */
+function IssuePanel({ issueId, busyIssueId, onUploadPdf, onPublish }) {
+  const [issue, setIssue] = useState(null);
+  const busy = busyIssueId === issueId;
+
+  async function refresh() {
+    try {
+      const i = await getIssue(issueId);
+      setIssue(i);
+    } catch {
+      setIssue(null);
+    }
+  }
+  useEffect(() => {
+    refresh(); /* eslint-disable-next-line */
+  }, [issueId, busyIssueId]);
+
+  if (!issue) return <div className="text-sm text-slate-500">—</div>;
+
+  return (
+    <div className="space-y-3">
+      <div className="text-sm">
+        <div className="font-medium break-words">{issue.label}</div>
+        <div className="text-xs text-slate-500">
+          #{issue.id} • {t("dashboards:proofreader_dashboard.detail.status", "Статус:")} <b>{issue.status}</b> • {t("dashboards:proofreader_dashboard.detail.created", "Создан:")}{" "}
+          {fmt(issue.created_at)}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {issue.pdf ? (
+          <a
+            href={issue.pdf}
+            target="_blank"
+            rel="noreferrer"
+            className="underline text-sm"
+          >
+            {t("dashboards:proofreader_dashboard.pdf.download", "Скачать PDF")}
+          </a>
+        ) : (
+          <span className="text-xs text-slate-500">
+            {t("dashboards:proofreader_dashboard.pdf.not_uploaded", "PDF не загружен")}
+          </span>
+        )}
+
+        <label className="inline-flex items-center gap-2">
+          <input
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              onUploadPdf(issueId, f);
+              e.target.value = "";
+            }}
+          />
+          <span className="inline-flex items-center gap-2 rounded-md border border-dashed px-3 py-2 cursor-pointer bg-slate-50 hover:bg-slate-100 text-sm">
+            <UploadIcon className="h-4 w-4" /> {t("dashboards:proofreader_dashboard.pdf.upload", "Загрузить PDF")}
+          </span>
+        </label>
+
+        {issue.status === "published" ? (
+          <Badge className="bg-emerald-600">{t("dashboards:proofreader_dashboard.badge.issue_published", "Опубликован")}</Badge>
+        ) : (
+          <Button
+            onClick={() => onPublish(issueId)}
+            disabled={busy || !issue.pdf}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            {busy ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+            )}{" "}
+            {t("dashboards:proofreader_dashboard.actions.publish", "Опубликовать")}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,109 @@
+{
+  "edit": {
+    "action": {
+      "back": "Артқа",
+      "cancel": "Бас тарту",
+      "done": "Дайын",
+      "open_card": "Мақала картасын ашу",
+      "save": "Сақтау",
+      "saving": "Сақталуда…"
+    },
+    "alert": {
+      "delete_failed": "Файлды жою мүмкін болмады.",
+      "save_failed": "Өзгерістерді сақтау мүмкін болмады.",
+      "upload_failed": "Файлды жүктеу мүмкін болмады."
+    },
+    "confirm": {
+      "delete_file": "Файлды жою керек пе?"
+    },
+    "fields": {
+      "title": {
+        "label": "Атауы",
+        "placeholder": "Мақала атауы"
+      }
+    },
+    "files": {
+      "delete": "Жою",
+      "empty": "Файлдар тіркелмеген.",
+      "hint": {
+        "auto": "Файлды таңдағаннан кейін ол автоматты түрде жүктеледі."
+      },
+      "list": {
+        "subtitle": "Ашу / жою",
+        "title": "Жүктелген файлдар"
+      },
+      "need_manuscript": "Редакцияға жіберу үшін мына түрдегі қолжазба қажет: ",
+      "open": "Ашу",
+      "type": {
+        "antiplag_label": "antiplag_report (антиплагиат)",
+        "label": "Файл түрі",
+        "manuscript_label": "manuscript (қолжазба)",
+        "production_pdf_label": "production_pdf",
+        "response_label": "response_to_review",
+        "supplement_label": "supplement (қосымша материалдар)",
+        "zgs_label": "zgs (сараптамалық қорытынды)"
+      },
+      "upload": "Жүктеу",
+      "uploading": "Жүктелуде…"
+    },
+    "loading": "Жүктелуде…",
+    "not_found": "Мақала табылмады.",
+    "section": {
+      "form_desc": "Метадеректерді өзгертіңіз және файлдарды басқарыңыз",
+      "form_title": "Мақала өрістері"
+    },
+    "tabs": {
+      "files": "Файлдар",
+      "meta": "Метадеректер"
+    },
+    "title": "Мақаланы өңдеу"
+  },
+  "view": {
+    "action": {
+      "back": "Артқа",
+      "sending": "Жіберілуде…",
+      "submit_to_editorial": "Редакцияға жіберу",
+      "to_list": "Мақалалар тізіміне"
+    },
+    "back": "Артқа",
+    "files": {
+      "empty": "Файлдар тіркелмеген.",
+      "open": "Ашу",
+      "subtitle": "Жүктелген материалдар",
+      "title": "Файлдар"
+    },
+    "journal_prefix": "Журнал:",
+    "loading": "Жүктелуде…",
+    "meta": {
+      "author": "Автор",
+      "created": "Құрылған",
+      "files": "Файлдар"
+    },
+    "metadata": {
+      "abstract_en": "Аңдатпа (EN)",
+      "abstract_ru": "Аңдатпа (RU)",
+      "author_from_form": "Автор (форма арқылы)",
+      "keywords_en": "Кілт сөздер (EN)",
+      "keywords_ru": "Кілт сөздер (RU)",
+      "organization": "Ұйым",
+      "research_goal": "Зерттеу мақсаты",
+      "research_methods": "Зерттеу әдістері",
+      "research_tasks": "Зерттеу тапсырмалары",
+      "subtitle": "Атауы, аңдатпалары, кілт сөздері",
+      "thematic_direction": "Тақырыптық бағыт",
+      "title": "Метадеректер",
+      "title_en": "Атауы (EN)",
+      "title_ru": "Атауы (RU)"
+    },
+    "no_manuscript": {
+      "desc": "Редакцияға жіберу үшін «Қолжазба» түріндегі файлды тіркеңіз.",
+      "title": "Қолжазбаны жүктеңіз"
+    },
+    "not_found": "Мақала табылмады.",
+    "submit_error": "Редакцияға жіберу мүмкін болмады. Кейінірек қайталап көріңіз.",
+    "timeline": {
+      "subtitle": "Мақала процеске қалай өтеді",
+      "title": "Процесс кезеңдері"
+    }
+  }
+}

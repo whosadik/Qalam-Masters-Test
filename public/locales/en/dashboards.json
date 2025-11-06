@@ -1,0 +1,713 @@
+{
+  "author_dashboard": {
+    "actions": {
+      "edit": "Edit",
+      "new_article": "New article",
+      "open": "Open",
+      "send_corrections": "Send corrections",
+      "sending": "Sending…"
+    },
+    "activity": {
+      "all_desc": "Feed of recent actions on your articles.",
+      "all_title": "All events",
+      "close": "Close",
+      "empty": "No new events yet.",
+      "loading": "Loading events…",
+      "new_file_title": "New file",
+      "new_review_title": "New review",
+      "status_title": "Article status",
+      "title": "Activity feed"
+    },
+    "alert": {
+      "submit_failed": "Failed to submit. Try again.",
+      "upload_manuscript": "Upload an updated manuscript (manuscript) in “Files”.",
+      "upload_response": "Upload a response to reviewer (response_to_review) in “Files”."
+    },
+    "article": "Article",
+    "assignment": {
+      "accepted": "Reviewer accepted assignment",
+      "assigned": "Reviewer assigned",
+      "cancelled": "Assignment cancelled",
+      "completed": "Review completed",
+      "deadline": "due by {{date}}",
+      "declined": "Reviewer declined assignment",
+      "default": "Reviewer assignment"
+    },
+    "badges": {
+      "manuscript_loaded": "manuscript uploaded"
+    },
+    "chat": {
+      "msg_received": "Hello! We received your article.",
+      "msg_thanks": "Thank you for the message! We will review it.",
+      "msg_two_weeks": "Usually within two weeks.",
+      "msg_when_review": "Hello! When can I expect the review?"
+    },
+    "filetype": {
+      "antiplag_report": "Plagiarism report",
+      "manuscript": "Manuscript",
+      "production_pdf": "Production PDF",
+      "response_to_review": "Response to reviewer",
+      "supplement": "Supplement",
+      "zgs": "ZGS certificate"
+    },
+    "filters": {
+      "journal": {
+        "all": "All journals",
+        "placeholder": "Filter by journal"
+      },
+      "status": {
+        "all": "All statuses",
+        "placeholder": "Filter by status"
+      }
+    },
+    "header": {
+      "subtitle": "Manage your scientific publications",
+      "title": "Author dashboard"
+    },
+    "journal_fallback": "Journal #{{id}}",
+    "journals": {
+      "frequency": "Frequency",
+      "language": "Language",
+      "not_found": "No journals found.",
+      "open": "Open",
+      "search_placeholder": "Enter the journal name...",
+      "send_article": "Submit article",
+      "theme": "Theme",
+      "title": "Search journals"
+    },
+    "loading": "Loading…",
+    "loading_reviews": "Loading reviews…",
+    "meta": {
+      "author": "Author",
+      "created": "Created"
+    },
+    "modal": {
+      "ok": "OK",
+      "open_article": "Open article",
+      "sent_desc": "The article “{{title}}” has been successfully submitted to the editorial office.",
+      "sent_title": "Submitted!",
+      "success": "Success",
+      "success_desc": "Action completed successfully."
+    },
+    "my_articles": {
+      "empty": "You don’t have any articles yet. Click “New article” to create a draft.",
+      "title": "My articles"
+    },
+    "reviews": {
+      "deadline": "due: {{date}}",
+      "empty": "No articles returned for revision yet.",
+      "no_reviews": "No reviews yet. Check back later.",
+      "recommendation": "Recommendation:",
+      "title": "Reviews / Revisions required",
+      "upload_fixes": "Upload fixes"
+    },
+    "stats": {
+      "accepted": "Accepted",
+      "published": "Published",
+      "total": "Total articles",
+      "under_review": "Under review"
+    },
+    "tabs": {
+      "activity": "Activity",
+      "journals_short": "Journals",
+      "my_articles_full": "My articles",
+      "my_articles_short": "Articles",
+      "reviews": "Reviews",
+      "search_journals_full": "Search journals"
+    }
+  },
+  "author_profile": {
+    "academic_degree_label": "Academic degree",
+    "academic_degree_ph": "PhD / MSc / ... ",
+    "academic_title_label": "Academic title",
+    "academic_title_ph": "Candidate of Sciences / Professor",
+    "avatar_url_label": "Avatar URL",
+    "bio_label": "About",
+    "bio_ph": "Brief information about research and interests…",
+    "cancel_btn": "Cancel",
+    "city_label": "City",
+    "city_ph": "Almaty",
+    "country_label": "Country",
+    "country_ph": "Kazakhstan",
+    "delete_account_btn": "Delete account",
+    "delete_account_title": "Delete account permanently",
+    "delete_confirm": "Delete the account irreversibly?",
+    "delete_failed": "Failed to delete account.",
+    "edit_profile_btn": "Edit profile",
+    "first_name_label": "First name",
+    "first_name_ph": "First name",
+    "last_name_label": "Last name",
+    "last_name_ph": "Last name",
+    "my_orgs_admin": "My organizations (admin)",
+    "no_admin_orgs": "You are not an administrator of any organization.",
+    "org_title_tooltip": "Organization #{{id}}",
+    "organization_fallback": "Organization #{{id}}",
+    "orgs_load_error": "Failed to load user organizations",
+    "phone_label": "Phone",
+    "profile_updated": "Profile updated",
+    "registered_label": "Registered",
+    "save_btn": "Save",
+    "save_failed": "Failed to save profile.",
+    "saving": "Saving…",
+    "title": "Author profile",
+    "website": "Website",
+    "website_link_label": "Website link",
+    "website_link_ph": "https://…"
+  },
+  "chief_editor_dashboard": {
+    "actions": {
+      "refresh": "Refresh",
+      "reset_search": "Reset search",
+      "send_to_proofreader": "Send to proofreader",
+      "send_to_proofreader_count": "Send to proofreader"
+    },
+    "batch": {
+      "none": "No batch actions",
+      "title": "Batch operations"
+    },
+    "buttons": {
+      "details": "Details",
+      "open": "Open"
+    },
+    "dash": "—",
+    "details_panel": {
+      "article": "Article",
+      "author": "Author:",
+      "created": "Created:",
+      "helper": "Select a row and click ",
+      "helper_tail": " to make a decision and go to the article.",
+      "open_article": "Open article page",
+      "title": "Details panel"
+    },
+    "empty": {
+      "desc_prefix": "In queue",
+      "desc_suffix": "no articles under current filters.",
+      "title": "Empty for now"
+    },
+    "errors": {
+      "send_to_proofreader": "Failed to send to proofreader"
+    },
+    "hints": {
+      "shortcuts": " / — search, R — refresh, O — details, S — send to proofreader"
+    },
+    "journal_fallback": "",
+    "loading": {
+      "memberships": "Checking chief editor rights…"
+    },
+    "no_rights": "No chief editor rights — no journals found.",
+    "panel": "Panel",
+    "per_page": "/page",
+    "placeholders": {
+      "limit": "Limit",
+      "search": "Search by title/author…  (press /)",
+      "select_journal": "Select journal",
+      "sort": "Sorting"
+    },
+    "queues": {
+      "chief": "Awaiting decision",
+      "chief_desc": "UR with accepted/completed reviews",
+      "production": "In production",
+      "production_desc": "Proofreading/layout stage",
+      "published": "Published",
+      "published_desc": "For overview",
+      "title": "Queues"
+    },
+    "selection": {
+      "clear": "Clear selection",
+      "selected": "Selected:"
+    },
+    "sort": {
+      "new_old": "Newest → Oldest",
+      "old_new": "Oldest → Newest",
+      "title_az": "Title A→Z",
+      "title_za": "Title Z→A"
+    },
+    "table": {
+      "actions": "Actions",
+      "aria": {
+        "select_row": "Select row"
+      },
+      "article": "Article",
+      "author": "Author",
+      "created": "Created",
+      "deselect_all": "Deselect all",
+      "journal_author": "Journal",
+      "select_all": "Select all",
+      "status": "Status"
+    },
+    "title": "Chief editor dashboard",
+    "titles": {
+      "hide_panel": "Hide panel",
+      "show_panel": "Show panel"
+    },
+    "updated": "Updated:",
+    "view": {
+      "compact": "Compact",
+      "normal": "Normal"
+    }
+  },
+  "editor_dashboard": {
+    "actions": {
+      "details": "Details",
+      "open": "Open",
+      "return_to_author": "Return to author"
+    },
+    "active_assignments_count": "Active assignments: ",
+    "batch_ops": {
+      "none": "No batch actions",
+      "return_to_author_count_one": "Return to author ({{count}})",
+      "return_to_author_count_other": "Return to author ({{count}})",
+      "title": "Batch operations"
+    },
+    "clear_selection": "Clear selection",
+    "common": {
+      "cancel": "Cancel"
+    },
+    "density": {
+      "compact": "Compact",
+      "normal": "Normal"
+    },
+    "detail": {
+      "article": "Article",
+      "assignments": "Assignments",
+      "author_created": "Author: {{author}} • Created: {{date}}",
+      "due_by": "due by",
+      "empty_hint": "Select a row and click Details to assign a reviewer, view assignments, and go to the article.",
+      "no_active_assignments": "No active assignments.",
+      "open_article_page": "Open article page",
+      "reviewer": "Reviewer",
+      "status": "status"
+    },
+    "empty": {
+      "in_queue": "In queue",
+      "no_articles": "no articles under current filters.",
+      "reset_search": "Reset search",
+      "title": "Empty for now"
+    },
+    "errors": {
+      "back_to_review": "Failed to return to review",
+      "request_revision": "Failed to request revision"
+    },
+    "journal_fallback": "Journal #{{id}}",
+    "loading_permissions": "Checking editor rights…",
+    "no_rights": "No editor rights — no journals found.",
+    "page_limit": "Limit",
+    "panel": {
+      "button": "Panel",
+      "details_title": "Details panel",
+      "hide_title": "Hide panel",
+      "show_title": "Show panel"
+    },
+    "per_page_one": "{{count}}/page",
+    "per_page_other": "{{count}}/page",
+    "queues": {
+      "active_assignments": "With active assignments",
+      "assigned": "Assigned",
+      "major": "Major revisions",
+      "minor": "Minor revisions",
+      "no_assignees": "No reviewers assigned",
+      "return_to_author": "Return to author",
+      "title": "Queues",
+      "under_review": "Under review",
+      "waiting_fixes": "Waiting for corrections"
+    },
+    "quick_filters": "Quick filters",
+    "refresh": "Refresh",
+    "reviewer": {
+      "add_to_team": "Add them to the journal team as",
+      "already_assigned": "already assigned",
+      "assign_button": "Assign reviewer",
+      "assign_failed": "Failed to assign reviewer",
+      "assigned": "Reviewer assigned",
+      "assigning": "Assigning...",
+      "before_assign": "before assignment",
+      "blind": "Blind",
+      "create_assignment": "Create assignment",
+      "empty": "Nothing found.",
+      "from_journal": "Select from journal reviewers",
+      "from_org": "Select from organization",
+      "hide_assign": "Hide assignment",
+      "not_in_team": "User is not a journal reviewer.",
+      "placeholder": "",
+      "search_placeholder": "Search: name, email…",
+      "select_required": "Select a reviewer",
+      "show_all_from_org": "Show all from organization"
+    },
+    "search_placeholder": "Search by title/author…  (press / to focus search)",
+    "select_journal": "Select journal",
+    "selected": "Selected:",
+    "shortcuts_hint": "/ — search, R — refresh, O — details, M — Return to author",
+    "sort": {
+      "new_old": "Newest → Oldest",
+      "old_new": "Oldest → Newest",
+      "title_az": "Title A→Z",
+      "title_za": "Title Z→A"
+    },
+    "sorting": "Sorting",
+    "status": {
+      "accepted": "Accepted",
+      "draft": "Draft",
+      "in_production": "In production",
+      "published": "Published",
+      "rejected": "Rejected",
+      "revision_major": "Major revision",
+      "revision_minor": "Minor revision",
+      "screening": "Screening",
+      "submitted": "Submitted",
+      "under_review": "Under review"
+    },
+    "table": {
+      "actions": "Actions",
+      "article": "Article",
+      "author": "Author",
+      "created": "Created",
+      "journal_id": "Journal #{{id}}",
+      "select_all": "Select all",
+      "select_row": "Select row",
+      "status": "Status",
+      "unselect_all": "Unselect all"
+    },
+    "title": "Editor dashboard",
+    "updated_at": "Updated: {{time}}"
+  },
+  "manager_dashboard": {
+    "assignments": {
+      "assigned_at": "Assigned",
+      "due_at": "Deadline",
+      "empty": "No assignments yet.",
+      "loading": "Loading assignments…",
+      "reviewer": "Reviewer",
+      "title": "Reviewer assignments"
+    },
+    "common": {
+      "author": "Author",
+      "journal_hash": "Journal #",
+      "open": "Open"
+    },
+    "files": {
+      "confirm_delete": "Delete file?",
+      "delete": "Delete",
+      "delete_failed": "Failed to delete file",
+      "empty": "No files yet.",
+      "id": "ID",
+      "loading": "Loading files…",
+      "production_title": "Production files",
+      "screening_title": "Screening files",
+      "title_default": "Article files",
+      "upload": "Upload",
+      "upload_failed": "Failed to upload file"
+    },
+    "journal": {
+      "label": "Journal:",
+      "placeholder": "Select journal"
+    },
+    "memberships": {
+      "loading": "Checking manager rights…",
+      "none": "No manager rights — no journals found."
+    },
+    "org": {
+      "label": "Organization:"
+    },
+    "production": {
+      "empty": "No articles in production.",
+      "title": "In production (In production)"
+    },
+    "queues": {
+      "loading": "Loading articles…"
+    },
+    "screening": {
+      "action_failed": "Screening operation failed",
+      "checklist_ok": "All checklist items OK (scope/format/zgs/antiplag)",
+      "default_return_note": "Revisions required for format/documents",
+      "empty": "No articles in screening right now.",
+      "finish_to_review": "Finish screening → To review",
+      "mark_checklist": "Mark checklist",
+      "notes_placeholder": "Briefly: what to check/fix or comment for the editorial team",
+      "notes_title": "Screening notes",
+      "send_to_review_title": "Send to review",
+      "title": "Screening (Screening)"
+    },
+    "submitted": {
+      "empty": "No submissions.",
+      "title": "New submissions (Submitted)"
+    },
+    "title": "Manager dashboard"
+  },
+  "proofreader_dashboard": {
+    "actions": {
+      "add_to_issue": "Add to issue",
+      "add_to_issue_count": "Add to issue",
+      "clear_selection": "Clear selection",
+      "create_and_add": "+ Create issue and add",
+      "create_issue": "Create issue",
+      "delete_pdf": "Delete",
+      "details": "Details",
+      "open": "Open",
+      "open_card": "Open card",
+      "publish": "Publish",
+      "refresh": "Refresh",
+      "remove_from_prod": "Remove from production",
+      "start_production": "Start production"
+    },
+    "alert": {
+      "add_article_to_issue_failed_prefix": "Failed to add",
+      "add_at_least_one_article": "Add at least one article to the issue.",
+      "add_to_issue_failed": "Failed to add articles.",
+      "added_to_issue": "Articles added to the issue.",
+      "back_to_accepted_failed": "Failed to return to 'Accepted'",
+      "choose_articles": "Select articles with checkboxes.",
+      "choose_issue": "Select an issue.",
+      "create_issue_failed": "Failed to create issue",
+      "delete_pdf_failed": "Failed to delete file",
+      "issue_publish_failed": "Failed to publish issue",
+      "issue_published": "Issue published",
+      "need_production_pdf": "Upload a production PDF before publishing.",
+      "publish_article_failed": "Failed to publish article",
+      "to_production_failed": "Failed to move to production",
+      "upload_issue_pdf_failed": "Failed to upload issue PDF",
+      "upload_issue_pdf_first": "Upload the issue PDF first.",
+      "upload_pdf_failed": "Failed to upload PDF",
+      "upload_pdf_only": "Upload PDF only."
+    },
+    "badge": {
+      "issue_published": "Published",
+      "published": "Published"
+    },
+    "batch": {
+      "title": "Batch actions"
+    },
+    "confirm": {
+      "delete_pdf": "Delete PDF?"
+    },
+    "density": {
+      "compact": "Compact",
+      "normal": "Normal"
+    },
+    "detail": {
+      "article": "Article",
+      "author": "Author:",
+      "created": "Created:",
+      "pick_row": "Select a row and click",
+      "status": "Status:"
+    },
+    "empty": {
+      "no_articles_for_journal": "No articles for the selected journal.",
+      "no_journals": "No proofreading rights — no journals found.",
+      "queue_or_search_empty": "Empty queue or nothing found."
+    },
+    "hotkeys": {
+      "hint": "/ — search, R — refresh, A — add to issue, C — create issue and add"
+    },
+    "issue": {
+      "pick_left": "Select an issue on the left to upload a PDF and publish."
+    },
+    "issues": {
+      "none": "No issues",
+      "title": "Issues"
+    },
+    "journal": {
+      "fallback_title": "Journal",
+      "label": "Journal:"
+    },
+    "loading": {
+      "issues": "Loading…",
+      "membership": "Checking proofreading rights…"
+    },
+    "organization": {
+      "label": "Organization:"
+    },
+    "panel": {
+      "title": "Panel"
+    },
+    "pdf": {
+      "download": "Download PDF",
+      "none": "none",
+      "not_uploaded": "PDF not uploaded",
+      "upload": "Upload PDF"
+    },
+    "per_page": "per page",
+    "placeholders": {
+      "choose_issue": "Select an issue…",
+      "page_size": "Limit",
+      "select_journal": "Select journal",
+      "sort": "Sorting"
+    },
+    "prompt": {
+      "issue_title": "Issue title (e.g., August 2025):"
+    },
+    "queues": {
+      "accepted": "Accepted",
+      "accepted_desc": "Ready to start production",
+      "in_production": "In production",
+      "in_production_desc": "PDF, proofreading, adding to issue",
+      "published": "Published",
+      "published_desc": "Done, for review",
+      "title": "Queues"
+    },
+    "row": {
+      "author": "Author",
+      "journal": "Journal"
+    },
+    "search": {
+      "placeholder": "Search by title/author…  (press /)"
+    },
+    "selected": "Selected:",
+    "sort": {
+      "new_old": "Newest → Oldest",
+      "old_new": "Oldest → Newest",
+      "title_az": "Title A→Z",
+      "title_za": "Title Z→A"
+    },
+    "table": {
+      "actions": "Actions",
+      "article": "Article",
+      "created": "Created",
+      "status": "Status"
+    },
+    "title": "Proofreading dashboard",
+    "tooltip": {
+      "delete_pdf": "Delete PDF",
+      "hide_panel": "Hide panel",
+      "select_all": "Select all",
+      "show_panel": "Show panel",
+      "unselect_all": "Unselect all"
+    },
+    "updated": "Updated:"
+  },
+  "secretary_dashboard": {
+    "actions": {
+      "details": "Details",
+      "move_to_screening_failed": "Failed to move to screening",
+      "open": "Open",
+      "return_to_draft_failed": "Failed to return to draft",
+      "to_screening": "To screening"
+    },
+    "batch": {
+      "none": "No batch actions",
+      "title": "Batch operations",
+      "to_screening": "To screening"
+    },
+    "density": {
+      "compact": "Compact",
+      "normal": "Normal"
+    },
+    "details": {
+      "article": "Article",
+      "author_created": "Author: {{author}} • Created: {{date}}",
+      "empty_hint": "Select a row and click Details to view files and screening.",
+      "open_article_page": "Open article page"
+    },
+    "details_panel": {
+      "title": "Details panel"
+    },
+    "empty": {
+      "desc_prefix": "In queue",
+      "desc_suffix": "no articles under current filters.",
+      "queue_screening": "Screening",
+      "queue_submitted": "Submitted",
+      "reset_search": "Reset search",
+      "title": "Empty for now"
+    },
+    "files": {
+      "confirm_delete": "Delete file?",
+      "delete": "Delete",
+      "delete_failed": "Failed to delete file",
+      "empty": "No files.",
+      "loading": "Loading files…",
+      "open": "Open",
+      "pick_file": "Pick a file",
+      "refresh_title": "Refresh files",
+      "title": "Files",
+      "type": {
+        "antiplag_report": "Originality report",
+        "supplement": "Supplement",
+        "zgs": "ZGS clearance"
+      },
+      "type_placeholder": "File type",
+      "upload": "Upload",
+      "upload_failed": "Failed to upload file",
+      "uploaded_at": "Uploaded: {{date}}",
+      "uploading": "Uploading…"
+    },
+    "hotkeys_hint": "/ — search, R — refresh, O — open, S — to screening",
+    "journal": {
+      "fallback_title": "Journal #{{id}}"
+    },
+    "loading_rights": "Checking secretary rights…",
+    "no_rights": "No secretary rights — no journals found.",
+    "page_size": {
+      "option": "{{n}}/page",
+      "placeholder": "Limit"
+    },
+    "panel": {
+      "hide": "Hide panel",
+      "show": "Show panel",
+      "title": "Panel"
+    },
+    "pick_journal": "Select journal",
+    "queues": {
+      "screening": {
+        "desc": "Formal check",
+        "title": "Screening"
+      },
+      "submitted": {
+        "desc": "New author submissions",
+        "title": "Submissions"
+      },
+      "title": "Queues"
+    },
+    "quick_filters": "Quick filters",
+    "refresh": "Refresh",
+    "screening": {
+      "antiplag_ok": "Plagiarism check passed",
+      "finish_to_review": "Finish → To review",
+      "finish_to_review_title": "All OK → to review",
+      "format_ok": "Formatting is correct",
+      "notes_placeholder": "Notes/comments (optional)",
+      "save_failed": "Failed to save screening results",
+      "scope_ok": "Matches the scope",
+      "title": "Screening",
+      "zgs_ok": "ZGS clearance obtained"
+    },
+    "search": {
+      "placeholder": "Search by title/author…  (press / to focus search)"
+    },
+    "selection": {
+      "clear": "Clear selection",
+      "count_one": "Selected: {{count}}",
+      "count_other": "Selected: {{count}}"
+    },
+    "sort": {
+      "new_old": "Newest → Oldest",
+      "old_new": "Oldest → Newest",
+      "placeholder": "Sorting",
+      "title_az": "Title A→Z",
+      "title_za": "Title Z→A"
+    },
+    "status": {
+      "accepted": "Accepted",
+      "draft": "Draft",
+      "in_production": "In production",
+      "published": "Published",
+      "rejected": "Rejected",
+      "revision_major": "Major revision",
+      "revision_minor": "Minor revision",
+      "screening": "Screening",
+      "submitted": "Submitted",
+      "under_review": "Under review"
+    },
+    "table": {
+      "col_actions": "Actions",
+      "col_article": "Article",
+      "col_author": "Author",
+      "col_created": "Created",
+      "col_status": "Status",
+      "journal_id": "Journal #{{id}}",
+      "row_select_aria": "Select row",
+      "select_all": "Select all",
+      "select_none": "Deselect all"
+    },
+    "title": "Secretary dashboard",
+    "updated_at": "Updated: {{date}}"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "actions": {
+    "more": "Толығырақ"
+  },
+  "badges": {
+    "new": "Жаңа"
+  },
+  "controls": {
+    "all_years": "Барлық жылдар",
+    "per_page_option_one": "Бетте {{count}}",
+    "per_page_option_other": "Бетте {{count}}",
+    "per_page_title": "Беттегі саны",
+    "search_aria": "Жаңалықтардан іздеу",
+    "search_placeholder": "Тақырып пен тегтер бойынша іздеу…",
+    "year_title": "Жыл"
+  },
+  "empty": {
+    "no_results": "Ағымдағы сүзгілер бойынша ештеңе табылмады."
+  },
+  "labels": {
+    "link_unavailable": "Сілтеме қолжетімсіз"
+  },
+  "page": {
+    "subtitle": "Платформа жаңартулары, журналдар қосу, кездесулер, меморандумдар.",
+    "title": "Жаңалықтар"
+  },
+  "pagination": {
+    "next": "Алға →",
+    "prev": "← Артқа",
+    "summary": "Табылды: {{total}} • {{totalPages}} ішінен {{page}} бет"
+  },
+  "timeline": {
+    "subtitle": "Негізгі жаңартулар мен оқиғалардың қысқаша хронологиясы.",
+    "title": "Оқиғалар таспасы"
+  }
+}

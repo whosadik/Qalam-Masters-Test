@@ -1,0 +1,109 @@
+{
+  "edit": {
+    "action": {
+      "back": "Back",
+      "cancel": "Cancel",
+      "done": "Done",
+      "open_card": "Open article card",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "alert": {
+      "delete_failed": "Failed to delete file.",
+      "save_failed": "Failed to save changes.",
+      "upload_failed": "Failed to upload file."
+    },
+    "confirm": {
+      "delete_file": "Delete file?"
+    },
+    "fields": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Article title"
+      }
+    },
+    "files": {
+      "delete": "Delete",
+      "empty": "No files attached.",
+      "hint": {
+        "auto": "The file will be uploaded automatically after selection."
+      },
+      "list": {
+        "subtitle": "Open / delete",
+        "title": "Uploaded files"
+      },
+      "need_manuscript": "A manuscript type file is required for submission to the editorial office ",
+      "open": "Open",
+      "type": {
+        "antiplag_label": "antiplag_report (plagiarism check)",
+        "label": "File type",
+        "manuscript_label": "manuscript",
+        "production_pdf_label": "production_pdf",
+        "response_label": "response_to_review",
+        "supplement_label": "supplement (additional materials)",
+        "zgs_label": "zgs (expert opinion)"
+      },
+      "upload": "Upload",
+      "uploading": "Uploading…"
+    },
+    "loading": "Loading…",
+    "not_found": "Article not found.",
+    "section": {
+      "form_desc": "Edit metadata and manage files",
+      "form_title": "Article fields"
+    },
+    "tabs": {
+      "files": "Files",
+      "meta": "Metadata"
+    },
+    "title": "Editing article"
+  },
+  "view": {
+    "action": {
+      "back": "Back",
+      "sending": "Sending…",
+      "submit_to_editorial": "Submit to editorial office",
+      "to_list": "Back to article list"
+    },
+    "back": "Back",
+    "files": {
+      "empty": "No files attached.",
+      "open": "Open",
+      "subtitle": "Uploaded materials",
+      "title": "Files"
+    },
+    "journal_prefix": "Journal:",
+    "loading": "Loading…",
+    "meta": {
+      "author": "Author",
+      "created": "Created",
+      "files": "Files"
+    },
+    "metadata": {
+      "abstract_en": "Abstract (EN)",
+      "abstract_ru": "Abstract (RU)",
+      "author_from_form": "Author (from form)",
+      "keywords_en": "Keywords (EN)",
+      "keywords_ru": "Keywords (RU)",
+      "organization": "Organization",
+      "research_goal": "Research goal",
+      "research_methods": "Research methods",
+      "research_tasks": "Research tasks",
+      "subtitle": "Title, abstracts, keywords",
+      "thematic_direction": "Thematic direction",
+      "title": "Metadata",
+      "title_en": "Title (EN)",
+      "title_ru": "Title (RU)"
+    },
+    "no_manuscript": {
+      "desc": "To submit to the editorial office, attach a file of type 'Manuscript'.",
+      "title": "Upload manuscript"
+    },
+    "not_found": "Article not found.",
+    "submit_error": "Failed to submit to editorial office. Please try again later.",
+    "timeline": {
+      "subtitle": "How the article moves through the pipeline",
+      "title": "Process stages"
+    }
+  }
+}

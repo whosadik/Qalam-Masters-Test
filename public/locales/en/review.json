@@ -1,0 +1,163 @@
+{
+  "article_admin": {
+    "actions": {
+      "accept": "Accept",
+      "major": "Major",
+      "minor": "Minor",
+      "publish": "Publish",
+      "reject": "Reject",
+      "screening": "Screening",
+      "to_review": "Send to review"
+    },
+    "back": "Back",
+    "back_to_list": "Back to article list",
+    "errors": {
+      "load_failed": "Failed to load article",
+      "status_change_failed": "Failed to change status"
+    },
+    "files": {
+      "download": "download",
+      "empty": "No files uploaded.",
+      "title": "Files"
+    },
+    "loading": "Loading…",
+    "meta_line": "Author: {{email}} • Journal #{{jid}}",
+    "title_n": "Article #{{id}}"
+  },
+  "journal_articles": {
+    "back": "Back",
+    "empty": "No articles found.",
+    "errors": {
+      "bad_journal_id": "Invalid journal ID in URL",
+      "load_failed": "Failed to load journal articles"
+    },
+    "filters": {
+      "all_statuses": "All statuses",
+      "search_placeholder": "Search by title/author…",
+      "status_placeholder": "Status"
+    },
+    "item": {
+      "author": "Author:",
+      "created": "Created:"
+    },
+    "journal_fallback": "Journal",
+    "loading": "Loading…",
+    "open": "Open",
+    "title": "Journal articles"
+  },
+  "reviewer_dashboard": {
+    "actions": {
+      "accept": "Accept",
+      "decline": "Decline",
+      "details": "Details",
+      "open_article": "Open article",
+      "open_article_page": "Open article page",
+      "write_review": "Write review"
+    },
+    "batch": {
+      "accept": "Accept",
+      "decline": "Decline",
+      "none": "No batch actions",
+      "title": "Batch operations"
+    },
+    "compact": "Compact",
+    "cozy": "Cozy",
+    "due": {
+      "no_due": "No due date",
+      "overdue": "Overdue by {{count}} d.",
+      "until": "Until due in {{count}} d."
+    },
+    "empty": {
+      "reset": "Reset search",
+      "text_1": "In queue",
+      "text_2": "no records under the current search.",
+      "title": "Empty for now"
+    },
+    "errors": {
+      "accept": "Failed to accept assignment",
+      "decline": "Failed to decline assignment"
+    },
+    "form": {
+      "alert_completed_changed": "Review sent. Assignment: completed. Article status changed: {{before}} → {{after}}",
+      "alert_completed_same": "Review sent. Assignment: completed. Article status unchanged ({{after}}).",
+      "alert_failed": "Failed to send review",
+      "alert_sent_refresh": "Review sent. Refreshing list…",
+      "already_sent": "Review already sent",
+      "collapse": "Collapse form",
+      "note_completed": "After submission the assignment status may change to 'completed'.",
+      "open": "Write review",
+      "placeholder": "Your detailed review for the editorial board and the author…",
+      "sending": "Sending…",
+      "submit": "Submit review",
+      "write_review": "Write your review text."
+    },
+    "loading": "Loading assignments…",
+    "queues": {
+      "accepted": "Accepted",
+      "accepted_hint": "Ready for review writing",
+      "assigned": "New assignments",
+      "assigned_hint": "Need accept/decline",
+      "completed_hint": "Completed assignments",
+      "history": "History",
+      "title": "Queues"
+    },
+    "recommend": {
+      "accept": "Accept",
+      "major": "Major revision",
+      "minor": "Minor revision",
+      "reject": "Reject"
+    },
+    "refresh": "Refresh",
+    "right": {
+      "assigned_at_inline": "Assigned: {{date}}",
+      "assignment": "Assignment",
+      "assignment_line": "#{{aid}} • Article #{{art}}",
+      "deadline_inline": "Deadline: {{date}}",
+      "details_panel": "Details panel",
+      "empty_hint": "Select a row and click Details to accept/decline assignment or write a review.",
+      "hide": "Hide panel",
+      "panel": "Panel",
+      "show": "Show panel"
+    },
+    "search": {
+      "hint": " / — search, R — refresh, O — details, A — accept, D — decline",
+      "placeholder": "Search by articles/deadlines… (press /)"
+    },
+    "selection": {
+      "clear": "Clear selection",
+      "selected": "Selected:"
+    },
+    "table": {
+      "actions": "Actions",
+      "article": "Article",
+      "article_n": "Article #{{id}}",
+      "article_status": "Article status",
+      "assigned_at": "Assigned",
+      "assignment_n": "Assignment #{{id}}",
+      "deadline": "Deadline",
+      "select_all": "Select all",
+      "select_row": "Select row",
+      "unselect_all": "Unselect all"
+    },
+    "title": "Reviewer dashboard",
+    "unknown": "(unknown)",
+    "updated": "Updated:"
+  },
+  "Screening": {
+    "antiplag_ok_label": "Antiplagiarism passed",
+    "approve_button": "Allow to review",
+    "article_not_found": "Article not found",
+    "current_status_prefix": "Current status:",
+    "files_empty": "No files uploaded",
+    "files_title": "Author’s files:",
+    "format_ok_label": "Formatting requirements met",
+    "heading": "Article screening",
+    "loading": "Loading…",
+    "notes_label": "Notes for author/editorial board",
+    "open_article": "Open article",
+    "return_button": "Return to author",
+    "save_error": "Failed to save screening",
+    "scope_ok_label": "Matches journal scope",
+    "zgs_ok_label": "ZGS expert conclusion uploaded and OK"
+  }
+}

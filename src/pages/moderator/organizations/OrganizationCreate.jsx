@@ -6,10 +6,14 @@ import {
   createOrganization,
   createOrganizationMembership,
 } from "@/services/organizationsService";
+
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function OrganizationCreate() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
   const [serverFieldErrors, setServerFieldErrors] = useState({});
@@ -18,30 +22,30 @@ export default function OrganizationCreate() {
     setSubmitting(true);
     setServerError("");
     setServerFieldErrors({});
-
     try {
-      // 1) создаём организацию (нормализацию уже делает сервис)
-      const org = await createOrganization(formValues); // -> { id, title, ... }
-
-      // 2) назначаем себя админом (если бэк делает сам — возможный 4xx игнорируем)
+      const org = await createOrganization(formValues);
       try {
-        await createOrganizationMembership({ organization: org.id, role: "admin" });
+        await createOrganizationMembership({
+          organization: org.id,
+          role: "admin",
+        });
       } catch (_) {}
-
-      // 3) редирект
-       navigate(`/moderator/organizations/${org.id}`, { replace: true });
-      // или сразу к созданию журнала:
-      // navigate(`/moderator/organizations/${org.id}/add-journal`, { replace: true });
+      navigate(`/moderator/organizations/${org.id}`, { replace: true });
     } catch (e) {
-      // «умная» строка ошибки от сервиса (extractDRFError)
-      setServerError(e.displayMessage || e.message || "Не удалось создать организацию");
-
-      // дополнительно — разложим пометки по полям, если они есть
+      setServerError(
+        e.displayMessage || e.message ||  t(
+              "moderator_orgs:organization_create.create_failed",
+              "Не удалось создать организацию"
+          )
+      );
       const data = e?.response?.data;
       if (data && typeof data === "object") {
         const { detail, non_field_errors, ...fields } = data;
         const mapped = Object.fromEntries(
-          Object.entries(fields).map(([k, v]) => [k, Array.isArray(v) ? v.join(" ") : String(v)])
+          Object.entries(fields).map(([k, v]) => [
+            k,
+            Array.isArray(v) ? v.join(" ") : String(v),
+          ])
         );
         setServerFieldErrors(mapped);
       }
@@ -51,20 +55,40 @@ export default function OrganizationCreate() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Добавить организацию</h1>
-        <Button variant="outline" onClick={() => navigate(-1)} disabled={submitting}>
-          Назад
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#F6FAFF] to-white">
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              disabled={submitting}
+              className="pl-2"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("moderator_orgs:organization_create.back", "Назад")}
+            </Button>
+          </div>
+        </div>
 
-      <OrganizationForm
-        onSubmit={handleSubmit}
-        disabled={submitting}
-        serverError={serverError}
-        serverFieldErrors={serverFieldErrors} // <— важно: прокидываем
-      />
+        {/* Server error (без карточек) */}
+        {serverError && (
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-destructive/25 bg-destructive/10 px-4 py-3 text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4" />
+            <span>{serverError}</span>
+          </div>
+        )}
+
+        {/* Форма: секции внутри, без внешнего белого бокса */}
+        <OrganizationForm
+          onSubmit={handleSubmit}
+          disabled={submitting}
+          serverError={serverError}
+          serverFieldErrors={serverFieldErrors}
+        />
+      </div>
     </div>
   );
 }

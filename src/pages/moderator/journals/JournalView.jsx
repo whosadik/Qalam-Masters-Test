@@ -9,40 +9,37 @@ import { ExternalLink, FileDown } from "lucide-react";
 import { API } from "@/constants/api";
 import { useAuth } from "@/auth/AuthContext";
 import { http } from "@/lib/apiClient";
+import { useTranslation } from "react-i18next";
 
 const SAMPLE = {
-  id: 0,
-  name: "Научный журнал «Вестник науки»",
+  id: "sample",
+  name: "Демонстрационный журнал",
   description:
-    "«Вестник науки» — рецензируемый журнал, публикующий оригинальные исследования, обзоры и аналитические материалы по широкому спектру дисциплин.",
+    "Это пример карточки журнала. Здесь будет краткое описание целей, тематики и аудитории издания.",
   mission:
-    "Продвигать научные исследования и развивать академический диалог между представителями различных научных направлений.",
-  topics: [
-    "Естественные и технические науки",
-    "Гуманитарные и общественные дисциплины",
-    "Информационные технологии и инжиниринг",
-    "Экономика, менеджмент, юриспруденция",
-    "Образование, педагогика, психология",
-  ],
-  audience:
-    "Научные сотрудники, преподаватели вузов, аспиранты, докторанты и практики.",
-  ethics: "Двустороннее слепое рецензирование; стандарты COPE.",
-  periodicity: "Ежеквартально.",
-  editorial: [
-    { role: "Главный редактор", name: "Асанов Алмас Ахатович, д.ф.н., проф." },
-  ],
+    "Продвижение научных исследований, прозрачное рецензирование и качественная публикация.",
+  topics: ["Наука и образование", "Инженерия", "Информатика", "Экономика"],
+  audience: "Исследователи, преподаватели, студенты магистратуры и PhD.",
+  ethics: "Следуем принципам COPE. Антиплагиат на этапе скрининга.",
+  periodicity: "Ежеквартально",
+  editorial: [],
   forAuthors: {
-    fee: "Стоимость публикации — 5 000 ₸.",
-    firstDecision: "Первичное решение — до 5 рабочих дней.",
-    reviewTime: "Срок рецензирования — до 21 дня.",
-    publication: "Публикация — в ближайшем номере после принятия.",
+    fee: "Публикационный взнос отсутствует",
+    firstDecision: "7–14 дней (первичное решение)",
+    reviewTime: "2–4 недели",
+    publication: "Онлайн-публикация после приёма",
   },
   coverUrl: "",
   site: "",
-  email: "contact@example.com",
+  email: "info@example.com",
+  issn: "",
+  theme: "Междисциплинарный",
+  language: "ru / en",
+  frequency: "Ежеквартально",
 };
 
 export default function JournalView() {
+  const { t } = useTranslation(["journal_public", "auth", "common"]);
   const { jid } = useParams();
   const navigate = useNavigate();
 
@@ -51,7 +48,7 @@ export default function JournalView() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [forbidden, setForbidden] = useState(false);
-  const { isModerator } = useAuth();
+  const { isOrgAdmin } = useAuth();
 
   const normalize = (raw) => ({
     id: raw?.id ?? SAMPLE.id,
@@ -61,9 +58,15 @@ export default function JournalView() {
     topics: raw?.topics?.length
       ? raw.topics
       : [
-          raw?.theme && `Тема: ${raw.theme}`,
-          raw?.language && `Язык: ${raw.language}`,
-          raw?.frequency && `Периодичность: ${raw.frequency}`,
+          raw?.theme &&
+          `${t("journal_public:view.meta.theme", "Тема")}: ${raw.theme}`,
+          raw?.language &&
+          `${t("journal_public:view.meta.language", "Язык")}: ${raw.language}`,
+          raw?.frequency &&
+          `${t(
+              "journal_public:view.meta.frequency",
+              "Периодичность"
+          )}: ${raw.frequency}`,
         ].filter(Boolean),
     audience: raw?.audience ?? SAMPLE.audience,
     ethics: raw?.ethics ?? SAMPLE.ethics,
@@ -106,7 +109,12 @@ export default function JournalView() {
           return;
         } else {
           if (!ignore) {
-            setErr("Не удалось загрузить данные журнала. Показан пример.");
+            setErr(
+                t(
+                    "journal_public:view.errors.load_failed",
+                    "Не удалось загрузить данные журнала. Показан пример."
+                )
+            );
             setJournal(SAMPLE);
           }
         }
@@ -129,21 +137,24 @@ export default function JournalView() {
 
   const topics = useMemo(() => journal?.topics || [], [journal]);
 
-  if (loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
+  if (loading) return <div className="p-6 text-gray-500">{t("journal_public:view.loading", "Загрузка…")}</div>;
 
   if (forbidden) {
     return (
       <div className="max-w-xl mx-auto p-6 text-center space-y-4">
-        <div className="text-2xl font-semibold">Доступ запрещён (403)</div>
+        <div className="text-2xl font-semibold">{t("journal_public:view.forbidden.title", "Доступ запрещён (403)")}</div>
         <p className="text-gray-600">
-          Просмотр этого журнала доступен только авторизованным пользователям с соответствующими правами.
+          {t(
+              "journal_public:view.forbidden.subtitle",
+              "Просмотр этого журнала доступен только авторизованным пользователям с соответствующими правами."
+          )}
         </p>
         <div className="flex gap-2 justify-center">
           <Link to={`/login?next=/journals/${encodeURIComponent(jid)}`}>
-            <Button>Войти</Button>
+            <Button>{t("auth:login.login_btn", "Войти")}</Button>
           </Link>
           <Link to="/">
-            <Button variant="outline">На главную страницу</Button>
+            <Button variant="outline">{t("common:actions.go_home", "На главную страницу")}</Button>
           </Link>
         </div>
       </div>
@@ -166,17 +177,19 @@ export default function JournalView() {
         <h1 className="text-3xl md:text-4xl font-bold text-center">
           {journal.name}
         </h1>
-        {org && (
-          org.is_verified ? (
+        {org &&
+          (org.is_verified ? (
             <span className="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
-              Верифицирована{org.verification_date ? ` • ${new Date(org.verification_date).toLocaleDateString('ru-RU')}` : ""}
+              {t("journal_public:view.org.verified", "Верифицирована")}
+              {org.verification_date
+                ? ` • ${new Date(org.verification_date).toLocaleDateString("ru-RU")}`
+                : ""}
             </span>
           ) : (
             <span className="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-              Не верифицирована
+              {t("journal_public:view.org.not_verified", "Не верифицирована")}
             </span>
-          )
-        )}
+          ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -193,31 +206,41 @@ export default function JournalView() {
               ) : (
                 <div className="w-full h-80 md:h-[28rem] xl:h-[32rem] rounded-xl bg-gradient-to-br from-sky-100 to-indigo-100 flex items-center justify-center text-center p-4">
                   <div className="text-slate-700">
-                    <div className="font-semibold">Обложка журнала</div>
+                    <div className="font-semibold">{t("journal_public:view.cover.placeholder.title", "Обложка журнала")}</div>
                     <div className="text-sm opacity-70">
-                      (загрузите в настройках журнала)
+                      {t(
+                          "journal_public:view.cover.placeholder.hint",
+                          "(загрузите в настройках журнала)"
+                      )}
                     </div>
                   </div>
                 </div>
               )}
-
-              <Link
-                to={`/submit-article?journalId=${encodeURIComponent(journal.id)}`}
-                className="block"
-              >
-                <Button className="w-full">Подать статью в журнал</Button>
-              </Link>
-
+              {!isOrgAdmin && (
+                <Link
+                  to={`/submit-article?journalId=${encodeURIComponent(journal.id)}`}
+                  className="block"
+                >
+                  <Button className="w-full">
+                    {t(
+                        "journal_public:view.actions.submit",
+                        "Подать статью в журнал"
+                    )}
+                  </Button>
+                </Link>
+              )}
               <Link to={`/journals/${journal.id}/issues`} className="block">
                 <Button variant="outline" className="w-full bg-transparent">
-                  Выпуски / Архив
+                  {t(
+                      "journal_public:view.actions.issues",
+                      "Выпуски / Архив"
+                  )}
                 </Button>
               </Link>
-
               <div className="text-sm text-gray-700 space-y-1">
                 {org?.name && (
                   <div>
-                    <span className="font-medium">Организация: </span>
+                    <span className="font-medium">{t("journal_public:view.labels.organization", "Организация")}:{" "} </span>
                     {org.name}
                   </div>
                 )}
@@ -250,7 +273,6 @@ export default function JournalView() {
                     .join(" • ")}
                 </div>
               </div>
-
               {topics.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {topics.map((t) => (
@@ -260,23 +282,6 @@ export default function JournalView() {
                   ))}
                 </div>
               )}
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={onPrint} className="w-full">
-                  <FileDown className="w-4 h-4 mr-2" />
-                  Печать/PDF
-                </Button>
-                {!isModerator && (
-                  <Link to="/author-dashboard">
-                    <Button variant="outline">Личный кабинет</Button>
-                  </Link>
-                )}
-                {isModerator && (
-                  <Link to="/moderator">
-                    <Button variant="outline">Кабинет модератора</Button>
-                  </Link>
-                )}
-              </div>
             </CardContent>
           </Card>
         </aside>
@@ -286,7 +291,12 @@ export default function JournalView() {
           <Card className="border shadow-sm rounded-2xl">
             <CardContent className="p-6 space-y-6">
               <section className="space-y-2">
-                <h2 className="text-xl font-semibold">Описание журнала</h2>
+                <h2 className="text-xl font-semibold">
+                  {t(
+                      "journal_public:view.sections.description",
+                      "Описание журнала"
+                  )}
+                </h2>
                 <p className="text-gray-800">
                   {journal.description || SAMPLE.description}
                 </p>
@@ -295,16 +305,12 @@ export default function JournalView() {
               <Separator />
 
               <section className="space-y-2">
-                <h2 className="text-xl font-semibold">Миссия журнала</h2>
-                <p className="text-gray-800">
-                  {journal.mission || SAMPLE.mission}
-                </p>
-              </section>
-
-              <Separator />
-
-              <section className="space-y-2">
-                <h2 className="text-xl font-semibold">Тематика публикаций</h2>
+                <h2 className="text-xl font-semibold">
+                  {t(
+                      "journal_public:view.sections.topics",
+                      "Тематика публикаций"
+                  )}
+                </h2>
                 <ul className="list-disc pl-6 space-y-1">
                   {(topics.length ? topics : SAMPLE.topics).map((t) => (
                     <li key={t}>{t}</li>
@@ -315,7 +321,12 @@ export default function JournalView() {
               <Separator />
 
               <section className="space-y-2">
-                <h2 className="text-xl font-semibold">Периодичность выхода</h2>
+                <h2 className="text-xl font-semibold">
+                  {t(
+                      "journal_public:view.sections.periodicity",
+                      "Периодичность выхода"
+                  )}
+                </h2>
                 <p className="text-gray-800">
                   {journal.periodicity || SAMPLE.periodicity}
                 </p>

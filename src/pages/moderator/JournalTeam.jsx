@@ -22,11 +22,11 @@ import {
   updateJournalMemberRole,
   removeJournalMember,
 } from "@/services/journalMembershipsService";
+import { useTranslation } from "react-i18next";
 
 const ROLE_LABEL = {
   chief_editor: "Главный редактор",
   editor: "Редактор",
-  manager: "Менеджер",
   proofreader: "Корректор",
   secretary: "Секретарь",
   reviewer: "Рецензент",
@@ -41,6 +41,7 @@ const fioEmail = (u) => {
 };
 
 export default function JournalTeam() {
+  const { t } = useTranslation();
   const { id } = useParams(); // journalId из маршрута
   const journalId = Number(id);
 
@@ -105,7 +106,10 @@ export default function JournalTeam() {
         const msg =
           e?.response?.data?.detail ||
           e?.message ||
-          "Не удалось загрузить команду журнала";
+            t(
+                "moderator_journals:journal_team.load_error",
+                "Не удалось загрузить команду журнала"
+            );
         setError(String(msg));
       } finally {
         mounted && setLoading(false);
@@ -119,7 +123,12 @@ export default function JournalTeam() {
   const handleAdd = async () => {
     if (!newUserId || !newRole) return;
     if (existingUserIds.has(Number(newUserId))) {
-      alert("Этот пользователь уже есть в команде журнала.");
+      alert(
+          t(
+              "moderator_journals:journal_team.already_in_team",
+              "Этот пользователь уже есть в команде журнала."
+          )
+      );
       return;
     }
     setAdding(true);
@@ -133,7 +142,9 @@ export default function JournalTeam() {
       setNewUserId("");
       setNewRole("manager");
     } catch (e) {
-      alert(e?.response?.data?.detail || "Ошибка добавления");
+      alert(e?.response?.data?.detail ||
+          t("moderator_journals:journal_team.add_error", "Ошибка добавления")
+      );
     } finally {
       setAdding(false);
     }
@@ -144,17 +155,32 @@ export default function JournalTeam() {
       const updated = await updateJournalMemberRole(m.id, role);
       setMembers((prev) => prev.map((x) => (x.id === m.id ? updated : x)));
     } catch (e) {
-      alert(e?.response?.data?.detail || "Не удалось обновить роль");
+      alert(e?.response?.data?.detail ||
+          t(
+              "moderator_journals:journal_team.role_update_error",
+              "Не удалось обновить роль"
+          )
+      );
     }
   };
 
   const handleRemove = async (m) => {
-    if (!confirm("Удалить участника из команды журнала?")) return;
+    if (!confirm(
+        t(
+            "moderator_journals:journal_team.remove_confirm",
+            "Удалить участника из команды журнала?"
+        )
+    )) return;
     try {
       await removeJournalMember(m.id);
       setMembers((prev) => prev.filter((x) => x.id !== m.id));
     } catch (e) {
-      alert(e?.response?.data?.detail || "Не удалось удалить участника");
+      alert(e?.response?.data?.detail ||
+          t(
+              "moderator_journals:journal_team.remove_error",
+              "Не удалось удалить участника"
+          )
+      );
     }
   };
 
@@ -162,19 +188,20 @@ export default function JournalTeam() {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Загрузка…</span>
+        <span>{t("moderator_journals:journal_team.loading", "Загрузка…")}</span>
       </div>
     );
 
   if (error)
     return (
-      <div className="p-6">
+        <div className="p-6">
         <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
           {error}
         </div>
         <Link to="/moderator">
           <Button variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />К модератору
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {t("moderator_journals:journal_team.to_moderator", "К модератору")}
           </Button>
         </Link>
       </div>
@@ -189,13 +216,15 @@ export default function JournalTeam() {
             <Users className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Команда журнала</h1>
+            <h1 className="text-2xl font-bold">
+              {t("moderator_journals:journal_team.title", "Команда журнала")}
+            </h1>
             <p className="text-gray-600">{journal?.title}</p>
           </div>
         </div>
         <Link to="/moderator">
           <Button variant="outline" className="gap-2">
-            <ArrowLeft className="w-4 h-4" /> Назад
+            <ArrowLeft className="w-4 h-4" /> {t("moderator_journals:journal_team.back", "Назад")}
           </Button>
         </Link>
       </div>
@@ -206,15 +235,23 @@ export default function JournalTeam() {
           <div className="flex flex-col md:flex-row gap-3">
             {/* USER SELECT — список участников организации */}
             <div className="flex-1">
-              <label className="text-sm text-gray-600">Пользователь</label>
+              <label className="text-sm text-gray-600">
+                {t("moderator_journals:journal_team.user_label", "Пользователь")}
+              </label>
               <Select value={newUserId} onValueChange={setNewUserId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите пользователя из организации" />
+                  <SelectValue placeholder={t(
+                      "moderator_journals:journal_team.user_ph",
+                      "Выберите пользователя из организации"
+                  )} />
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
                   {orgMembers.length === 0 ? (
                     <div className="px-3 py-2 text-sm text-gray-500">
-                      В организации пока нет участников
+                      {t(
+                          "moderator_journals:journal_team.org_empty",
+                          "В организации пока нет участников"
+                      )}
                     </div>
                   ) : (
                     orgMembers.map((m) => (
@@ -225,21 +262,29 @@ export default function JournalTeam() {
                       >
                         {fioEmail(m.user)}{" "}
                         {existingUserIds.has(m.user.id)
-                          ? " • уже в команде"
-                          : ""}
+                            ? ` • ${t(
+                                "moderator_journals:journal_team.already_in_team_short",
+                                "уже в команде"
+                            )}`
+                            : ""}
                       </SelectItem>
                     ))
                   )}
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500 mt-1">
-                Список берётся из участников организации журнала.
+                {t(
+                    "moderator_journals:journal_team.org_hint",
+                    "Список берётся из участников организации журнала."
+                )}
               </p>
             </div>
 
             {/* ROLE SELECT */}
             <div className="w-full md:w-64">
-              <label className="text-sm text-gray-600">Роль</label>
+              <label className="text-sm text-gray-600">
+                {t("moderator_journals:journal_team.role_label", "Роль")}
+              </label>
               <Select value={newRole} onValueChange={setNewRole}>
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите роль" />
@@ -247,7 +292,7 @@ export default function JournalTeam() {
                 <SelectContent>
                   {ALL_ROLES.map((r) => (
                     <SelectItem key={r} value={r}>
-                      {ROLE_LABEL[r]}
+                      {t(`moderator_journals:journal_team.roles.${r}`, ROLE_LABEL[r])}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -264,7 +309,7 @@ export default function JournalTeam() {
               ) : (
                 <Plus className="w-4 h-4" />
               )}
-              Добавить
+              {t("moderator_journals:journal_team.add_btn", "Добавить")}
             </Button>
           </div>
         </CardContent>
@@ -274,22 +319,37 @@ export default function JournalTeam() {
       <Card className="border-0 shadow-sm">
         <CardContent className="p-0 overflow-x-auto">
           {members.length === 0 ? (
-            <div className="p-6 text-gray-500">Пока нет участников.</div>
+            <div className="p-6 text-gray-500">{t("moderator_journals:journal_team.empty", "Пока нет участников.")}</div>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-slate-100 text-left">
                 <tr>
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">Пользователь</th>
-                  <th className="px-4 py-2">Email</th>
-                  <th className="px-4 py-2">Роль</th>
-                  <th className="px-4 py-2">Присоединился</th>
-                  <th className="px-4 py-2 text-right">Действия</th>
+                  <th className="px-4 py-2">
+                    {t("moderator_journals:journal_team.th.id", "ID")}
+                  </th>
+                  <th className="px-4 py-2">
+                    {t("moderator_journals:journal_team.th.user", "Пользователь")}
+                  </th>
+                  <th className="px-4 py-2">
+                    {t("moderator_journals:journal_team.th.email", "Email")}
+                  </th>
+                  <th className="px-4 py-2">
+                    {t("moderator_journals:journal_team.th.role", "Роль")}
+                  </th>
+                  <th className="px-4 py-2">
+                    {t(
+                        "moderator_journals:journal_team.th.joined",
+                        "Присоединился"
+                    )}
+                  </th>
+                  <th className="px-4 py-2 text-right">
+                    {t("moderator_journals:journal_team.th.actions", "Действия")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {members.map((m) => {
-                  const u = userById.get(m.user);
+              {members.map((m) => {
+                const u = userById.get(m.user);
                   const name = u
                     ? `${u.first_name || ""} ${u.last_name || ""}`.trim() ||
                       `user #${m.user}`
@@ -312,7 +372,10 @@ export default function JournalTeam() {
                             <SelectContent>
                               {ALL_ROLES.map((r) => (
                                 <SelectItem key={r} value={r}>
-                                  {ROLE_LABEL[r]}
+                                  {t(
+                                      `moderator_journals:journal_team.roles.${r}`,
+                                      ROLE_LABEL[r]
+                                  )}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -328,7 +391,7 @@ export default function JournalTeam() {
                           onClick={() => handleRemove(m)}
                         >
                           <Trash2 className="w-4 h-4" />
-                          Удалить
+                          {t("moderator_journals:journal_team.delete", "Удалить")}
                         </Button>
                       </td>
                     </tr>

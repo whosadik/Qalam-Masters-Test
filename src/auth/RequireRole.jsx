@@ -47,8 +47,7 @@ export default function RequireRole({
     })();
   }, [roles, allowOrgAdmins]);
 
-  if (state.loading)
-    return <div className="p-6 text-gray-500">Проверка прав…</div>;
+  if (state.loading) return <div className="p-6 text-gray-500">Загрузка…</div>;
   if (!state.ok) return <Navigate to="/403" replace />;
 
   return children;

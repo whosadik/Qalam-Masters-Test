@@ -1,27 +1,25 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 
-# next.js
-/.next/
-/out/
+# vite build output
+/dist
 
-# production
-/build
-
-# debug
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
 .env*
+!.env.production
 
-# vercel
+# editors
+.vscode/
+.idea/
+.DS_Store
+
+# (не нужна для Vite, но не мешает)
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# если вдруг были от next.js — можно оставить
+/.next/

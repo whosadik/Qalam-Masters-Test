@@ -1,0 +1,442 @@
+{
+  "about": {
+    "a11y": {
+      "skip_to_content": "Skip to main content"
+    },
+    "audience": {
+      "text": "Editors of scientific journals, authors and researchers, reviewers and scientific consultants, administrators of academic platforms, educational and research institutions",
+      "title": "Target Audience"
+    },
+    "back_to_top": "Back to top",
+    "badge": "About the Journal",
+    "description": "The “Qalam Masters” platform is a digital solution for automating all processes of a scientific journal: from article submission and peer review to publication and analytics. It brings together authors, reviewers, and editors in one space, ensuring convenience, transparency, and high standards of scientific communication.",
+    "ethics": {
+      "text": "The platform supports double-blind peer review, automating the process of assigning reviewers and tracking article status. We ensure compliance with international standards of publication ethics (COPE) and transparency at all stages.",
+      "title": "Peer Review and Ethics"
+    },
+    "extra": {
+      "aria": "History and Quality"
+    },
+    "hero": {
+      "aria": "About the Journal — introductory block"
+    },
+    "history": {
+      "text": "The platform was created as a technological foundation for modern scientific journals striving for quality, efficiency, and international recognition. We maintain high standards and contribute to the development of the scientific community.",
+      "title": "History and Development"
+    },
+    "mission": {
+      "text": "To promote the development of scientific research and academic dialogue through modern digital tools, simplifying interaction between participants in the publication process and integrating science with practice.",
+      "title": "Platform Mission"
+    },
+    "principles": {
+      "items1": "• Openness and transparency of the peer review process",
+      "items2": "• Compliance with publication ethics standards",
+      "items3": "• Support for young researchers",
+      "items4": "• Interdisciplinary approach to science",
+      "title": "Our Principles"
+    },
+    "quality": {
+      "items1": "• Rigorous manuscript selection",
+      "items2": "• Qualified reviewers",
+      "items3": "• Compliance with international standards",
+      "items4": "• Regular quality improvement",
+      "title": "Publication Quality"
+    },
+    "sections": {
+      "overview": {
+        "aria": "Mission, Audience, and Peer Review"
+      }
+    },
+    "title": "Web Platform \"Qalam Masters\"",
+    "topics": {
+      "aria": "Publication Topics",
+      "badge": "Publication Topics",
+      "subtitle": "We accept original scientific works across a wide range of disciplines",
+      "title": "Research Areas"
+    }
+  },
+  "author_info": {
+    "benefits": {
+      "items": {
+        "antiplag": {
+          "desc": "The report is attached to the submission; the editorial team sees the results immediately.",
+          "title": "Built-in Antiplagiarism"
+        },
+        "smart_forms": {
+          "desc": "Auto-fill authors, ORCID, affiliations, references. Fewer clicks — fewer mistakes.",
+          "title": "Smart Forms"
+        },
+        "templates": {
+          "desc": "Export to journal format, requirement checklists, and formatting tips.",
+          "title": "Ready-made Templates"
+        }
+      },
+      "subtitle": "Focus on research — we handle the routine.",
+      "title": "Why It’s Convenient for Authors"
+    },
+    "faq": {
+      "cta_requirements": "Formatting Requirements",
+      "cta_submit": "Submit Article",
+      "items": {
+        "0": {
+          "a": "DOCX and PDF. If needed, the system generates a preview.",
+          "q": "What file formats are supported?"
+        },
+        "1": {
+          "a": "No. The check is built-in: the editorial board immediately receives the report, and you get a summary in your account.",
+          "q": "Do I need to check for plagiarism separately?"
+        },
+        "2": {
+          "a": "Usually 1–3 business days depending on the journal and editorial workload.",
+          "q": "How long does the initial check take?"
+        },
+        "3": {
+          "a": "Yes, before peer review. Afterward — at the editor’s request via communication inside the submission card.",
+          "q": "Can I edit a submitted application?"
+        }
+      },
+      "title": "Frequently Asked Questions"
+    },
+    "hero": {
+      "cta_primary_auth": "Submit Article",
+      "cta_primary_guest": "Register and Submit Article",
+      "quick_benefits": {
+        "antiplag": "Plagiarism Check by Default",
+        "auto_metadata": "Auto-formatting of Metadata",
+        "status_notifications": "Status Notifications"
+      },
+      "subtitle": "A single window for uploading a manuscript, plagiarism checking, communication with the editorial team, and receiving a decision. Transparent, fast, and convenient.",
+      "title_line1": "Article submission in minutes —",
+      "title_line2": "without hassle or emails"
+    },
+    "preview": {
+      "card_title": "Manuscript Upload",
+      "progress": {
+        "label": "Preparing Submission"
+      },
+      "ready_to_submit": "Ready to Submit",
+      "steps": {
+        "antiplag": {
+          "status": "passed",
+          "title": "Plagiarism Check"
+        },
+        "metadata": {
+          "status": "completed",
+          "title": "Metadata"
+        },
+        "requirements": {
+          "title": "Requirements"
+        }
+      }
+    },
+    "steps": {
+      "cta_primary": "Submit Article",
+      "cta_primary_mobile": "Submit Article",
+      "cta_secondary": "Start Now",
+      "items": {
+        "decision": {
+          "desc": "Transparent status: accepted/revisions/rejected. Preparing for publication.",
+          "title": "Decision and Issue"
+        },
+        "requirements": {
+          "desc": "Online requirement checklist and formatting templates.",
+          "title": "Requirements"
+        },
+        "review": {
+          "desc": "Receive revision requests and provide responses directly in the article card.",
+          "title": "Peer Review"
+        },
+        "upload": {
+          "desc": "Attach DOCX/PDF and fill in minimal fields — we’ll auto-complete the rest.",
+          "title": "Upload"
+        }
+      },
+      "step_prefix": "Step",
+      "title": "How to Submit an Article"
+    },
+    "sticky": {
+      "cta": "Submit",
+      "subtitle": "It only takes a few minutes",
+      "title": "Ready to Send Your Manuscript?"
+    },
+    "tabs": {
+      "submit": {
+        "cta": "Submit Article",
+        "desc": "Upload the file, add co-authors, attach a cover letter — the system neatly compiles and sends it to the editorial team.",
+        "label": "Submit New Article",
+        "title": "Ready to Submit Your Manuscript?"
+      },
+      "track": {
+        "cta": "Open Dashboard",
+        "desc": "From 'Under Review' to 'Accepted for Print': timeline, comments, deadlines, and notifications — all in your personal account.",
+        "label": "Track Status",
+        "title": "Track Status Online"
+      }
+    }
+  },
+  "page": {
+    "benefits": {
+      "items": {
+        "antiplag": {
+          "desc": "The check is built into the workflow. The attached report is available to editors and authors.",
+          "title": "Plagiarism Check"
+        },
+        "automation": {
+          "desc": "Email templates, deadline reminders, auto-assignment of reviewers by section.",
+          "title": "Automation"
+        },
+        "security": {
+          "desc": "Access rights, action logs, storage of artifacts and versions.",
+          "title": "Security"
+        }
+      },
+      "subtitle": "Shorten cycle times and improve quality without increasing operating costs.",
+      "title": "Benefits for Editors"
+    },
+    "create_card": {
+      "fields": {
+        "name_label": "Journal Name",
+        "name_placeholder": "\"Science Bulletin\"",
+        "periodicity_label": "Periodicity",
+        "periodicity_value": "Quarterly",
+        "sections_label": "Subjects"
+      },
+      "org_hint": "Organization: select or create",
+      "sections": {
+        "economy": "Economics",
+        "it": "IT",
+        "pedagogy": "Pedagogy"
+      },
+      "step_label": "Step",
+      "title": "Create Journal"
+    },
+    "faq": {
+      "items": {
+        "1": {
+          "a": "Unlimited. Manage all journals of your organization from one account.",
+          "q": "How many journals can be connected?"
+        },
+        "2": {
+          "a": "Yes. Template customization, hidden author/reviewer data, secure communication within the system.",
+          "q": "Is double-blind review supported?"
+        },
+        "3": {
+          "a": "Yes. Integrations with LMS/CRS (e.g., Platonus), as well as ORCID/DOI providers, are available.",
+          "q": "Are there integrations with Platonus and ORCID?"
+        },
+        "4": {
+          "a": "Basic setup takes 1 day: organization, journal, roles, email, public article submission page.",
+          "q": "How quickly can we launch?"
+        }
+      },
+      "primary_cta": "Create Organization",
+      "secondary_cta": "Connect Journal",
+      "title": "Frequently Asked Questions"
+    },
+    "hero": {
+      "bullets": {
+        "analytics": "End-to-end analytics and reports",
+        "integrations": "Integration with Platonus and ORCID in progress",
+        "profit": "Make your journal profitable",
+        "roles_rights": "Roles and rights: authors, reviewers, editors"
+      },
+      "primary_cta": "Connect Organization and Add Journal",
+      "subtitle": "Create an organization, connect one or multiple journals, configure roles and processes. Minimum manual routine, maximum transparency and speed.",
+      "title_highlight": "article submission, peer review, and publishing under control",
+      "title_main": "Launch Your Journal on the Platform —"
+    },
+    "stats": {
+      "checks": {
+        "label": "checks in the system",
+        "value": "500,000+"
+      },
+      "organizations": {
+        "label": "organizations",
+        "value": "30+"
+      },
+      "support": {
+        "label": "support",
+        "value": "24/7"
+      }
+    },
+    "steps": {
+      "cta_primary": "Create Organization",
+      "cta_secondary": "Connect Journal",
+      "items": {
+        "1": {
+          "desc": "Create a university/publisher profile and invite the team.",
+          "title": "Organization"
+        },
+        "2": {
+          "desc": "Define sections, peer review policy, email templates.",
+          "title": "Journal Settings"
+        },
+        "3": {
+          "desc": "Editors, technical editors, moderators, reviewers — flexible access rights matrix.",
+          "title": "Roles and Access"
+        },
+        "4": {
+          "desc": "Open the submission form, set statuses and automated notifications.",
+          "title": "Article Submission"
+        },
+        "5": {
+          "desc": "Monitor SLA and quality — transparent metrics from day one.",
+          "title": "Analytics"
+        }
+      },
+      "mobile_primary": "Create Organization",
+      "step_prefix": "Step",
+      "title": "How to Connect a Journal"
+    },
+    "sticky": {
+      "cta": "Create",
+      "subtitle": "Organization + connection in 1 day",
+      "title": "Ready to Launch Your Journal?"
+    },
+    "tabs": {
+      "journal": "Journal",
+      "journal_block": {
+        "cta": "Connect Journal",
+        "desc": "Sections, review rules (single/double blind), email templates, public page for authors.",
+        "title": "Connect Your Journal to the Platform"
+      },
+      "org": "Organization",
+      "org_block": {
+        "cta": "Create Organization",
+        "desc": "Profile, domains, logo, team, roles, and access. Then — quick journal connection and process launch.",
+        "title": "Create an Organization in Minutes"
+      }
+    }
+  },
+  "public_page": {
+    "btn_about": "About Journal",
+    "btn_next": "Next",
+    "btn_prev": "Back",
+    "empty_results": "No results found for your query.",
+    "error_prefix": "Error",
+    "found_count_one": "Found: {{count}}",
+    "found_count_other": "Found: {{count}}",
+    "hint_open_about": "Tip: click on “About Journal” to see description, issues, and author instructions.",
+    "load_error_fallback": "Failed to load journals.",
+    "meta_line": "Theme: {{theme}} • Language: {{language}} • Frequency: {{frequency}}",
+    "ordering_new_first": "Newest first",
+    "ordering_old_first": "Oldest first",
+    "ordering_title": "Sorting",
+    "ordering_title_az": "Title A–Z",
+    "ordering_title_za": "Title Z–A",
+    "page_subtitle": "Browse journal catalog before registering.",
+    "page_title": "Journals",
+    "pagesize_option": "{{n}} per page",
+    "pagesize_title": "Per page",
+    "search_placeholder": "Search by title, ISSN…",
+    "unknown_title": "Untitled"
+  },
+  "requirements": {
+    "notice": {
+      "attention": "Note: each journal may have",
+      "authors_section": "an “For Authors” section ",
+      "before_submit": "Before submitting your manuscript, please review",
+      "bold_common": "the common requirements ",
+      "examples": "(length, formatting, structure).",
+      "extra_conditions": "additional or clarifying conditions ",
+      "for_platform": "for the platform.",
+      "intro": "These rules are",
+      "of_specific_journal": "of a specific journal."
+    },
+    "s1": {
+      "p1": "The journal publishes articles on relevant issues in various fields of science (humanities, social, technical, natural, etc.). Only previously unpublished works corresponding to the subject area, with scientific novelty, and containing original research results are accepted. Articles can be in Kazakh, Russian, or English.",
+      "structure_label": "Article structure: ",
+      "structure_value": "title, abstract, keywords, main points, introduction, aim, materials and methods, results and discussion, conclusion, funding information (if available), references.",
+      "title": "1. General Provisions",
+      "volume_label": "Length: ",
+      "volume_value": "5 to 10 pages including all materials. Each article must include UDC and MRNTI."
+    },
+    "s2": {
+      "forbidden_label": "Not allowed: ",
+      "forbidden_value": "page numbering, page breaks, automatic footnotes, hyphenation, letter-spacing adjustments.",
+      "items": {
+        "font": "Font: Times New Roman, 12 pt, line spacing — single",
+        "format": "MS Word 2016–2021 format",
+        "indent": "Paragraph indent — 1.25 cm (without Tab or spaces)",
+        "margins": "Margins: top/bottom — 20 mm, left — 30 mm, right — 15 mm",
+        "orientation": "Orientation — portrait, A4 format"
+      },
+      "title": "2. Technical Requirements"
+    },
+    "s3": {
+      "items": {
+        "abstract": "Abstract — 100–150 words, at least 5 keywords",
+        "author_name": "Centered — author’s surname and initials (bold)",
+        "multilingual": "Information must be duplicated in Kazakh, Russian, and English",
+        "org": "Next — organization (italic, without abbreviations)",
+        "title": "Article title — uppercase, bold, centered",
+        "udc_mrnti": "Upper left corner — UDC, below it — MRNTI"
+      },
+      "title": "3. First Page Formatting"
+    },
+    "s4": {
+      "items": {
+        "charts": "Charts and diagrams — in Microsoft Excel, inserted as object",
+        "eq_numbers": "Equation numbers — at the right margin in parentheses",
+        "formulas": "Formulas — in Microsoft Equation, italic, centered",
+        "images": "Images — with captions below, resolution at least 300 dpi",
+        "tables": "Tables with numbers and titles above them"
+      },
+      "title": "4. Tables, Figures, Formulas"
+    },
+    "s5": {
+      "text": "References must be numbered in order of mention, formatted according to GOST 7.1-2003 and GOST 7.32-2017. In-text citations in square brackets: [3], [5,7].",
+      "title": "5. References"
+    },
+    "s6": {
+      "items": {
+        "blind_review": "Articles undergo blind peer review",
+        "originality": "Text originality — at least 75%",
+        "permission": "Attach permission to publish confidential materials if required",
+        "responsibility": "Author is responsible for data accuracy"
+      },
+      "title": "6. Additional Conditions"
+    },
+    "title": "Manuscript Requirements for Publication on the “Qalam Masters” Platform",
+    "upload_text": {
+      "part1": "Materials are uploaded through the author’s personal account on the platform"
+    }
+  },
+  "view": {
+    "actions": {
+      "issues": "Issues / Archive",
+      "submit": "Submit Article to Journal"
+    },
+    "cover": {
+      "placeholder": {
+        "hint": "(upload in journal settings)",
+        "title": "Journal Cover"
+      }
+    },
+    "errors": {
+      "load_failed": "Failed to load journal data. Sample shown."
+    },
+    "forbidden": {
+      "subtitle": "Viewing this journal is available only to authorized users with appropriate rights.",
+      "title": "Access Denied (403)"
+    },
+    "labels": {
+      "organization": "Organization"
+    },
+    "loading": "Loading…",
+    "meta": {
+      "frequency": "Frequency",
+      "language": "Language",
+      "theme": "Theme"
+    },
+    "org": {
+      "not_verified": "Not Verified",
+      "verified": "Verified"
+    },
+    "sections": {
+      "description": "Journal Description",
+      "periodicity": "Publication Frequency",
+      "topics": "Publication Topics"
+    }
+  }
+}

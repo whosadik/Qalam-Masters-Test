@@ -58,6 +58,7 @@ import EditArticleSheet from "@/components/articles/EditArticleSheet";
 import { listArticles, updateArticle } from "@/services/articlesService";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
+import { useTranslation } from "react-i18next";
 
 const STATUS_LABEL = {
   draft: "Черновик",
@@ -115,15 +116,13 @@ const demoArchive = [
   },
 ];
 
-
-
- // Лейблы рекомендаций рецензента
- const RECOMMENDATION_LABEL = {
-   accept: "Принять",
-   minor: "Нужны правки (minor)",
-   major: "Нужны правки (major)",
-   reject: "Отклонить",
- };
+// Лейблы рекомендаций рецензента
+const RECOMMENDATION_LABEL = {
+  accept: "Принять",
+  minor: "Нужны правки (minor)",
+  major: "Нужны правки (major)",
+  reject: "Отклонить",
+};
 function notificationIcon(type) {
   switch (type) {
     case "review":
@@ -139,16 +138,17 @@ function notificationIcon(type) {
 
 export default function AuthorDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [articles, setArticles] = useState([]);
   const [submittingId, setSubmittingId] = useState(null);
-const [submitModal, setSubmitModal] = useState({
-  open: false,
-  title: "",
-  desc: "",
-  articleId: null,
-});
+  const [submitModal, setSubmitModal] = useState({
+    open: false,
+    title: "",
+    desc: "",
+    articleId: null,
+  });
   const [statusFilter, setStatusFilter] = useState("");
   const [journalFilter, setJournalFilter] = useState("");
   const [journals, setJournals] = useState([]);
@@ -158,142 +158,204 @@ const [submitModal, setSubmitModal] = useState({
 
   const [journalQuery, setJournalQuery] = useState("");
   const [filesByArticle, setFilesByArticle] = useState({});
-const [assignmentsByArticle, setAssignmentsByArticle] = useState({});
-const [loadingActivity, setLoadingActivity] = useState(false);
-const [activityOpen, setActivityOpen] = useState(false);
-
+  const [assignmentsByArticle, setAssignmentsByArticle] = useState({});
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
 
   const [messages, setMessages] = useState([
     {
       id: 1,
       from: "editor",
-      text: "Здравствуйте! Получили вашу статью.",
+      text: t(
+          "dashboards:author_dashboard.chat.msg_received",
+          "Здравствуйте! Получили вашу статью."
+      ),
       time: "10:00",
     },
     {
       id: 2,
       from: "me",
-      text: "Здравствуйте! Когда ждать рецензию?",
+      text: t(
+          "dashboards:author_dashboard.chat.msg_when_review",
+          "Здравствуйте! Когда ждать рецензию?"
+      ),
       time: "10:05",
     },
     {
       id: 3,
       from: "editor",
-      text: "Обычно в течение двух недель.",
+      text: t(
+          "dashboards:author_dashboard.chat.msg_two_weeks",
+          "Обычно в течение двух недель."
+      ),
       time: "10:07",
     },
   ]);
   const [newMessage, setNewMessage] = useState("");
   const TYPE_LABEL = {
-  manuscript: "Рукопись",
-  supplement: "Приложение",
-  zgs: "Справка ЗГС",
-  antiplag_report: "Отчёт антиплагиата",
-  response_to_review: "Ответ рецензенту",
-  production_pdf: "Верстка (PDF)",
-};
+    manuscript: t(
+        "dashboards:author_dashboard.filetype.manuscript",
+        "Рукопись"
+    ),
+    supplement: t(
+        "dashboards:author_dashboard.filetype.supplement",
+        "Приложение"
+    ),
+    zgs: t("dashboards:author_dashboard.filetype.zgs", "Справка ЗГС"),
+    antiplag_report: t(
+        "dashboards:author_dashboard.filetype.antiplag_report",
+        "Отчёт антиплагиата"
+    ),
+    response_to_review: t(
+        "dashboards:author_dashboard.filetype.response_to_review",
+        "Ответ рецензенту"
+    ),
+    production_pdf: t(
+        "dashboards:author_dashboard.filetype.production_pdf",
+        "Верстка (PDF)"
+    ),
+  };
 
-// расширяем иконки
-function notificationIcon(type) {
-  switch (type) {
-    case "review":
-      return <MessageSquare className="h-4 w-4 text-blue-500" />;
-    case "status":
-      return <AlertCircle className="h-4 w-4 text-orange-500" />;
-    case "file":
-      return <Upload className="h-4 w-4 text-indigo-500" />;
-    case "assignment":
-      return <Shield className="h-4 w-4 text-purple-500" />;
-    case "message":
-      return <Mail className="h-4 w-4 text-green-500" />;
-    default:
-      return <Bell className="h-4 w-4 text-gray-500" />;
+  // расширяем иконки
+  function notificationIcon(type) {
+    switch (type) {
+      case "review":
+        return <MessageSquare className="h-4 w-4 text-blue-500" />;
+      case "status":
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+      case "file":
+        return <Upload className="h-4 w-4 text-indigo-500" />;
+      case "assignment":
+        return <Shield className="h-4 w-4 text-purple-500" />;
+      case "message":
+        return <Mail className="h-4 w-4 text-green-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-500" />;
+    }
   }
-}
-
-
 
   const totalRevisions = articles.filter(
-  (a) => a.status === "revision_minor" || a.status === "revision_major"
-).length;
-const needsRevision = (s) => s === "revision_minor" || s === "revision_major";
+    (a) => a.status === "revision_minor" || a.status === "revision_major"
+  ).length;
+  const needsRevision = (s) => s === "revision_minor" || s === "revision_major";
 
-const revisionArticles = useMemo(
-   () => articles.filter((a) => needsRevision(a.status)),
-   [articles]
-
+  const revisionArticles = useMemo(
+    () => articles.filter((a) => needsRevision(a.status)),
+    [articles]
   );
 
-   const [reviewsByArticle, setReviewsByArticle] = useState({});
- const [loadingReviews, setLoadingReviews] = useState(false);
-const activityEvents = useMemo(() => {
-  const events = [];
-  const byId = Object.fromEntries(articles.map((a) => [a.id, a]));
+  const [reviewsByArticle, setReviewsByArticle] = useState({});
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const activityEvents = useMemo(() => {
+    const events = [];
+    const byId = Object.fromEntries(articles.map((a) => [a.id, a]));
 
-
-  // РЕЦЕНЗИИ (как было)
-  Object.entries(reviewsByArticle || {}).forEach(([articleId, revs]) => {
-    const art = byId[Number(articleId)];
-    (revs || []).forEach((r) => {
-      events.push({
-        id: `rev-${r.id}`,
-        type: "review",
-        title: "Новая рецензия",
-        message: `${RECOMMENDATION_LABEL[r.recommendation] || r.recommendation} • «${art?.title || "Статья"}»`,
-        time: r.created_at,
+    // РЕЦЕНЗИИ (как было)
+    Object.entries(reviewsByArticle || {}).forEach(([articleId, revs]) => {
+      const art = byId[Number(articleId)];
+      (revs || []).forEach((r) => {
+        events.push({
+          id: `rev-${r.id}`,
+          type: "review",
+          title: t(
+              "dashboards:author_dashboard.activity.new_review_title",
+              "Новая рецензия"
+          ),
+          message: `${RECOMMENDATION_LABEL[r.recommendation] || r.recommendation} • «${art?.title || t("dashboards:author_dashboard.article", "Статья")}»`,
+          time: r.created_at,
+        });
       });
     });
-  });
 
-  // СТАТУСЫ СТАТЕЙ (по created_at самой статьи — истории статусов в API нет)
-  articles.forEach((a) => {
-    events.push({
-      id: `status-${a.id}`,
-      type: "status",
-      title: "Статус статьи",
-      message: `«${a.title}»: ${STATUS_LABEL[a.status] || a.status}`,
-      time: a.created_at,
-    });
-  });
-
-  // ФАЙЛЫ (из /files)
-  Object.entries(filesByArticle || {}).forEach(([articleId, files]) => {
-    const art = byId[Number(articleId)];
-    (files || []).forEach((f) => {
+    // СТАТУСЫ СТАТЕЙ (по created_at самой статьи — истории статусов в API нет)
+    articles.forEach((a) => {
       events.push({
-        id: `file-${articleId}-${f.id}`,
-        type: "file",
-        title: "Новый файл",
-        message: `${TYPE_LABEL[f.type] || f.type} • «${art?.title || "Статья"}»`,
-        time: f.uploaded_at,
+        id: `status-${a.id}`,
+        type: "status",
+        title: t(
+            "dashboards:author_dashboard.activity.status_title",
+            "Статус статьи"
+        ),
+        message: `«${a.title}»: ${t(
+            `dashboards:author_dashboard.status.${a.status}`,
+            STATUS_LABEL[a.status] || a.status
+        )}`,
+        time: a.created_at,
       });
     });
-  });
 
-  // НАЗНАЧЕНИЯ РЕЦЕНЗЕНТОВ
-  Object.entries(assignmentsByArticle || {}).forEach(([articleId, assigns]) => {
-    const art = byId[Number(articleId)];
-    (assigns || []).forEach((as) => {
-      const statusMap = {
-        assigned: "Назначен рецензент",
-        accepted: "Рецензент принял назначение",
-        declined: "Рецензент отклонил назначение",
-        cancelled: "Назначение отменено",
-        completed: "Рецензирование завершено",
-      };
-      events.push({
-        id: `assign-${as.id}`,
-        type: "assignment",
-        title: statusMap[as.status] || "Назначение рецензента",
-        message: `«${art?.title || "Статья"}»${as.due_at ? ` • срок до ${new Date(as.due_at).toLocaleDateString()}` : ""}`,
-        time: as.created_at,
+    // ФАЙЛЫ (из /files)
+    Object.entries(filesByArticle || {}).forEach(([articleId, files]) => {
+      const art = byId[Number(articleId)];
+      (files || []).forEach((f) => {
+        events.push({
+          id: `file-${articleId}-${f.id}`,
+          type: "file",
+          title: t(
+              "dashboards:author_dashboard.activity.new_file_title",
+              "Новый файл"
+          ),
+          message: `${TYPE_LABEL[f.type] || f.type} • «${
+              art?.title || t("dashboards:author_dashboard.article", "Статья")
+          }»`,
+          time: f.uploaded_at,
+        });
       });
     });
-  });
 
-  events.sort((a, b) => new Date(b.time) - new Date(a.time));
-  return events;
-}, [articles, reviewsByArticle, filesByArticle, assignmentsByArticle]);
+    // НАЗНАЧЕНИЯ РЕЦЕНЗЕНТОВ
+    Object.entries(assignmentsByArticle || {}).forEach(
+      ([articleId, assigns]) => {
+        const art = byId[Number(articleId)];
+        (assigns || []).forEach((as) => {
+          const statusMap = {
+            assigned: t(
+                "dashboards:author_dashboard.assignment.assigned",
+                "Назначен рецензент"
+            ),
+            accepted: t(
+                "dashboards:author_dashboard.assignment.accepted",
+                "Рецензент принял назначение"
+            ),
+            declined: t(
+                "dashboards:author_dashboard.assignment.declined",
+                "Рецензент отклонил назначение"
+            ),
+            cancelled: t(
+                "dashboards:author_dashboard.assignment.cancelled",
+                "Назначение отменено"
+            ),
+            completed: t(
+                "dashboards:author_dashboard.assignment.completed",
+                "Рецензирование завершено"
+            ),
+          };
+          events.push({
+            id: `assign-${as.id}`,
+            type: "assignment",
+            title: statusMap[as.status] ||
+                t(
+                    "dashboards:author_dashboard.assignment.default",
+                    "Назначение рецензента"
+                ),
+            message: `«${art?.title || t("dashboards:author_dashboard.article", "Статья")}»${
+                as.due_at
+                    ? ` • ${t(
+                        "dashboards:author_dashboard.assignment.deadline",
+                        "срок до {{date}}",
+                        { date: new Date(as.due_at).toLocaleDateString() }
+                    )}`
+                    : ""
+            }`,
+            time: as.created_at,
+          });
+        });
+      }
+    );
+
+    events.sort((a, b) => new Date(b.time) - new Date(a.time));
+    return events;
+  }, [articles, reviewsByArticle, filesByArticle, assignmentsByArticle]);
 
   useEffect(() => {
     (async () => {
@@ -335,65 +397,64 @@ const activityEvents = useMemo(() => {
     );
   }, [journals, journalQuery]);
   useEffect(() => {
-  if (!articles.length) {
-    setFilesByArticle({});
-    setAssignmentsByArticle({});
-    return;
-  }
-
-  let aborted = false;
-  (async () => {
-    setLoadingActivity(true);
-    try {
-      // 1) последние файлы по каждой статье
-      const filesEntries = await Promise.all(
-        articles.map(async (a) => {
-          try {
-            const { data } = await http.get(
-              withParams(`/api/articles/articles/${a.id}/files/`, {
-                ordering: "-uploaded_at",
-                page_size: 3,
-              })
-            );
-            return [a.id, data?.results || []];
-          } catch {
-            return [a.id, []];
-          }
-        })
-      );
-
-      // 2) последние назначения рецензентов по каждой статье
-      const assignEntries = await Promise.all(
-        articles.map(async (a) => {
-          try {
-            const { data } = await http.get(
-              withParams("/api/reviews/assignments/", {
-                article: a.id,
-                ordering: "-created_at",
-                page_size: 3,
-              })
-            );
-            return [a.id, data?.results || []];
-          } catch {
-            return [a.id, []];
-          }
-        })
-      );
-
-      if (!aborted) {
-        setFilesByArticle(Object.fromEntries(filesEntries));
-        setAssignmentsByArticle(Object.fromEntries(assignEntries));
-      }
-    } finally {
-      if (!aborted) setLoadingActivity(false);
+    if (!articles.length) {
+      setFilesByArticle({});
+      setAssignmentsByArticle({});
+      return;
     }
-  })();
 
-  return () => {
-    aborted = true;
-  };
-}, [articles]);
+    let aborted = false;
+    (async () => {
+      setLoadingActivity(true);
+      try {
+        // 1) последние файлы по каждой статье
+        const filesEntries = await Promise.all(
+          articles.map(async (a) => {
+            try {
+              const { data } = await http.get(
+                withParams(`/api/articles/articles/${a.id}/files/`, {
+                  ordering: "-uploaded_at",
+                  page_size: 3,
+                })
+              );
+              return [a.id, data?.results || []];
+            } catch {
+              return [a.id, []];
+            }
+          })
+        );
 
+        // 2) последние назначения рецензентов по каждой статье
+        const assignEntries = await Promise.all(
+          articles.map(async (a) => {
+            try {
+              const { data } = await http.get(
+                withParams("/api/reviews/assignments/", {
+                  article: a.id,
+                  ordering: "-created_at",
+                  page_size: 3,
+                })
+              );
+              return [a.id, data?.results || []];
+            } catch {
+              return [a.id, []];
+            }
+          })
+        );
+
+        if (!aborted) {
+          setFilesByArticle(Object.fromEntries(filesEntries));
+          setAssignmentsByArticle(Object.fromEntries(assignEntries));
+        }
+      } finally {
+        if (!aborted) setLoadingActivity(false);
+      }
+    })();
+
+    return () => {
+      aborted = true;
+    };
+  }, [articles]);
 
   useEffect(() => {
     const handler = setTimeout(async () => {
@@ -430,24 +491,34 @@ const activityEvents = useMemo(() => {
   };
 
   const submitWithModal = async (article) => {
-  setSubmittingId(article.id);
-  try {
-    const updated = await updateArticleStatus(article.id, "submitted");
-    setArticles((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-    setSubmitModal({
-      open: true,
-      title: "Отправлено!",
-      desc: `Статья «${article.title}» успешно отправлена в редакцию.`,
-      articleId: updated.id,
-    });
-  } catch (e) {
-    console.error("submit failed", e);
-    alert("Не удалось отправить. Попробуйте ещё раз.");
-  } finally {
-    setSubmittingId(null);
-  }
-};
-
+    setSubmittingId(article.id);
+    try {
+      const updated = await updateArticleStatus(article.id, "submitted");
+      setArticles((prev) =>
+        prev.map((a) => (a.id === updated.id ? updated : a))
+      );
+      setSubmitModal({
+        open: true,
+        title: t("dashboards:author_dashboard.modal.sent_title", "Отправлено!"),
+        desc: t(
+            "dashboards:author_dashboard.modal.sent_desc",
+            "Статья «{{title}}» успешно отправлена в редакцию.",
+            { title: article.title }
+        ),
+        articleId: updated.id,
+      });
+    } catch (e) {
+      console.error("submit failed", e);
+      alert(
+          t(
+              "dashboards:author_dashboard.alert.submit_failed",
+              "Не удалось отправить. Попробуйте ещё раз."
+          )
+      );
+    } finally {
+      setSubmittingId(null);
+    }
+  };
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
@@ -465,7 +536,10 @@ const activityEvents = useMemo(() => {
         {
           id: prev.length + 1,
           from: "editor",
-          text: "Спасибо за сообщение! Мы рассмотрим.",
+          text: t(
+              "dashboards:author_dashboard.chat.msg_thanks",
+              "Спасибо за сообщение! Мы рассмотрим."
+          ),
           time: new Date().toLocaleTimeString().slice(0, 5),
         },
       ]);
@@ -473,69 +547,68 @@ const activityEvents = useMemo(() => {
   };
 
   useEffect(() => {
-   const load = async () => {
-     if (revisionArticles.length === 0) {
-       setReviewsByArticle({});
-       return;
-     }
-     setLoadingReviews(true);
-     try {
-       const entries = await Promise.all(
-         revisionArticles.map(async (a) => {
-           // 1) Берём назначения рецензентов по статье
-           const { data: assignData } = await http.get(
-             withParams("/api/reviews/assignments/", {
-               article: a.id,
-               ordering: "-created_at",
-             })
-           );
-           const assignments = assignData?.results || [];
+    const load = async () => {
+      if (revisionArticles.length === 0) {
+        setReviewsByArticle({});
+        return;
+      }
+      setLoadingReviews(true);
+      try {
+        const entries = await Promise.all(
+          revisionArticles.map(async (a) => {
+            // 1) Берём назначения рецензентов по статье
+            const { data: assignData } = await http.get(
+              withParams("/api/reviews/assignments/", {
+                article: a.id,
+                ordering: "-created_at",
+              })
+            );
+            const assignments = assignData?.results || [];
 
-           // 2) По каждому назначению берём отзывы
-           const reviews = (
-             await Promise.all(
-               assignments.map(async (as) => {
-                 const { data: revData } = await http.get(
-                   withParams("/api/reviews/reviews/", {
-                     assignment: as.id,
-                     ordering: "-created_at",
-                   })
-                 );
-                 const list = revData?.results || [];
-                 // приклеим само назначение — бывает полезно (due_at, blind, status)
-                 return list.map((r) => ({ ...r, _assignment: as }));
-               })
-             )
-           ).flat();
+            // 2) По каждому назначению берём отзывы
+            const reviews = (
+              await Promise.all(
+                assignments.map(async (as) => {
+                  const { data: revData } = await http.get(
+                    withParams("/api/reviews/reviews/", {
+                      assignment: as.id,
+                      ordering: "-created_at",
+                    })
+                  );
+                  const list = revData?.results || [];
+                  // приклеим само назначение — бывает полезно (due_at, blind, status)
+                  return list.map((r) => ({ ...r, _assignment: as }));
+                })
+              )
+            ).flat();
 
-           return [a.id, reviews];
-         })
-       );
-       setReviewsByArticle(Object.fromEntries(entries));
-     } catch (e) {
-       console.error("reviews load failed", e);
-     } finally {
-       setLoadingReviews(false);
-     }
-   };
-   load();
- }, [revisionArticles]);
+            return [a.id, reviews];
+          })
+        );
+        setReviewsByArticle(Object.fromEntries(entries));
+      } catch (e) {
+        console.error("reviews load failed", e);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    load();
+  }, [revisionArticles]);
 
   const total = articles.length;
   const totalAccepted = articles.filter((a) => a.status === "accepted").length;
-    const eventsCount = activityEvents.length;
+  const eventsCount = activityEvents.length;
 
   const totalReview = articles.filter(
     (a) => a.status === "under_review"
   ).length;
 
-   const totalPublished = articles.filter(
+  const totalPublished = articles.filter(
     (a) => a.status === "published"
   ).length;
-   const totalInProduction = articles.filter((a) => a.status === "in_production").length;
-
-
-
+  const totalInProduction = articles.filter(
+    (a) => a.status === "in_production"
+  ).length;
 
   return (
     <div className="space-y-6 p-3 sm:p-4 lg:p-6">
@@ -547,19 +620,24 @@ const activityEvents = useMemo(() => {
           </div>
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-              Личный кабинет автора
+              {t(
+                  "dashboards:author_dashboard.header.title",
+                  "Личный кабинет автора"
+              )}
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              Управляйте своими научными публикациями
+              {t(
+                  "dashboards:author_dashboard.header.subtitle",
+                  "Управляйте своими научными публикациями"
+              )}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          
           <Link to="/submit-article">
             <Button className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full sm:w-auto">
               <PlusCircle className="h-4 w-4 mr-2" />
-              Новая статья
+              {t("dashboards:author_dashboard.actions.new_article", "Новая статья")}
             </Button>
           </Link>
         </div>
@@ -571,7 +649,9 @@ const activityEvents = useMemo(() => {
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm">Всего статей</p>
+                <p className="text-blue-100 text-sm">
+                  {t("dashboards:author_dashboard.stats.total", "Всего статей")}
+                </p>
                 <p className="text-2xl sm:text-3xl font-bold">{total}</p>
               </div>
               <FileText className="h-7 w-7 sm:h-8 sm:w-8 text-blue-200" />
@@ -582,7 +662,9 @@ const activityEvents = useMemo(() => {
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-100 text-sm">На рецензии</p>
+                <p className="text-orange-100 text-sm">
+                  {t("dashboards:author_dashboard.stats.under_review", "На рецензии")}
+                </p>
                 <p className="text-2xl sm:text-3xl font-bold">{totalReview}</p>
               </div>
               <Clock className="h-7 w-7 sm:h-8 sm:w-8 text-orange-200" />
@@ -590,14 +672,13 @@ const activityEvents = useMemo(() => {
           </CardContent>
         </Card>
 
-
-
-
         <Card className="border-0 shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm">Принято</p>
+                <p className="text-green-100 text-sm">
+                  {t("dashboards:author_dashboard.stats.accepted", "Принято")}
+                </p>
                 <p className="text-2xl sm:text-3xl font-bold">
                   {totalAccepted}
                 </p>
@@ -607,15 +688,16 @@ const activityEvents = useMemo(() => {
           </CardContent>
         </Card>
 
-
-
-
         <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm">Опубликовано</p>
-                <p className="text-2xl sm:text-3xl font-bold">{totalPublished}</p>
+                <p className="text-purple-100 text-sm">
+                  {t("dashboards:author_dashboard.stats.published", "Опубликовано")}
+                </p>
+                <p className="text-2xl sm:text-3xl font-bold">
+                  {totalPublished}
+                </p>
               </div>
               <Archive className="h-7 w-7 sm:h-8 sm:w-8 text-purple-200" />
             </div>
@@ -630,51 +712,57 @@ const activityEvents = useMemo(() => {
             className="flex items-center gap-2 shrink-0"
           >
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Мои статьи</span>
-            <span className="sm:hidden">Статьи</span>
+            <span className="hidden sm:inline">
+              {t("dashboards:author_dashboard.tabs.my_articles_full", "Мои статьи")}
+            </span>
+            <span className="sm:hidden">
+              {t("dashboards:author_dashboard.tabs.my_articles_short", "Статьи")}
+            </span>
           </TabsTrigger>
           <TabsTrigger
-   value="reviews"
-   className="flex items-center gap-2 shrink-0"
- >
-   <MessageSquare className="h-4 w-4" />
-   <span>Рецензии</span>
-   {totalRevisions > 0 && (
-     <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
-       {totalRevisions}
-     </span>
-   )}
- </TabsTrigger>
+            value="reviews"
+            className="flex items-center gap-2 shrink-0"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>{t("dashboards:author_dashboard.tabs.reviews", "Рецензии")}</span>
+            {totalRevisions > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+                {totalRevisions}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger
             value="journals"
             className="flex items-center gap-2 shrink-0"
           >
             <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">Поиск журналов</span>
-            <span className="sm:hidden">Журналы</span>
+            <span className="hidden sm:inline">
+              {t("dashboards:author_dashboard.tabs.search_journals_full", "Поиск журналов")}
+            </span>
+            <span className="sm:hidden">
+              {t("dashboards:author_dashboard.tabs.journals_short", "Журналы")}
+            </span>
           </TabsTrigger>
-         
- <TabsTrigger
-  value="activity"
-  className="flex items-center gap-2 shrink-0"
->
-  <Bell className="h-4 w-4" />
-  <span>События</span>
-  {eventsCount > 0 && (
-    <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
-      {eventsCount > 99 ? "99+" : eventsCount}
-    </span>
-  )}
-</TabsTrigger>
 
-          
+          <TabsTrigger
+            value="activity"
+            className="flex items-center gap-2 shrink-0"
+          >
+            <Bell className="h-4 w-4" />
+            <span>{t("dashboards:author_dashboard.tabs.activity", "События")}</span>
+            {eventsCount > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
+                {eventsCount > 99 ? "99+" : eventsCount}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         {/* ====== Мои статьи (БОЕВЫЕ ДАННЫЕ) ====== */}
         <TabsContent value="articles" className="space-y-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Мои статьи
+              {t("dashboards:author_dashboard.my_articles.title", "Мои статьи")}
             </h2>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               {/* Фильтр по статусу */}
@@ -683,13 +771,24 @@ const activityEvents = useMemo(() => {
                 onValueChange={(v) => setStatusFilter(v === "__all__" ? "" : v)}
               >
                 <SelectTrigger className="w-full sm:w-56">
-                  <SelectValue placeholder="Фильтр по статусу" />
+                  <SelectValue placeholder={t(
+                      "dashboards:author_dashboard.filters.status.placeholder",
+                      "Фильтр по статусу"
+                  )} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">Все статусы</SelectItem>
+                  <SelectItem value="__all__">
+                    {t(
+                        "dashboards:author_dashboard.filters.status.all",
+                        "Все статусы"
+                    )}
+                  </SelectItem>
                   {Object.keys(STATUS_LABEL).map((v) => (
                     <SelectItem key={v} value={v}>
-                      {STATUS_LABEL[v]}
+                      {t(
+                          `dashboards:author_dashboard.status.${v}`,
+                          STATUS_LABEL[v]
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -703,10 +802,18 @@ const activityEvents = useMemo(() => {
                 }
               >
                 <SelectTrigger className="w-full sm:w-64">
-                  <SelectValue placeholder="Фильтр по журналу" />
+                  <SelectValue placeholder={t(
+                      "dashboards:author_dashboard.filters.journal.placeholder",
+                      "Фильтр по журналу"
+                  )} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">Все журналы</SelectItem>
+                  <SelectItem value="__all__">
+                    {t(
+                        "dashboards:author_dashboard.filters.journal.all",
+                        "Все журналы"
+                    )}
+                  </SelectItem>
                   {journals.map((j) => (
                     <SelectItem key={j.id} value={String(j.id)}>
                       {j.title}
@@ -721,8 +828,10 @@ const activityEvents = useMemo(() => {
             {!loading && articles.length === 0 && (
               <Card className="border-dashed">
                 <CardContent className="p-6 text-gray-500">
-                  У вас пока нет статей. Нажмите “Новая статья”, чтобы создать
-                  черновик.
+                  {t(
+                      "dashboards:author_dashboard.my_articles.empty",
+                      "У вас пока нет статей. Нажмите “Новая статья”, чтобы создать черновик."
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -730,126 +839,135 @@ const activityEvents = useMemo(() => {
             {loading && (
               <Card>
                 <CardContent className="p-6 text-gray-500">
-                  Загрузка…
+                  {t("dashboards:author_dashboard.loading", "Загрузка…")}
                 </CardContent>
               </Card>
             )}
 
-          {articles.map((article) => {
-  // безопасно «распаковываем» файлы: в списке статей их может и не быть
-  const files = Array.isArray(article.files) ? article.files : [];
-  const hasManuscript = files.some((f) => f.type === "manuscript");
-  const hasResponse   = files.some((f) => f.type === "response_to_review");
-  const isRevision =
-    article.status === "revision_minor" || article.status === "revision_major";
+            {articles.map((article) => {
+              // безопасно «распаковываем» файлы: в списке статей их может и не быть
+              const files = Array.isArray(article.files) ? article.files : [];
+              const hasManuscript = files.some((f) => f.type === "manuscript");
+              const hasResponse = files.some(
+                (f) => f.type === "response_to_review"
+              );
+              const isRevision =
+                article.status === "revision_minor" ||
+                article.status === "revision_major";
 
-  return (
-    <Card
-      key={article.id}
-      className="w-full max-w-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-    >
-      <CardHeader className="pb-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2 flex-1 min-w-0">
-            <div className="flex items-center gap-3 min-w-0">
-              <CardTitle className="text-lg sm:text-xl text-gray-900 truncate">
-                {article.title}
-              </CardTitle>
-            </div>
-            <CardDescription className="text-gray-600 truncate">
-              <span className="font-medium">
-                {article.journal_title || `Журнал #${article.journal}`}
-              </span>
-            </CardDescription>
-          </div>
-          <div className="md:ml-4">
-            <Badge className={statusBadgeClass(article.status)}>
-              {STATUS_LABEL[article.status] || article.status}
-            </Badge>
-            {article.status === "draft" && (
-              <Badge variant="outline" className="ml-2">
-                манускрипт загружен
-              </Badge>
-            )}
-          </div>
-        </div>
-      </CardHeader>
+              return (
+                <Card
+                  key={article.id}
+                  className="w-full max-w-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <CardTitle className="text-lg sm:text-xl text-gray-900 truncate">
+                            {article.title}
+                          </CardTitle>
+                        </div>
+                        <CardDescription className="text-gray-600 truncate">
+                          <span className="font-medium">
+                            {article.journal_title ||
+                                t(
+                                    "dashboards:author_dashboard.journal_fallback",
+                                    "Журнал #{{id}}",
+                                    { id: article.journal }
+                                )}
+                          </span>
+                        </CardDescription>
+                      </div>
+                      <div className="md:ml-4">
+                        <Badge className={statusBadgeClass(article.status)}>
+                          {t(
+                              `dashboards:author_dashboard.status.${article.status}`,
+                              STATUS_LABEL[article.status] || article.status
+                          )}
+                        </Badge>
+                        {article.status === "draft" && (
+                          <Badge variant="outline" className="ml-2">
+                            {t(
+                                "dashboards:author_dashboard.badges.manuscript_loaded",
+                                "манускрипт загружен"
+                            )}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Метаданные */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <div>
-              <p className="text-gray-500">Создана</p>
-              <p className="font-medium">
-                {article.created_at
-                  ? new Date(article.created_at).toLocaleString()
-                  : "—"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Shield className="h-4 w-4 text-indigo-500" />
-            <div>
-              <p className="text-gray-500">Автор</p>
-              <p className="font-medium">{article.author_email || "—"}</p>
-            </div>
-          </div>
-        </div>
+                  <CardContent className="space-y-6">
+                    {/* Метаданные */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <div>
+                          <p className="text-gray-500">
+                            {t(
+                                "dashboards:author_dashboard.meta.created",
+                                "Создана"
+                            )}
+                          </p>
+                          <p className="font-medium">
+                            {article.created_at
+                              ? new Date(article.created_at).toLocaleString()
+                              : "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Shield className="h-4 w-4 text-indigo-500" />
+                        <div>
+                          <p className="text-gray-500">
+                            {t(
+                                "dashboards:author_dashboard.meta.author",
+                                "Автор"
+                            )}
+                          </p>
+                          <p className="font-medium">
+                            {article.author_email || "—"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-        {/* Действия */}
-        <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 border-t border-gray-100">
-          <Link to={`/articles/${article.id}`}>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2 bg-transparent"
-            >
-              <Eye className="h-4 w-4" />
-              <span>Открыть</span>
-            </Button>
-          </Link>
+                    {/* Действия */}
+                    <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 border-t border-gray-100">
+                      <Link to={`/articles/${article.id}`}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>
+                            {t(
+                                "dashboards:author_dashboard.actions.open",
+                                "Открыть"
+                            )}
+                          </span>
+                        </Button>
+                      </Link>
 
-          <Link to={`/articles/${article.id}/edit`}>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2 bg-transparent"
-            >
-              Редактировать
-            </Button>
-          </Link>
-
-          
-
-                                         
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex items-center gap-2 bg-transparent"
-            disabled
-          >
-            <Download className="h-4 w-4" />
-            <span>Скачать</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex items-center gap-2 bg-transparent"
-            disabled
-          >
-            <MessageSquare className="h-4 w-4" />
-            <span>Обсуждение</span>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-})}
-
+                      <Link to={`/articles/${article.id}/edit`}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent"
+                        >
+                          {t(
+                              "dashboards:author_dashboard.actions.edit",
+                              "Редактировать"
+                          )}
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
 
@@ -857,21 +975,30 @@ const activityEvents = useMemo(() => {
         <TabsContent value="journals" className="space-y-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Поиск журналов
+              {t(
+                  "dashboards:author_dashboard.journals.title",
+                  "Поиск журналов"
+              )}
             </h2>
           </div>
 
           <Input
             value={journalQuery}
             onChange={(e) => setJournalQuery(e.target.value)}
-            placeholder="Введите название журнала..."
+            placeholder={t(
+                "dashboards:author_dashboard.journals.search_placeholder",
+                "Введите название журнала..."
+            )}
             className="w-full sm:w-96"
           />
 
           <Card className="border-0 shadow-sm">
             <CardContent className="p-0">
               {filteredJournals.length === 0 ? (
-                <div className="p-6 text-gray-500">Журналы не найдены.</div>
+                <div className="p-6 text-gray-500">{t(
+                    "dashboards:author_dashboard.journals.not_found",
+                    "Журналы не найдены."
+                )}</div>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {filteredJournals.map((j) => (
@@ -911,8 +1038,18 @@ const activityEvents = useMemo(() => {
                           </div>
 
                           <div className="text-sm text-gray-600 mt-0.5">
-                            Тема: {j.theme} • Язык: {j.language} •
-                            Периодичность: {j.frequency}
+                            {t("dashboards:author_dashboard.journals.theme", "Тема")}
+                            : {j.theme} •{" "}
+                            {t(
+                                "dashboards:author_dashboard.journals.language",
+                                "Язык"
+                            )}
+                            : {j.language} •{" "}
+                            {t(
+                                "dashboards:author_dashboard.journals.frequency",
+                                "Периодичность"
+                            )}
+                            : {j.frequency}
                           </div>
 
                           {j.description && (
@@ -926,7 +1063,11 @@ const activityEvents = useMemo(() => {
                         <div className="flex flex-col gap-2 self-center shrink-0">
                           <Link to={`/journals/${j.id}`}>
                             <Button size="sm" className="w-40">
-                              <Eye className="w-4 h-4 mr-2" /> Открыть
+                              <Eye className="w-4 h-4 mr-2" />
+                              {t(
+                                  "dashboards:author_dashboard.journals.open",
+                                  "Открыть"
+                              )}
                             </Button>
                           </Link>
                           <Link to={`/submit-article?journalId=${j.id}`}>
@@ -935,8 +1076,11 @@ const activityEvents = useMemo(() => {
                               variant="outline"
                               className="w-40"
                             >
-                              <Upload className="w-4 h-4 mr-2" /> Отправить
-                              статью
+                              <Upload className="w-4 h-4 mr-2" />
+                              {t(
+                                  "dashboards:author_dashboard.journals.send_article",
+                                  "Отправить статью"
+                              )}
                             </Button>
                           </Link>
                         </div>
@@ -951,270 +1095,357 @@ const activityEvents = useMemo(() => {
 
         {/* ====== Рецензии ====== */}
         <TabsContent value="reviews" className="space-y-6">
-  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-    Рецензии / Требуются правки
-  </h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+            {t(
+                "dashboards:author_dashboard.reviews.title",
+                "Рецензии / Требуются правки"
+            )}
+          </h2>
 
-  {revisionArticles.length === 0 ? (
-    <Card className="border-dashed">
-      <CardContent className="p-6 text-gray-500">
-        Пока нет статей, возвращённых на доработку.
-      </CardContent>
-    </Card>
-  ) : loadingReviews ? (
-    <Card>
-      <CardContent className="p-6 text-gray-500">Загрузка отзывов…</CardContent>
-    </Card>
-  ) : (
-    <div className="grid gap-4 sm:gap-6">
-      {revisionArticles.map((article) => {
-        const reviews = reviewsByArticle[article.id] || [];
-        const files = Array.isArray(article.files) ? article.files : [];
-        const hasManuscript = files.some((f) => f.type === "manuscript");
-        const hasResponse = files.some((f) => f.type === "response_to_review");
+          {revisionArticles.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="p-6 text-gray-500">
+                {t(
+                    "dashboards:author_dashboard.reviews.empty",
+                    "Пока нет статей, возвращённых на доработку."
+                )}
+              </CardContent>
+            </Card>
+          ) : loadingReviews ? (
+            <Card>
+              <CardContent className="p-6 text-gray-500">
+                {t("dashboards:author_dashboard.loading_reviews", "Загрузка отзывов…")}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:gap-6">
+              {revisionArticles.map((article) => {
+                const reviews = reviewsByArticle[article.id] || [];
+                const files = Array.isArray(article.files) ? article.files : [];
+                const hasManuscript = files.some(
+                  (f) => f.type === "manuscript"
+                );
+                const hasResponse = files.some(
+                  (f) => f.type === "response_to_review"
+                );
 
-        return (
-          <Card
-            key={article.id}
-            className="border shadow-sm hover:shadow-md transition-all duration-200"
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <CardTitle className="text-lg truncate">
-                    {article.title}
-                  </CardTitle>
-                  <CardDescription className="truncate">
-                    {article.journal_title || `Журнал #${article.journal}`} •{" "}
-                    <Badge className={statusBadgeClass(article.status)}>
-                      {STATUS_LABEL[article.status] || article.status}
-                    </Badge>
-                  </CardDescription>
-                </div>
-                <Link to={`/articles/${article.id}`}>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4 mr-1" /> Открыть
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
+                return (
+                  <Card
+                    key={article.id}
+                    className="border shadow-sm hover:shadow-md transition-all duration-200"
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <CardTitle className="text-lg truncate">
+                            {article.title}
+                          </CardTitle>
+                          <CardDescription className="truncate">
+                            {article.journal_title ||
+                                t(
+                                    "dashboards:author_dashboard.journal_fallback",
+                                    "Журнал #{{id}}",
+                                    { id: article.journal }
+                                )}{" "}
+                            •{" "}
+                            <Badge className={statusBadgeClass(article.status)}>
+                              {t(
+                                  `dashboards:author_dashboard.status.${article.status}`,
+                                  STATUS_LABEL[article.status] || article.status
+                              )}
+                            </Badge>
+                          </CardDescription>
+                        </div>
+                        <Link to={`/articles/${article.id}`}>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            {t(
+                                "dashboards:author_dashboard.actions.open",
+                                "Открыть"
+                            )}
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardHeader>
 
-            <CardContent className="space-y-4">
-              {/* Список реальных отзывов */}
-              {reviews.length === 0 ? (
-                <div className="text-sm text-gray-500">
-                  Отзывов пока нет. Загляните позже.
-                </div>
-              ) : (
-                <ul className="space-y-3">
-                  {reviews.map((rev) => (
-                    <li
-                      key={rev.id}
-                      className="p-3 rounded-lg bg-gray-50 border border-gray-100"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-sm">
-                          <span className="font-medium">
-                            Рекомендация:{" "}
-                            {RECOMMENDATION_LABEL[rev.recommendation] ||
-                              rev.recommendation}
-                          </span>
-                          {rev._assignment?.due_at && (
-                            <span className="ml-2 text-gray-500">
-                              (срок:{" "}
-                              {new Date(
-                                rev._assignment.due_at
-                              ).toLocaleDateString()}
-                              )
-                            </span>
+                    <CardContent className="space-y-4">
+                      {/* Список реальных отзывов */}
+                      {reviews.length === 0 ? (
+                        <div className="text-sm text-gray-500">
+                          {t(
+                              "dashboards:author_dashboard.reviews.no_reviews",
+                              "Отзывов пока нет. Загляните позже."
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(rev.created_at).toLocaleString()}
-                        </div>
-                      </div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {reviews.map((rev) => (
+                            <li
+                              key={rev.id}
+                              className="p-3 rounded-lg bg-gray-50 border border-gray-100"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="text-sm">
+                                  <span className="font-medium">
+                                    {t(
+                                        "dashboards:author_dashboard.reviews.recommendation",
+                                        "Рекомендация:"
+                                    )}{" "}
+                                    {t(
+                                        `dashboards:author_dashboard.recommendation.${rev.recommendation}`,
+                                        RECOMMENDATION_LABEL[rev.recommendation] ||
+                                        rev.recommendation
+                                    )}
+                                  </span>
+                                  {rev._assignment?.due_at && (
+                                    <span className="ml-2 text-gray-500">
+                                      (
+                                      {t(
+                                          "dashboards:author_dashboard.reviews.deadline",
+                                          "срок: {{date}}",
+                                          {
+                                            date: new Date(
+                                                rev._assignment.due_at
+                                            ).toLocaleDateString(),
+                                          }
+                                      )}
+                                      )
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(rev.created_at).toLocaleString()}
+                                </div>
+                              </div>
 
-                      {rev.body && (
-                        <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
-                          {rev.body}
-                        </p>
+                              {rev.body && (
+                                <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
+                                  {rev.body}
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       )}
+
+                      {/* Кнопки для загрузки и повторной отправки правок */}
+                      <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                        <Link to={`/articles/${article.id}/edit?tab=files`}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-transparent"
+                          >
+                            {t(
+                                "dashboards:author_dashboard.reviews.upload_fixes",
+                                "Загрузить правки"
+                            )}
+                          </Button>
+                        </Link>
+
+                        <Button
+                          size="sm"
+                          disabled={submittingId === article.id}
+                          onClick={async () => {
+                            if (!hasManuscript) {
+                              alert(
+                                  t(
+                                      "dashboards:author_dashboard.alert.upload_manuscript",
+                                      "Загрузите обновлённую рукопись (manuscript) в «Файлы»."
+                                  )
+                              );
+                              return;
+                            }
+                            if (!hasResponse) {
+                              alert(
+                                  t(
+                                      "dashboards:author_dashboard.alert.upload_response",
+                                      "Загрузите ответ рецензенту (response_to_review) в «Файлы»."
+                                  )
+                              );
+                              return;
+                            }
+                            await submitWithModal(article);
+                          }}
+                        >
+                          {submittingId === article.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              {t(
+                                  "dashboards:author_dashboard.actions.sending",
+                                  "Отправка…"
+                              )}
+                            </>
+                          ) : (
+                              t(
+                                  "dashboards:author_dashboard.actions.send_corrections",
+                                  "Отправить исправления"
+                              )
+                              )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+            {t("dashboards:author_dashboard.activity.title", "Лента событий")}
+          </h2>
+
+          {loadingActivity ? (
+            <Card>
+              <CardContent className="p-6 text-gray-500 flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t(
+                    "dashboards:author_dashboard.activity.loading",
+                    "Загрузка событий…"
+                )}
+              </CardContent>
+            </Card>
+          ) : activityEvents.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="p-6 text-gray-500">
+                {t(
+                    "dashboards:author_dashboard.activity.empty",
+                    "Пока нет новых событий."
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-0">
+                <ul className="divide-y divide-gray-100">
+                  {activityEvents.map((n) => (
+                    <li key={n.id} className="p-4 flex items-start gap-3">
+                      {notificationIcon(n.type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900">{n.title}</p>
+                        <p className="text-sm text-gray-600">{n.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {n.time ? new Date(n.time).toLocaleString() : "—"}
+                        </p>
+                      </div>
                     </li>
                   ))}
                 </ul>
-              )}
-
-              {/* Кнопки для загрузки и повторной отправки правок */}
-              <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                <Link to={`/articles/${article.id}/edit?tab=files`}>
-                  <Button size="sm" variant="outline" className="bg-transparent">
-                    Загрузить правки
-                  </Button>
-                </Link>
-
-                <Button
-                  size="sm"
-                  disabled={submittingId === article.id}
-  onClick={async () => {
-    if (!hasManuscript) {
-      alert("Загрузите обновлённую рукопись (manuscript) в «Файлы».");
-      return;
-    }
-    if (!hasResponse) {
-      alert("Загрузите ответ рецензенту (response_to_review) в «Файлы».");
-      return;
-    }
-    await submitWithModal(article);
-  }}
-                >
-                 {submittingId === article.id ? (
-    <>
-      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-      Отправка…
-    </>
-  ) : (
-    "Отправить исправления"
-  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  )}
-</TabsContent>
-
-<TabsContent value="activity" className="space-y-6">
-  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-    Лента событий
-  </h2>
-
-  {loadingActivity ? (
-    <Card>
-      <CardContent className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Загрузка событий…
-      </CardContent>
-    </Card>
-  ) : activityEvents.length === 0 ? (
-    <Card className="border-dashed">
-      <CardContent className="p-6 text-gray-500">
-        Пока нет новых событий.
-      </CardContent>
-    </Card>
-  ) : (
-    <Card className="border-0 shadow-sm">
-      <CardContent className="p-0">
-        <ul className="divide-y divide-gray-100">
-          {activityEvents.map((n) => (
-            <li key={n.id} className="p-4 flex items-start gap-3">
-              {notificationIcon(n.type)}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">{n.title}</p>
-                <p className="text-sm text-gray-600">{n.message}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {n.time ? new Date(n.time).toLocaleString() : "—"}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  )}
-</TabsContent>
-
-
-
-
-     
-
-       
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* Модалка «успешно отправлено» */}
-<Dialog
-  open={submitModal.open}
-  onOpenChange={(open) => setSubmitModal((s) => ({ ...s, open }))}
->
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>{submitModal.title || "Успех"}</DialogTitle>
-      <DialogDescription>
-        {submitModal.desc || "Действие выполнено успешно."}
-      </DialogDescription>
-    </DialogHeader>
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setSubmitModal({ open: false, title: "", desc: "", articleId: null })}>
-        Ок
-      </Button>
-      {submitModal.articleId && (
-        <Button
-          onClick={() => {
-            const id = submitModal.articleId;
-            setSubmitModal({ open: false, title: "", desc: "", articleId: null });
-            navigate(`/articles/${id}`);
+      <Dialog
+        open={submitModal.open}
+        onOpenChange={(open) => setSubmitModal((s) => ({ ...s, open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{submitModal.title ||
+                t("dashboards:author_dashboard.modal.success", "Успех")}
+            </DialogTitle>
+            <DialogDescription>
+              {submitModal.desc ||
+                  t(
+                      "dashboards:author_dashboard.modal.success_desc",
+                      "Действие выполнено успешно."
+                  )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setSubmitModal({
+                  open: false,
+                  title: "",
+                  desc: "",
+                  articleId: null,
+                })
+              }
+            >
+              {t("dashboards:author_dashboard.modal.ok", "Ок")}
+            </Button>
+            {submitModal.articleId && (
+              <Button
+                onClick={() => {
+                  const id = submitModal.articleId;
+                  setSubmitModal({
+                    open: false,
+                    title: "",
+                    desc: "",
+                    articleId: null,
+                  });
+                  navigate(`/articles/${id}`);
+                }}
+              >
+                {t(
+                    "dashboards:author_dashboard.modal.open_article",
+                    "Открыть статью"
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {editOpen && editingArticle && (
+        <EditArticleSheet
+          open
+          onOpenChange={(o) => {
+            setEditOpen(o);
+            if (!o) setEditingArticle(null);
           }}
-        >
-          Открыть статью
-        </Button>
+          article={editingArticle}
+          onSave={handleSaveArticle}
+        />
       )}
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
 
+      {/* Модалка со всем списком событий */}
+      <Dialog open={activityOpen} onOpenChange={setActivityOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {t("dashboards:author_dashboard.activity.all_title", "Все события")}
+            </DialogTitle>
+            <DialogDescription>
+              {t(
+                  "dashboards:author_dashboard.activity.all_desc",
+                  "Лента последних действий по вашим статьям."
+              )}
+            </DialogDescription>
+          </DialogHeader>
 
-   {editOpen && editingArticle && (
-  <EditArticleSheet
-    open
-    onOpenChange={(o) => {
-      setEditOpen(o);
-      if (!o) setEditingArticle(null);
-    }}
-    article={editingArticle}
-    onSave={handleSaveArticle}
-  />
-)}
-
-
-{/* Модалка со всем списком событий */}
-<Dialog open={activityOpen} onOpenChange={setActivityOpen}>
-  <DialogContent className="max-w-2xl">
-    <DialogHeader>
-      <DialogTitle>Все события</DialogTitle>
-      <DialogDescription>
-        Лента последних действий по вашим статьям.
-      </DialogDescription>
-    </DialogHeader>
-
-    <div className="max-h-[60vh] overflow-auto space-y-3">
-      {activityEvents.map((n) => (
-        <div
-          key={n.id}
-          className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
-        >
-          {notificationIcon(n.type)}
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-900">{n.title}</p>
-            <p className="text-sm text-gray-600">{n.message}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {n.time ? new Date(n.time).toLocaleString() : "—"}
-            </p>
+          <div className="max-h-[60vh] overflow-auto space-y-3">
+            {activityEvents.map((n) => (
+              <div
+                key={n.id}
+                className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
+              >
+                {notificationIcon(n.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900">{n.title}</p>
+                  <p className="text-sm text-gray-600">{n.message}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {n.time ? new Date(n.time).toLocaleString() : "—"}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      ))}
-    </div>
 
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setActivityOpen(false)}>
-        Закрыть
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
-
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActivityOpen(false)}>
+              {t("dashboards:author_dashboard.activity.close", "Закрыть")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

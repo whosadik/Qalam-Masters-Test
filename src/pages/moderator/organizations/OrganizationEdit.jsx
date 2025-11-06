@@ -4,10 +4,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import OrganizationForm from "../components/OrganizationForm";
 import { Button } from "@/components/ui/button";
 import { getOrganization, updateOrganization } from "@/services/organizationsService";
+import { useTranslation } from "react-i18next";
 
 export default function OrganizationEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState("");
@@ -48,7 +50,7 @@ export default function OrganizationEdit() {
           const msg =
             e?.response?.data?.detail ||
             e?.response?.data?.error ||
-            "Не удалось загрузить организацию";
+              t("moderator_orgs:organization_edit.load_failed", "Не удалось загрузить организацию");
           setError(String(msg));
         }
       } finally {
@@ -91,7 +93,7 @@ export default function OrganizationEdit() {
       const msg =
         fieldErrs?.detail ||
         e?.response?.data?.error ||
-        "Не удалось сохранить изменения";
+          t("moderator_orgs:organization_edit.save_failed", "Не удалось сохранить изменения");
       setError(String(msg));
     } finally {
       setSaving(false);
@@ -99,16 +101,18 @@ export default function OrganizationEdit() {
   };
 
   if (loading) {
-    return <div className="p-6 text-gray-500">Загрузка…</div>;
+    return <div className="p-6 text-gray-500">{t("moderator_orgs:organization_edit.loading", "Загрузка…")}</div>;
   }
 
   if (!initialData) {
     return (
       <div className="p-6">
         <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
-          {error || "Организация не найдена"}
+          {error || t("moderator_orgs:organization_edit.not_found", "Организация не найдена")}
         </div>
-        <Button variant="outline" onClick={() => navigate(-1)}>Назад</Button>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          {t("moderator_orgs:organization_edit.back", "Назад")}
+        </Button>
       </div>
     );
   }
@@ -116,9 +120,9 @@ export default function OrganizationEdit() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Редактировать организацию</h1>
+        <h1 className="text-2xl font-bold">{t("moderator_orgs:organization_edit.title", "Редактировать организацию")}</h1>
         <Button variant="outline" onClick={() => navigate(-1)} disabled={saving}>
-          Назад
+          {t("moderator_orgs:organization_edit.back", "Назад")}
         </Button>
       </div>
 

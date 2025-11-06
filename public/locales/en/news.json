@@ -1,0 +1,36 @@
+{
+  "actions": {
+    "more": "More"
+  },
+  "badges": {
+    "new": "New"
+  },
+  "controls": {
+    "all_years": "All years",
+    "per_page_option_one": "{{count}} per page",
+    "per_page_option_other": "{{count}} per page",
+    "per_page_title": "Per page",
+    "search_aria": "Search news",
+    "search_placeholder": "Search by title and tags…",
+    "year_title": "Year"
+  },
+  "empty": {
+    "no_results": "No results found for the current filters."
+  },
+  "labels": {
+    "link_unavailable": "Link unavailable"
+  },
+  "page": {
+    "subtitle": "Platform updates, journal additions, meetings, memorandums.",
+    "title": "News"
+  },
+  "pagination": {
+    "next": "Next →",
+    "prev": "← Back",
+    "summary": "Found: {{total}} • Page {{page}} of {{totalPages}}"
+  },
+  "timeline": {
+    "subtitle": "A concise timeline of key updates and events.",
+    "title": "Event feed"
+  }
+}

@@ -30,6 +30,7 @@ import {
   uploadArticleFile,
   deleteArticleFile,
 } from "@/services/articlesService";
+import { useTranslation } from "react-i18next";
 
 const STATUS_LABEL = {
   draft: "Черновик",
@@ -44,9 +45,24 @@ const STATUS_LABEL = {
   published: "Опубликована",
 };
 
+function StatusBadge({ status }) {
+  const base = "px-2 py-0.5 rounded text-xs";
+  const label = (key) =>
+      window.i18next
+          ? window.i18next.t(`articles:edit.status.${key}`, STATUS_LABEL[key])
+          : STATUS_LABEL[key];
+
+  return (
+      <Badge className={base}>
+        {label(status) || status}
+      </Badge>
+  );
+}
+
 export default function EditArticlePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -100,7 +116,7 @@ export default function EditArticlePage() {
       await loadAll();
     } catch (e) {
       console.error("save failed", e);
-      alert("Не удалось сохранить изменения.");
+      alert(t("articles:edit.alert.save_failed", "Не удалось сохранить изменения."));
     } finally {
       setSaving(false);
     }
@@ -115,7 +131,7 @@ export default function EditArticlePage() {
       await loadAll();
     } catch (e) {
       console.error("upload failed", e);
-      alert("Не удалось загрузить файл.");
+      alert(t("articles:edit.alert.upload_failed", "Не удалось загрузить файл."));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -123,20 +139,20 @@ export default function EditArticlePage() {
   }
 
   async function handleDeleteFile(fileId) {
-    if (!confirm("Удалить файл?")) return;
+    if (!confirm(t("articles:edit.confirm.delete_file", "Удалить файл?"))) return;
     try {
       await deleteArticleFile(Number(id), Number(fileId));
       setFiles((prev) => prev.filter((f) => f.id !== fileId));
     } catch (e) {
       console.error("delete file failed", e);
-      alert("Не удалось удалить файл.");
+      alert(t("articles:edit.alert.delete_failed", "Не удалось удалить файл."));
     }
   }
 
   if (loading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Загрузка…
+        <Loader2 className="h-4 w-4 animate-spin" /> {t("articles:edit.loading", "Загрузка…")}
       </div>
     );
   }
@@ -148,9 +164,9 @@ export default function EditArticlePage() {
           className="gap-2"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="h-4 w-4" /> Назад
+          <ArrowLeft className="h-4 w-4" /> {t("articles:edit.action.back", "Назад")}
         </Button>
-        <div className="mt-6">Статья не найдена.</div>
+        <div className="mt-6">{t("articles:edit.not_found", "Статья не найдена.")}</div>
       </div>
     );
   }
@@ -161,7 +177,7 @@ export default function EditArticlePage() {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold break-words">
-            Редактирование статьи
+            {t("articles:edit.title", "Редактирование статьи")}
           </h1>
           <p className="text-gray-600">
             <Link
@@ -172,45 +188,53 @@ export default function EditArticlePage() {
             </Link>
           </p>
         </div>
-        <Badge>{STATUS_LABEL[article.status] || article.status}</Badge>
+        <StatusBadge status={article.status} />
       </div>
 
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Поля статьи</CardTitle>
+          <CardTitle className="text-base">{t("articles:edit.section.form_title", "Поля статьи")}</CardTitle>
           <CardDescription>
-            Измените метаданные и управляйте файлами
+            {t(
+                "articles:edit.section.form_desc",
+                "Измените метаданные и управляйте файлами"
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="meta" className="space-y-4">
             <TabsList className="grid grid-cols-2">
-              <TabsTrigger value="meta">Метаданные</TabsTrigger>
-              <TabsTrigger value="files">Файлы</TabsTrigger>
+              <TabsTrigger value="meta">
+                {t("articles:edit.tabs.meta", "Метаданные")}
+              </TabsTrigger>
+              <TabsTrigger value="files">{t("articles:edit.tabs.files", "Файлы")}</TabsTrigger>
             </TabsList>
 
             {/* META */}
             <TabsContent value="meta" className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Название
+                  {t("articles:edit.fields.title.label", "Название")}
                 </label>
                 <Input
                   value={meta.title}
                   onChange={(e) =>
                     setMeta((m) => ({ ...m, title: e.target.value }))
                   }
-                  placeholder="Название статьи"
+                  placeholder={t(
+                      "articles:edit.fields.title.placeholder",
+                      "Название статьи"
+                  )}
                 />
               </div>
 
               {/* если добавишь на бэке — раскомментируй:
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Аннотация</label>
+                <label className="text-sm font-medium text-gray-700">{t("articles:edit.fields.abstract.label", "Аннотация")}</label>
                 <Textarea
                   value={meta.abstract || ""}
                   onChange={(e) => setMeta((m) => ({ ...m, abstract: e.target.value }))}
-                  placeholder="Краткая аннотация"
+                  placeholder={t("articles:edit.fields.abstract.placeholder", "Краткая аннотация")}
                   className="min-h-[120px]"
                 />
               </div>
@@ -223,10 +247,13 @@ export default function EditArticlePage() {
                   disabled={saving || !meta.title.trim()}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {saving ? "Сохраняю…" : "Сохранить"}
+                  {saving
+                      ? t("articles:edit.action.saving", "Сохраняю…")
+                      : t("articles:edit.action.save", "Сохранить")
+                  }
                 </Button>
                 <Button variant="outline" onClick={() => navigate(-1)}>
-                  Отмена
+                  {t("articles:edit.action.cancel", "Отмена")}
                 </Button>
               </div>
             </TabsContent>
@@ -237,31 +264,55 @@ export default function EditArticlePage() {
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
                   <div className="flex-1">
                     <label className="text-sm font-medium text-gray-700">
-                      Тип файла
+                      {t("articles:edit.files.type.label", "Тип файла")}
                     </label>
                     <select
                       className="mt-1 w-full rounded-md border p-2 text-sm"
                       value={uploadType}
                       onChange={(e) => setUploadType(e.target.value)}
                     >
-                      <option value="manuscript">manuscript (рукопись)</option>
-                      <option value="zgs">zgs (экспертное заключение)</option>
+                      <option value="manuscript">
+                        {t(
+                            "articles:edit.files.type.manuscript_label",
+                            "manuscript (рукопись)"
+                        )}
+                      </option>
+                      <option value="zgs">
+                        {t(
+                            "articles:edit.files.type.zgs_label",
+                            "zgs (экспертное заключение)"
+                        )}
+                      </option>
                       <option value="antiplag_report">
-                        antiplag_report (антиплагиат)
+                        {t(
+                            "articles:edit.files.type.antiplag_label",
+                            "antiplag_report (антиплагиат)"
+                        )}
                       </option>
                       <option value="supplement">
-                        supplement (доп. материалы)
+                        {t(
+                            "articles:edit.files.type.supplement_label",
+                            "supplement (доп. материалы)"
+                        )}
                       </option>
                       <option value="response_to_review">
-                        response_to_review
+                        {t(
+                            "articles:edit.files.type.response_label",
+                            "response_to_review"
+                        )}
                       </option>
-                      <option value="production_pdf">production_pdf</option>
+                      <option value="production_pdf">
+                        {t(
+                            "articles:edit.files.type.production_pdf_label",
+                            "production_pdf"
+                        )}
+                      </option>
                     </select>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium text-gray-700">
-                      Загрузить файл
+                      {t("articles:edit.files.upload.label", "Загрузить файл")}
                     </label>
                     <div className="mt-1 flex items-center gap-2">
                       <input
@@ -272,18 +323,27 @@ export default function EditArticlePage() {
                       />
                       <Button disabled className="gap-2">
                         <Upload className="h-4 w-4" />
-                        {uploading ? "Загрузка…" : "Загрузить"}
+                        {uploading
+                            ? t("articles:edit.files.uploading", "Загрузка…")
+                            : t("articles:edit.files.upload", "Загрузить")
+                        }
                       </Button>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      После выбора файл загрузится автоматически.
+                      {t(
+                          "articles:edit.files.hint.auto",
+                          "После выбора файл загрузится автоматически."
+                      )}
                     </p>
                   </div>
                 </div>
 
                 {!hasManuscript && (
                   <p className="mt-3 text-sm text-amber-700">
-                    Для отправки в редакцию нужна рукопись типа{" "}
+                    {t(
+                        "articles:edit.files.need_manuscript",
+                        "Для отправки в редакцию нужна рукопись типа "
+                    )}
                     <b>manuscript</b>.
                   </p>
                 )}
@@ -291,8 +351,8 @@ export default function EditArticlePage() {
 
               <Card className="border-0 shadow-sm">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Загруженные файлы</CardTitle>
-                  <CardDescription>Открыть / удалить</CardDescription>
+                  <CardTitle className="text-base">{t("articles:edit.files.list.title", "Загруженные файлы")}</CardTitle>
+                  <CardDescription>{t("articles:edit.files.list.subtitle", "Открыть / удалить")}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                   {files?.length ? (
@@ -316,7 +376,7 @@ export default function EditArticlePage() {
                                 className="bg-transparent gap-2"
                               >
                                 <Eye className="h-4 w-4" />
-                                Открыть
+                                {t("articles:edit.files.open", "Открыть")}
                               </Button>
                             </a>
                             <Button
@@ -326,7 +386,7 @@ export default function EditArticlePage() {
                               onClick={() => handleDeleteFile(f.id)}
                             >
                               <Trash2 className="h-4 w-4" />
-                              Удалить
+                              {t("articles:edit.files.delete", "Удалить")}
                             </Button>
                           </div>
                         </li>
@@ -334,7 +394,7 @@ export default function EditArticlePage() {
                     </ul>
                   ) : (
                     <div className="p-6 text-gray-500">
-                      Файлы не прикреплены.
+                      {t("articles:edit.files.empty", "Файлы не прикреплены.")}
                     </div>
                   )}
                 </CardContent>
@@ -343,12 +403,15 @@ export default function EditArticlePage() {
               <Separator />
               <div className="flex gap-2">
                 <Button onClick={() => navigate(-1)} variant="outline">
-                  Готово
+                  {t("articles:edit.action.done", "Готово")}
                 </Button>
                 <Link to={`/articles/${article.id}`}>
                   <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
                     <FileText className="h-4 w-4" />
-                    Открыть карточку статьи
+                    {t(
+                        "articles:edit.action.open_card",
+                        "Открыть карточку статьи"
+                    )}
                   </Button>
                 </Link>
               </div>

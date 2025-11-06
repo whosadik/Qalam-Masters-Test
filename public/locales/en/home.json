@@ -1,0 +1,124 @@
+{
+  "authors": {
+    "cta_catalog": "Journals Catalog",
+    "cta_submit": "Submit Article",
+    "steps": {
+      "1": {
+        "desc": "Create an account and fill out the author profile.",
+        "title": "Registration"
+      },
+      "2": {
+        "desc": "Find a suitable journal in the catalog.",
+        "title": "Choosing a Journal"
+      },
+      "3": {
+        "desc": "Upload the file, metadata, and supporting documents.",
+        "title": "Article Submission"
+      },
+      "4": {
+        "desc": "Track statuses and receive the editorial decision.",
+        "title": "Review → Decision"
+      }
+    }
+  },
+  "cta_create_org": "Create organization / journal",
+  "cta_join_org": "Join organization",
+  "cta_submit": "Submit an article",
+  "features": {
+    "badge": "Features",
+    "items": {
+      "analytics": {
+        "desc": "Reports on review deadlines, rejections/acceptances, and editorial activity.",
+        "title": "Analytics"
+      },
+      "antiplag": {
+        "desc": "Integrations and originality checks, support for publication ethics.",
+        "title": "Anti-plagiarism & Compliance"
+      },
+      "issues": {
+        "desc": "Public journal pages, issues, metadata, and indexing.",
+        "title": "Issues & Archives"
+      },
+      "multi_journal": {
+        "desc": "One organization — multiple journals, independent teams and policies.",
+        "title": "Multi-Journals"
+      },
+      "roles": {
+        "desc": "Authors, reviewers, editors, and admins with flexible permissions.",
+        "title": "Roles & Workflows"
+      },
+      "smart_submit": {
+        "desc": "Templates, checklists, and validators for fields and files to ensure manuscript quality.",
+        "title": "Smart Submission"
+      }
+    },
+    "title": "Full-Cycle Automation"
+  },
+  "hero": {
+    "cta_org_dashboard": "Organization Dashboard",
+    "mock": {
+      "antiplagiarism": "Anti-plagiarism · 92%",
+      "new_article": "New Article",
+      "reviewers": "Reviewers · 2",
+      "status": "Status · Under Review"
+    },
+    "point_ethics": "Ethics & Anti-plagiarism",
+    "point_issues": "Issues & Archives",
+    "point_reports": "Reports & Metrics",
+    "point_roles": "Roles: authors, reviewers, editors"
+  },
+  "hero_subtitle": "Qalam Masters brings together authors and editors: fast submission, transparent peer review, convenient journals, and analytics — all in one place.",
+  "hero_title": "A Unified Platform for Authors and Journals",
+  "orgs": {
+    "cta_create_org": "Create Organization / Journal",
+    "cta_onboarding": "Onboarding for Editorial Boards",
+    "steps": {
+      "1": {
+        "desc": "Any individual/organization can create their account.",
+        "title": "Organization Creation"
+      },
+      "2": {
+        "desc": "Name the journal, set policies, roles, and workflow.",
+        "title": "Journal Launch"
+      },
+      "3": {
+        "desc": "Article submission, reviews, decisions, issues, and archives.",
+        "title": "Publication Process"
+      },
+      "4": {
+        "desc": "Statistics on timelines, rejections/acceptances, and activity.",
+        "title": "Analytics & Reports"
+      }
+    }
+  },
+  "story": {
+    "back_to_top": "Back to Top",
+    "paragraph": "The platform was created as a technological foundation for modern scientific journals striving for quality, efficiency, and international recognition. We uphold high standards and contribute to the development of the scientific community.",
+    "principles": {
+      "items": {
+        "1": "• Openness and transparency of the review process",
+        "2": "• Adherence to publication ethics standards",
+        "3": "• Support for young researchers",
+        "4": "• Interdisciplinary approach to science"
+      },
+      "title": "Our Principles"
+    },
+    "quality": {
+      "items": {
+        "1": "• Rigorous manuscript selection",
+        "2": "• Qualified reviewers",
+        "3": "• Compliance with international standards",
+        "4": "• Continuous quality improvement"
+      },
+      "title": "Publication Quality"
+    },
+    "title": "History and Development"
+  },
+  "tabs": {
+    "badge_how_it_works": "How It Works",
+    "label_authors": "For Authors",
+    "label_orgs": "For Organizations",
+    "subtitle_choose_path": "Choose the suitable path — for an author or for an organization/individual.",
+    "title_two_paths": "Two Simple Scenarios"
+  }
+}

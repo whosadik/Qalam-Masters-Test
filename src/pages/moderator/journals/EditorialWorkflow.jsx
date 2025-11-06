@@ -12,6 +12,7 @@ import {
   Calendar,
   ArrowLeftRight,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // storage keys
 const KEY_JOURNALS = "myOrgJournals";
@@ -48,6 +49,7 @@ const ensureStage = (m) => {
 export default function EditorialWorkflow() {
   const { jid } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [journal, setJournal] = useState(null);
   const [manuscripts, setManuscripts] = useState([]);
@@ -236,20 +238,32 @@ export default function EditorialWorkflow() {
             onClick={() => navigate(-1)}
             className="gap-2"
           >
-            <ChevronLeft className="w-4 h-4" /> Назад
+            <ChevronLeft className="w-4 h-4" />
+            {t("moderator_journals:editorial_workflow.back", "Назад")}
           </Button>
           <div>
             <h1 className="text-2xl font-bold">
-              Публикационный процесс — {journal?.name || "Журнал"}
+              {t(
+                  "moderator_journals:editorial_workflow.page_title",
+                  "Публикационный процесс —"
+              )}{" "}
+              {journal?.name ||
+                  t("moderator_journals:editorial_workflow.journal_fallback", "Журнал")}
             </h1>
             <p className="text-slate-600">
-              Управление стадиями, назначение рецензентов, сроки
+              {t(
+                  "moderator_journals:editorial_workflow.subtitle",
+                  "Управление стадиями, назначение рецензентов, сроки"
+              )}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Input
-            placeholder="Поиск по названию/авторам/аннотации"
+            placeholder={t(
+                "moderator_journals:editorial_workflow.search_ph",
+                "Поиск по названию/авторам/аннотации"
+            )}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -261,7 +275,12 @@ export default function EditorialWorkflow() {
         {COLUMNS.map((c) => (
           <Card key={c.id} className="border-0 shadow-sm">
             <CardContent className="p-4">
-              <div className="text-sm text-slate-600">{c.title}</div>
+              <div className="text-sm text-slate-600">
+                {t(
+                    `moderator_journals:editorial_workflow.columns.${c.id}`,
+                    c.title
+                )}
+              </div>
               <div className="text-3xl font-bold">
                 {byCol[c.id]?.length || 0}
               </div>
@@ -275,7 +294,10 @@ export default function EditorialWorkflow() {
         {COLUMNS.map((col) => (
           <div key={col.id} className="space-y-3">
             <div className="px-2 py-2 bg-white shadow-sm rounded-xl border text-sm font-semibold">
-              {col.title}
+              {t(
+                  `moderator_journals:editorial_workflow.columns.${col.id}`,
+                  col.title
+              )}
             </div>
 
             <div
@@ -315,15 +337,27 @@ export default function EditorialWorkflow() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="font-semibold leading-tight truncate">
-                          {m.title || "Без названия"}
+                          {m.title ||
+                              t(
+                                  "moderator_journals:editorial_workflow.untitled",
+                                  "Без названия"
+                              )}
                         </div>
                         <div className="text-xs text-slate-600 truncate">
-                          {m.authors || "—"} • Получена: {fmt(m.submittedAt)}
+                          {m.authors || "—"} •{" "}
+                          {t(
+                              "moderator_journals:editorial_workflow.received",
+                              "Получена:"
+                          )}{" "}
+                          {fmt(m.submittedAt)}
                         </div>
                       </div>
                       <Link to={`/moderator/journals/${jid}/reviewer`}>
                         <Badge variant="secondary" className="shrink-0">
-                          Детали
+                          {t(
+                              "moderator_journals:editorial_workflow.details",
+                              "Детали"
+                          )}
                         </Badge>
                       </Link>
                     </div>
@@ -331,7 +365,12 @@ export default function EditorialWorkflow() {
                     {/* прогресс + срок */}
                     <div className="mt-2">
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-600">Прогресс</span>
+                        <span className="text-slate-600">
+                          {t(
+                              "moderator_journals:editorial_workflow.progress",
+                              "Прогресс"
+                          )}
+                        </span>
                         <span className="font-medium">{prog}%</span>
                       </div>
                       <Progress value={prog} />
@@ -340,15 +379,26 @@ export default function EditorialWorkflow() {
                         {m.dueAt ? (
                           dLeft < 0 ? (
                             <span className="text-rose-600">
-                              Просрочено {Math.abs(dLeft)} дн.
+                              {t(
+                                  "moderator_journals:editorial_workflow.overdue",
+                                  `Просрочено ${Math.abs(dLeft)} дн.`
+                              )}
                             </span>
                           ) : (
                             <span>
-                              Срок: {fmt(m.dueAt)} ({dLeft} дн.)
+                              {t(
+                                  "moderator_journals:editorial_workflow.due_in",
+                                  `Срок: ${fmt(m.dueAt)} (${dLeft} дн.)`
+                              )}
                             </span>
                           )
                         ) : (
-                          <span>Срок не задан</span>
+                          <span>
+                            {t(
+                                "moderator_journals:editorial_workflow.no_due",
+                                "Срок не задан"
+                            )}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -379,7 +429,10 @@ export default function EditorialWorkflow() {
                         onClick={() => openAssign(m.id)}
                       >
                         <UserPlus2 className="w-4 h-4" />
-                        Назначить
+                        {t(
+                            "moderator_journals:editorial_workflow.assign_btn",
+                            "Назначить"
+                        )}
                       </Button>
                       <Button
                         size="sm"
@@ -395,7 +448,10 @@ export default function EditorialWorkflow() {
                           )
                         }
                         disabled={m.stage === COLUMNS[0].id}
-                        title="Предыдущая стадия"
+                        title={t(
+                            "moderator_journals:editorial_workflow.prev_stage",
+                            "Предыдущая стадия"
+                        )}
                       >
                         ←
                       </Button>
@@ -412,7 +468,10 @@ export default function EditorialWorkflow() {
                           )
                         }
                         disabled={m.stage === COLUMNS[COLUMNS.length - 1].id}
-                        title="Следующая стадия"
+                        title={t(
+                            "moderator_journals:editorial_workflow.next_stage",
+                            "Следующая стадия"
+                        )}
                       >
                         →
                       </Button>
@@ -422,7 +481,10 @@ export default function EditorialWorkflow() {
                         className="gap-2"
                         onClick={() => {
                           const due = prompt(
-                            "Задайте срок (YYYY-MM-DD):",
+                              t(
+                                  "moderator_journals:editorial_workflow.prompt_due",
+                                  "Задайте срок (YYYY-MM-DD):"
+                              ),
                             (m.dueAt || "").slice(0, 10)
                           );
                           if (!due) return;
@@ -434,7 +496,7 @@ export default function EditorialWorkflow() {
                           );
                         }}
                       >
-                        Срок
+                        {t("moderator_journals:editorial_workflow.due_btn", "Срок")}
                       </Button>
                     </div>
 
@@ -443,28 +505,40 @@ export default function EditorialWorkflow() {
                       <div className="mt-3 p-3 border rounded-lg bg-slate-50">
                         <div className="flex items-center justify-between gap-2">
                           <div className="font-medium text-sm">
-                            Назначение рецензентов
+                            {t(
+                                "moderator_journals:editorial_workflow.assign_panel.title",
+                                "Назначение рецензентов"
+                            )}
                           </div>
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => setAssignFor(null)}
                           >
-                            Закрыть
+                            {t(
+                                "moderator_journals:editorial_workflow.assign_panel.close",
+                                "Закрыть"
+                            )}
                           </Button>
                         </div>
 
                         <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="space-y-2">
                             <Input
-                              placeholder="Поиск рецензента"
+                              placeholder={t(
+                                  "moderator_journals:editorial_workflow.assign_panel.search_ph",
+                                  "Поиск рецензента"
+                              )}
                               value={searchRv}
                               onChange={(e) => setSearchRv(e.target.value)}
                             />
                             <div className="max-h-48 overflow-auto border rounded-md bg-white">
                               {rvFiltered.length === 0 ? (
                                 <div className="p-2 text-sm text-slate-500">
-                                  Нет рецензентов
+                                  {t(
+                                      "moderator_journals:editorial_workflow.assign_panel.no_reviewers",
+                                      "Нет рецензентов"
+                                  )}
                                 </div>
                               ) : (
                                 <ul className="divide-y">
@@ -500,7 +574,10 @@ export default function EditorialWorkflow() {
 
                           <div className="space-y-2">
                             <label className="block text-sm">
-                              Срок рецензии
+                              {t(
+                                  "moderator_journals:editorial_workflow.assign_panel.due_label",
+                                  "Срок рецензии"
+                              )}
                             </label>
                             <Input
                               type="date"
@@ -508,21 +585,30 @@ export default function EditorialWorkflow() {
                               onChange={(e) => setDraftDue(e.target.value)}
                             />
                             <div className="text-xs text-slate-600">
-                              Выбранные получат статус «invited». Срок
-                              сохранится в карточке.
+                              {t(
+                                  "moderator_journals:editorial_workflow.assign_panel.note",
+                                  "Выбранные получат статус «invited». Срок сохранится в карточке."
+                              )}
                             </div>
                             <div className="flex gap-2">
                               <Button
                                 className="gap-2"
                                 onClick={saveAssignment}
                               >
-                                <Plus className="w-4 h-4" /> Назначить
+                                <Plus className="w-4 h-4" />
+                                {t(
+                                    "moderator_journals:editorial_workflow.assign_panel.assign",
+                                    "Назначить"
+                                )}
                               </Button>
                               <Button
                                 variant="outline"
                                 onClick={() => setAssignFor(null)}
                               >
-                                Отмена
+                                {t(
+                                    "moderator_journals:editorial_workflow.assign_panel.cancel",
+                                    "Отмена"
+                                )}
                               </Button>
                             </div>
                           </div>
@@ -532,7 +618,10 @@ export default function EditorialWorkflow() {
                         {assigned.length > 0 && (
                           <div className="mt-3">
                             <div className="text-xs text-slate-600 mb-1">
-                              Назначены:
+                              {t(
+                                  "moderator_journals:editorial_workflow.assign_panel.assigned",
+                                  "Назначены:"
+                              )}
                             </div>
                             <div className="flex flex-wrap gap-1.5">
                               {assigned.map((a) => (
@@ -543,7 +632,10 @@ export default function EditorialWorkflow() {
                                   {a.name}
                                   <button
                                     className="ml-1 text-slate-500 hover:text-rose-600"
-                                    title="Убрать"
+                                    title={t(
+                                        "moderator_journals:editorial_workflow.assign_panel.remove",
+                                        "Убрать"
+                                    )}
                                     onClick={() => removeAssignment(m.id, a.id)}
                                   >
                                     ×
@@ -565,16 +657,25 @@ export default function EditorialWorkflow() {
 
       <div className="flex justify-end gap-2">
         <Link to={`/moderator/journals/${jid}`}>
-          <Button variant="outline">К журналу</Button>
+          <Button variant="outline">
+            {t("moderator_journals:editorial_workflow.to_journal", "К журналу")}
+          </Button>
         </Link>
         <Link to={`/moderator/journals/${jid}/reviewer`}>
-          <Button className="gap-2">
-            <ArrowLeftRight className="w-4 h-4" />В дашборд рецензента
+          <Button className="gap-2 bg-[#3972FE]">
+            <ArrowLeftRight className="w-4 h-4" />
+            {t(
+                "moderator_journals:editorial_workflow.to_reviewer_dashboard",
+                "В дашборд рецензента"
+            )}
           </Button>
         </Link>
         <Link to={`/moderator/journals/${jid}/council`}>
           <Button size="sm" variant="outline" className="w-36">
-            Редакц. совет
+            {t(
+                "moderator_journals:editorial_workflow.to_council",
+                "Редакц. совет"
+            )}
           </Button>
         </Link>
       </div>

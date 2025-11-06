@@ -1,0 +1,163 @@
+{
+  "article_admin": {
+    "actions": {
+      "accept": "Принять",
+      "major": "Major",
+      "minor": "Minor",
+      "publish": "Опубликовать",
+      "reject": "Отклонить",
+      "screening": "Скрининг",
+      "to_review": "На рецензию"
+    },
+    "back": "Назад",
+    "back_to_list": "Назад к списку статей",
+    "errors": {
+      "load_failed": "Не удалось загрузить статью",
+      "status_change_failed": "Не удалось изменить статус"
+    },
+    "files": {
+      "download": "скачать",
+      "empty": "Файлы не загружены.",
+      "title": "Файлы"
+    },
+    "loading": "Загрузка…",
+    "meta_line": "Автор: {{email}} • Журнал #{{jid}}",
+    "title_n": "Статья #{{id}}"
+  },
+  "journal_articles": {
+    "back": "Назад",
+    "empty": "Статей не найдено.",
+    "errors": {
+      "bad_journal_id": "Некорректный ID журнала в URL",
+      "load_failed": "Не удалось загрузить статьи журнала"
+    },
+    "filters": {
+      "all_statuses": "Все статусы",
+      "search_placeholder": "Поиск по названию/автору…",
+      "status_placeholder": "Статус"
+    },
+    "item": {
+      "author": "Автор:",
+      "created": "Создана:"
+    },
+    "journal_fallback": "Журнал",
+    "loading": "Загрузка…",
+    "open": "Открыть",
+    "title": "Статьи журнала"
+  },
+  "reviewer_dashboard": {
+    "actions": {
+      "accept": "Принять",
+      "decline": "Отклонить",
+      "details": "Детали",
+      "open_article": "Открыть статью",
+      "open_article_page": "Открыть страницу статьи",
+      "write_review": "Написать отзыв"
+    },
+    "batch": {
+      "accept": "Принять",
+      "decline": "Отклонить",
+      "none": "Нет групповых действий",
+      "title": "Батч-операции"
+    },
+    "compact": "Плотно",
+    "cozy": "Обычно",
+    "due": {
+      "no_due": "Срок не назначен",
+      "overdue": "Просрочено {{count}} д.",
+      "until": "До срока {{count}} д."
+    },
+    "empty": {
+      "reset": "Сбросить поиск",
+      "text_1": "В очереди",
+      "text_2": "нет записей под текущий поиск.",
+      "title": "Пока пусто"
+    },
+    "errors": {
+      "accept": "Не удалось принять назначение",
+      "decline": "Не удалось отклонить назначение"
+    },
+    "form": {
+      "alert_completed_changed": "Отзыв отправлен. Назначение: completed. Статус статьи изменился: {{before}} → {{after}}",
+      "alert_completed_same": "Отзыв отправлен. Назначение: completed. Статус статьи не изменился ({{after}}).",
+      "alert_failed": "Не удалось отправить отзыв",
+      "alert_sent_refresh": "Отзыв отправлен. Обновляю список…",
+      "already_sent": "Отзыв уже отправлен",
+      "collapse": "Свернуть форму",
+      "note_completed": "После отправки статус назначения может измениться на «completed».",
+      "open": "Написать отзыв",
+      "placeholder": "Ваш подробный отзыв для редакции и автора…",
+      "sending": "Отправляем…",
+      "submit": "Отправить отзыв",
+      "write_review": "Напишите текст отзыва."
+    },
+    "loading": "Загрузка назначений…",
+    "queues": {
+      "accepted": "Принятые",
+      "accepted_hint": "Готовы к написанию отзыва",
+      "assigned": "Новые назначения",
+      "assigned_hint": "Требуют принять/отклонить",
+      "completed_hint": "Завершённые назначения",
+      "history": "История",
+      "title": "Очереди"
+    },
+    "recommend": {
+      "accept": "Принять",
+      "major": "Major revision",
+      "minor": "Minor revision",
+      "reject": "Отклонить"
+    },
+    "refresh": "Обновить",
+    "right": {
+      "assigned_at_inline": "Назначено: {{date}}",
+      "assignment": "Назначение",
+      "assignment_line": "#{{aid}} • Статья #{{art}}",
+      "deadline_inline": "Дедлайн: {{date}}",
+      "details_panel": "Панель деталей",
+      "empty_hint": "Выберите строку и нажмите Детали, чтобы принять/отклонить назначение или написать отзыв.",
+      "hide": "Скрыть панель",
+      "panel": "Панель",
+      "show": "Показать панель"
+    },
+    "search": {
+      "hint": " / — поиск, R — обновить, O — детали, A — принять, D — отклонить",
+      "placeholder": "Поиск по статьям/дедлайнам…  (нажмите /)"
+    },
+    "selection": {
+      "clear": "Снять выделение",
+      "selected": "Выбрано:"
+    },
+    "table": {
+      "actions": "Действия",
+      "article": "Статья",
+      "article_n": "Статья #{{id}}",
+      "article_status": "Статус статьи",
+      "assigned_at": "Назначено",
+      "assignment_n": "Назначение #{{id}}",
+      "deadline": "Дедлайн",
+      "select_all": "Выбрать все",
+      "select_row": "Выбрать строку",
+      "unselect_all": "Снять все"
+    },
+    "title": "Дашборд рецензента",
+    "unknown": "(неизвестно)",
+    "updated": "Обновлено:"
+  },
+  "Screening": {
+    "antiplag_ok_label": "Антиплагиат пройден",
+    "approve_button": "Допустить к рецензированию",
+    "article_not_found": "Статья не найдена",
+    "current_status_prefix": "Текущий статус:",
+    "files_empty": "Файлы не загружены",
+    "files_title": "Файлы автора:",
+    "format_ok_label": "Соответствие требованиям оформления",
+    "heading": "Скрининг статьи",
+    "loading": "Загрузка…",
+    "notes_label": "Примечания для автора/редколлегии",
+    "open_article": "Открыть статью",
+    "return_button": "Вернуть автору",
+    "save_error": "Не удалось сохранить скрининг",
+    "scope_ok_label": "Соответствие тематике журнала",
+    "zgs_ok_label": "Экспертное заключение ЗГС загружено и ок"
+  }
+}

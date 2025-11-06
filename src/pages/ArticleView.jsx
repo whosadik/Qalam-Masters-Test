@@ -31,6 +31,7 @@ import {
 } from "@/services/articlesService";
 import { http } from "@/lib/apiClient";
 import { API } from "@/constants/api";
+import { useTranslation } from "react-i18next";
 
 // Метки статусов
 const STATUS_LABEL = {
@@ -55,7 +56,7 @@ const NEXT_HINTS = {
     tone: "info",
   },
   submitted: {
-    title: "Ожидайте скрининг",
+    title: "Ожидайте ответ",
     text: "Редакция проверит соответствие требованиям (тематика, оформление, оригинальность). При успехе статья перейдёт на рецензирование.",
     icon: Search,
     tone: "info",
@@ -112,6 +113,10 @@ const NEXT_HINTS = {
 
 function StatusBadge({ status }) {
   const base = "px-2 py-0.5 rounded text-xs";
+  const { t } = useTranslation();
+
+  const label = (key) => t(`articles:view.status.${key}`, STATUS_LABEL[key]);
+
   switch (status) {
     case "accepted":
     case "published":
@@ -119,7 +124,7 @@ function StatusBadge({ status }) {
         <Badge
           className={`${base} bg-green-100 text-green-800 hover:bg-green-100`}
         >
-          {STATUS_LABEL[status]}
+          {label(status)}
         </Badge>
       );
     case "under_review":
@@ -128,7 +133,7 @@ function StatusBadge({ status }) {
         <Badge
           className={`${base} bg-blue-100 text-blue-800 hover:bg-blue-100`}
         >
-          {STATUS_LABEL[status]}
+          {label(status)}
         </Badge>
       );
     case "screening":
@@ -136,7 +141,7 @@ function StatusBadge({ status }) {
         <Badge
           className={`${base} bg-indigo-100 text-indigo-800 hover:bg-indigo-100`}
         >
-          {STATUS_LABEL[status]}
+          {label(status)}
         </Badge>
       );
     case "submitted":
@@ -144,7 +149,7 @@ function StatusBadge({ status }) {
         <Badge
           className={`${base} bg-amber-100 text-amber-800 hover:bg-amber-100`}
         >
-          {STATUS_LABEL[status]}
+          {label(status)}
         </Badge>
       );
     case "revision_minor":
@@ -153,13 +158,13 @@ function StatusBadge({ status }) {
         <Badge
           className={`${base} bg-orange-100 text-orange-800 hover:bg-orange-100`}
         >
-          {STATUS_LABEL[status]}
+          {label(status)}
         </Badge>
       );
     case "rejected":
       return (
         <Badge className={`${base} bg-red-100 text-red-800 hover:bg-red-100`}>
-          {STATUS_LABEL[status]}
+          {label(status)}
         </Badge>
       );
     default:
@@ -167,7 +172,7 @@ function StatusBadge({ status }) {
         <Badge
           className={`${base} bg-gray-100 text-gray-800 hover:bg-gray-100`}
         >
-          {STATUS_LABEL[status] || status}
+          {label(status) || status}
         </Badge>
       );
   }
@@ -176,6 +181,7 @@ function StatusBadge({ status }) {
 export default function ArticleView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState(null);
@@ -210,7 +216,8 @@ export default function ArticleView() {
   );
 
   const hasManuscript = useMemo(
-    () => files?.some((f) => f.type === "manuscript"),
+    () => files?.some((f) => (f.type_code ?? f.type)?.toLowerCase?.() === "manuscript"
+        || /рукопись/i.test(f.type)),
     [files]
   );
 
@@ -219,7 +226,7 @@ export default function ArticleView() {
   if (loading) {
     return (
       <div className="p-6 text-gray-500 flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Загрузка…
+        <Loader2 className="h-4 w-4 animate-spin" /> {t("articles:view.loading", "Загрузка…")}
       </div>
     );
   }
@@ -231,9 +238,9 @@ export default function ArticleView() {
           onClick={() => navigate(-1)}
           className="gap-2"
         >
-          <ArrowLeft className="h-4 w-4" /> Назад
+          <ArrowLeft className="h-4 w-4" /> {t("articles:view.back", "Назад")}
         </Button>
-        <div className="mt-6 text-gray-500">Статья не найдена.</div>
+        <div className="mt-6 text-gray-500">{t("articles:view.not_found", "Статья не найдена.")}</div>
       </div>
     );
   }
@@ -253,7 +260,12 @@ export default function ArticleView() {
       setFiles(f);
     } catch (e) {
       console.error("submit to editorial failed", e);
-      alert("Не удалось отправить в редакцию. Попробуйте позже.");
+      alert(
+          t(
+              "articles:view.submit_error",
+              "Не удалось отправить в редакцию. Попробуйте позже."
+          )
+      );
     } finally {
       setSubmittingToEditorial(false);
     }
@@ -268,7 +280,7 @@ export default function ArticleView() {
             {article.title}
           </h1>
           <p className="text-gray-600">
-            Журнал:{" "}
+            {t("articles:view.journal_prefix", "Журнал:")}{" "}
             <Link
               to={`/journals/${article.journal}`}
               className="underline underline-offset-2"
@@ -288,7 +300,7 @@ export default function ArticleView() {
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-gray-400" />
             <div>
-              <p className="text-gray-500">Создана</p>
+              <p className="text-gray-500">{t("articles:view.meta.created", "Создана")}</p>
               <p className="font-medium">
                 {article.created_at
                   ? new Date(article.created_at).toLocaleString()
@@ -299,14 +311,14 @@ export default function ArticleView() {
           <div className="flex items-center gap-2 text-sm">
             <User className="h-4 w-4 text-gray-400" />
             <div>
-              <p className="text-gray-500">Автор</p>
+              <p className="text-gray-500">{t("articles:view.meta.author", "Автор")}</p>
               <p className="font-medium">{article.author_email || "—"}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <FileText className="h-4 w-4 text-gray-400" />
             <div>
-              <p className="text-gray-500">Файлы</p>
+              <p className="text-gray-500">{t("articles:view.meta.files", "Файлы")}</p>
               <p className="font-medium">{files?.length || 0}</p>
             </div>
           </div>
@@ -340,93 +352,274 @@ export default function ArticleView() {
       {article.status === "draft" && !hasManuscript && (
         <Card className="border-0 shadow-sm bg-amber-50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Загрузите рукопись</CardTitle>
+            <CardTitle className="text-sm">{t("articles:view.no_manuscript.title", "Загрузите рукопись")}</CardTitle>
             <CardDescription className="text-sm text-amber-800">
-              Чтобы отправить в редакцию, прикрепите файл типа «manuscript».
+              {t(
+                  "articles:view.no_manuscript.desc",
+                  "Чтобы отправить в редакцию, прикрепите файл типа «Рукопись»."
+              )}
             </CardDescription>
           </CardHeader>
         </Card>
       )}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">{t("articles:view.metadata.title", "Метаданные")}</CardTitle>
+          <CardDescription>
+            {t(
+                "articles:view.metadata.subtitle",
+                "Название, аннотации, ключевые слова"
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(article.title || article.title_en) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">{t("articles:view.metadata.title_ru", "Название (RU)")}</div>
+                <div className="font-medium">{article.title || "—"}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">{t("articles:view.metadata.title_en", "Название (EN)")}</div>
+                <div className="font-medium">{article.title_en || "—"}</div>
+              </div>
+            </div>
+          )}
+
+          {(article.abstract_ru || article.abstract_en) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">{t("articles:view.metadata.abstract_ru", "Аннотация (RU)")}</div>
+                <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                  {article.abstract_ru || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">{t("articles:view.metadata.abstract_en", "Аннотация (EN)")}</div>
+                <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                  {article.abstract_en || "—"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(article.keywords_ru || article.keywords_en) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {t("articles:view.metadata.keywords_ru", "Ключевые слова (RU)")}
+                </div>
+                <div className="text-sm">{article.keywords_ru || "—"}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {t("articles:view.metadata.keywords_en", "Ключевые слова (EN)")}
+                </div>
+                <div className="text-sm">{article.keywords_en || "—"}</div>
+              </div>
+            </div>
+          )}
+
+          {(article.thematic_direction ||
+            article.research_goal ||
+            article.research_tasks ||
+            article.research_methods) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {t(
+                      "articles:view.metadata.thematic_direction",
+                      "Тематическое направление"
+                  )}
+                </div>
+                <div className="text-sm">
+                  {article.thematic_direction || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {t("articles:view.metadata.research_goal", "Цель исследования")}
+                </div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {article.research_goal || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {t(
+                      "articles:view.metadata.research_tasks",
+                      "Задачи исследования"
+                  )}
+                </div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {article.research_tasks || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {t(
+                      "articles:view.metadata.research_methods",
+                      "Методы исследования"
+                  )}
+                </div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {article.research_methods || "—"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(article.author_full_name || article.author_organization) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {t(
+                      "articles:view.metadata.author_from_form",
+                      "Автор (из формы)"
+                  )}
+                </div>
+                <div className="text-sm">
+                  {article.author_full_name || "—"}
+                  {article.author_academic_degree
+                    ? `, ${article.author_academic_degree}`
+                    : ""}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {article.author_position || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">{t("articles:view.metadata.organization", "Организация")}</div>
+                <div className="text-sm">
+                  {article.author_organization || "—"}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {article.contact_email || "—"}
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Мини-таймлайн процесса (статично) */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Этапы процесса</CardTitle>
-          <CardDescription>Как статья двигается по пайплайну</CardDescription>
+          <CardTitle className="text-base">{t("articles:view.timeline.title", "Этапы процесса")}</CardTitle>
+          <CardDescription>
+            {t(
+                "articles:view.timeline.subtitle",
+                "Как статья двигается по пайплайну"
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-4">
-          <ol className="space-y-3">
-            {[
-              { key: "draft", label: "Черновик" },
-              { key: "submitted", label: "Отправлена" },
-              { key: "screening", label: "Скрининг" },
-              { key: "under_review", label: "На рецензии" },
-              { key: "revision_minor", label: "Minor revision" },
-              { key: "revision_major", label: "Major revision" },
-              { key: "accepted", label: "Принята" },
-              { key: "in_production", label: "В производстве" },
-              { key: "published", label: "Опубликована" },
-            ].map((step) => {
-              const active = article.status === step.key;
-              const passed =
-                [
-                  "submitted",
-                  "screening",
-                  "under_review",
-                  "revision_minor",
-                  "revision_major",
-                  "accepted",
-                  "in_production",
-                  "published",
-                ].includes(step.key) &&
-                [
-                  "submitted",
-                  "screening",
-                  "under_review",
-                  "revision_minor",
-                  "revision_major",
-                  "accepted",
-                  "in_production",
-                  "published",
-                ].indexOf(step.key) <=
-                  [
-                    "submitted",
-                    "screening",
-                    "under_review",
-                    "revision_minor",
-                    "revision_major",
-                    "accepted",
-                    "in_production",
-                    "published",
-                  ].indexOf(article.status);
+          {(() => {
+            const inEditorialDone = [
+              "submitted",
+              "screening",
+              "under_review",
+              "revision_minor",
+              "revision_major",
+              "accepted",
+              "in_production",
+              "published",
+            ].includes(article.status);
+            const underReviewDone = [
+              "under_review",
+              "revision_minor",
+              "revision_major",
+              "accepted",
+              "in_production",
+              "published",
+            ].includes(article.status);
+            const acceptedDone = [
+              "accepted",
+              "in_production",
+              "published",
+            ].includes(article.status);
+            const publishedDone = article.status === "published";
 
-              return (
-                <li key={step.key} className="flex items-center gap-3">
-                  <span
-                    className={[
-                      "inline-flex h-5 w-5 rounded-full border-2",
-                      active
-                        ? "border-blue-600 bg-blue-600"
-                        : passed
-                          ? "border-blue-600"
-                          : "border-gray-300",
-                    ].join(" ")}
-                  />
-                  <span className={active ? "font-semibold" : "text-gray-700"}>
-                    {step.label}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+            let activeKey = "in_editorial";
+            if (article.status === "screening") {
+              activeKey = !article.antiplag_ok
+                ? "antiplag"
+                : !article.zgs_ok
+                  ? "zgs"
+                  : "under_review";
+            } else if (
+              ["under_review", "revision_minor", "revision_major"].includes(
+                article.status
+              )
+            ) {
+              activeKey = "under_review";
+            } else if (["accepted", "in_production"].includes(article.status)) {
+              activeKey = "accepted";
+            } else if (publishedDone) {
+              activeKey = "published";
+            } else if (article.status === "submitted") {
+              activeKey = "in_editorial";
+            }
+
+            const steps6 = [
+              {
+                key: "in_editorial",
+                label: "Статья в редакции",
+                done: inEditorialDone,
+              },
+              {
+                key: "under_review",
+                label: "Статья на рецензии",
+                done: underReviewDone,
+              },
+              {
+                key: "antiplag",
+                label: "Проверка на плагиат",
+                done: !!article.antiplag_ok,
+              },
+              { key: "zgs", label: "Проверка ЗГС", done: !!article.zgs_ok },
+              {
+                key: "accepted",
+                label: "Принята для публикации",
+                done: acceptedDone,
+              },
+              { key: "published", label: "Опубликована", done: publishedDone },
+            ];
+
+            return (
+              <ol className="space-y-3">
+                {steps6.map((s) => (
+                  <li key={s.key} className="flex items-center gap-3">
+                    <span
+                      className={[
+                        "inline-flex h-5 w-5 rounded-full border-2",
+                        s.done ? "border-blue-600" : "border-gray-300",
+                        activeKey === s.key ? "bg-blue-600" : "",
+                      ].join(" ")}
+                    />
+                    <span
+                      className={
+                        activeKey === s.key ? "font-semibold" : "text-gray-700"
+                      }
+                    >
+                      {t(
+                          `articles:view.timeline.step.${s.key}`,
+                          s.label
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            );
+          })()}
         </CardContent>
       </Card>
 
       {/* Файлы */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Файлы</CardTitle>
-          <CardDescription>Загруженные материалы</CardDescription>
+          <CardTitle className="text-base">{t("articles:view.files.title", "Файлы")}</CardTitle>
+          <CardDescription>{t("articles:view.files.subtitle", "Загруженные материалы")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {files?.length ? (
@@ -449,14 +642,14 @@ export default function ArticleView() {
                       className="bg-transparent gap-2"
                     >
                       <Eye className="h-4 w-4" />
-                      Открыть
+                      {t("articles:view.files.open", "Открыть")}
                     </Button>
                   </a>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="p-6 text-gray-500">Файлы не прикреплены.</div>
+            <div className="p-6 text-gray-500">{t("articles:view.files.empty", "Файлы не прикреплены.")}</div>
           )}
         </CardContent>
       </Card>
@@ -468,7 +661,7 @@ export default function ArticleView() {
           onClick={() => navigate(-1)}
           className="gap-2"
         >
-          <ArrowLeft className="h-4 w-4" /> Назад
+          <ArrowLeft className="h-4 w-4" /> {t("articles:view.action.back", "Назад")}
         </Button>
         <div className="flex gap-2">
           {article.status === "draft" && (
@@ -477,12 +670,16 @@ export default function ArticleView() {
               disabled={!canSubmitToEditorial || submittingToEditorial}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {submittingToEditorial ? "Отправляем…" : "Отправить в редакцию"}
+              {submittingToEditorial ?  t("articles:view.action.sending", "Отправляем…") :
+                  t(
+                  "articles:view.action.submit_to_editorial",
+                  "Отправить в редакцию"
+              )}
             </Button>
           )}
           <Link to="/author-dashboard">
             <Button variant="outline" className="bg-transparent">
-              К списку статей
+              {t("articles:view.action.to_list", "К списку статей")}
             </Button>
           </Link>
         </div>

@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export default function LoginPage() {
+  const { t } = useTranslation("auth", "common");
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -20,10 +22,28 @@ export default function LoginPage() {
     setError("");
   };
 
+  const smartRedirectAfterLogin = () => {
+    const intent = sessionStorage.getItem("onboarding.intent");
+    // очистим, чтобы не застревать на следующих заходах
+    if (intent) sessionStorage.removeItem("onboarding.intent");
+
+    if (intent === "create-org") {
+      navigate("/onboarding/create-org", { replace: true });
+      return;
+    }
+    if (intent === "join-org") {
+      navigate("/onboarding/join-org", { replace: true });
+      return;
+    }
+    // дефолт как и было
+    navigate("/app", { replace: true });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
       setError("Заполните все поля.");
+      setError(t("auth:errors.fill_all_fields"));
       return;
     }
 
@@ -33,16 +53,26 @@ export default function LoginPage() {
         email: formData.email.trim(),
         password: formData.password,
       });
-      // ВСЁ: дальше умный роутер сам разрулит роли
-      navigate("/app", { replace: true });
+
+      // ⬇️ вот здесь вместо жесткого navigate("/app") — умный редирект
+      smartRedirectAfterLogin();
     } catch (err) {
-      const msg =
-        err?.response?.data?.detail ||
-        err?.response?.data?.non_field_errors?.[0] ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Неверный email или пароль.";
-      setError(String(msg));
+      const status = err?.response?.status;
+      const data = err?.response?.data || {};
+      const code = data.code || data.detail;
+
+      // если почта не подтверждена — оставляем твою логику
+      if (status === 401 && code === "email_not_verified") {
+        navigate("/login/verify-email", {
+          state: { email: formData.email.trim() },
+        });
+        return;
+      }
+
+      const detail =
+        data.detail || data.non_field_errors?.[0] || data.error || err?.message;
+
+      setError(detail || t("auth:errors.invalid_credentials", "Неверный email или пароль."));
     } finally {
       setLoading(false);
     }
@@ -53,20 +83,20 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm sm:max-w-md shadow-xl">
         <CardHeader className="pb-2 sm:pb-4">
           <CardTitle className="text-center text-xl sm:text-2xl font-bold">
-            Вход
+            {t("auth:login.title", "Вход")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="email" className="block text-sm font-medium">
-                Email
+                {t("auth:login.email", "Email")}
               </label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("auth:login.email_placeholder", "you@example.com")}
                 value={formData.email}
                 onChange={handleChange}
                 autoComplete="email"
@@ -78,19 +108,15 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label htmlFor="password" className="block text-sm font-medium">
-                  Пароль
+                  {t("auth:login.password", "Пароль")}
                 </label>
-                {/* Убери ссылку, если маршрута нет */}
-                {/* <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline">
-                  Забыли пароль?
-                </Link> */}
               </div>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
                   type={showPwd ? "text" : "password"}
-                  placeholder="Ваш пароль"
+                  placeholder={t("auth:login.password_placeholder", "Ваш пароль")}
                   value={formData.password}
                   onChange={handleChange}
                   autoComplete="current-password"
@@ -101,7 +127,7 @@ export default function LoginPage() {
                   type="button"
                   className="absolute inset-y-0 right-0 px-3 inline-flex items-center rounded-r-md hover:bg-gray-100 focus:outline-none"
                   onClick={() => setShowPwd((v) => !v)}
-                  aria-label={showPwd ? "Скрыть пароль" : "Показать пароль"}
+                  aria-label={showPwd ? t("auth:login.hide_password", "Скрыть пароль"):t("auth:login.show_password", "Показать пароль")}
                   disabled={loading}
                 >
                   {showPwd ? (
@@ -119,19 +145,26 @@ export default function LoginPage() {
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Входим..." : "Войти"}
+            <Button
+              type="submit"
+              className="w-full bg-[#3972FE] hover:bg-[#2f62df] text-white"
+              disabled={loading}
+            >
+              {loading ? t("auth:login.loading", "Входим...") : t("auth:login.submit", "Войти")}
             </Button>
 
-<div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-500">или</span>
-            <div className="h-px flex-1 bg-gray-200" />
-          </div>
-          <div className="text-center text-sm text-gray-600">
-           Нет аккаунта? {" "}
-            <Link to="/register" className="text-blue-600 hover:underline">Зарегистрироваться</Link>
-          </div>          </form>
+            <div className="my-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-xs text-gray-500">{t("common:or", "или")}</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+            <div className="text-center text-sm text-gray-600">
+              {t("auth:login.no_account_question", "Нет аккаунта?")}{" "}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                {t("auth:login.register_link", "Зарегистрироваться")}
+              </Link>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>
