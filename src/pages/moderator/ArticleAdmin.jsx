@@ -5,7 +5,7 @@ import { useParams, Link, Navigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
+import PlagiarismPanel from "@/components/plagiarism/PlagiarismPanel";
 import {
   Loader2,
   ArrowLeft,
@@ -244,7 +244,19 @@ export default function ArticleAdmin() {
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-4">
-          <div className="font-semibold mb-2">{t("article_admin.files.title", "Файлы")}</div>
+             <PlagiarismPanel
+            article={article}
+            files={files}
+            currentUser={{role: "secretary"}} // модераторская страница, доступ всегда
+            authorAccess="submit"
+            onStoreStrike={async ({id,score})=>{
+              try{
+                const upd = await updateArticle(articleId, { strike_id:id, ...(Number.isFinite(score)? {strike_score:score}: {}) }, "patch");
+                setArticle(upd);
+              }catch{}
+            }}
+          />
+          <div className="font-semibold mt-4 mb-2">{t("article_admin.files.title", "Файлы")}</div>
           {files.length === 0 ? (
             <div className="text-gray-500">{t("article_admin.files.empty", "Файлы не загружены.")}</div>
           ) : (

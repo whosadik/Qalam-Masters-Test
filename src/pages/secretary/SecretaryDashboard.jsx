@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import PlagiarismPanel from "@/components/plagiarism/PlagiarismPanel";
 import {
   Loader2,
   RefreshCw,
@@ -418,7 +419,19 @@ export default function SecretaryDashboard() {
     setSelectedIds(new Set(rows.map((r) => r.id)));
 
   const visibleRows = queue === "submitted" ? submitted : screening;
-
+const [detailFiles, setDetailFiles] = useState([]);
+ useEffect(() => {
+   if (!detailArticle?.id) { setDetailFiles([]); return; }
+   let alive = true;
+   (async () => {
+     try {
+       const files = await listArticleFiles(detailArticle.id, { ordering: "-uploaded_at", page_size: 200 });
+       const arr = Array.isArray(files) ? files : (files?.results ?? []);
+       if (alive) setDetailFiles(arr);
+     } catch {}
+   })();
+   return () => { alive = false; };
+ }, [detailArticle?.id]);
   async function loadArticlesForJournal(jid) {
     if (!jid) return;
     setLoading(true);
@@ -1081,6 +1094,13 @@ export default function SecretaryDashboard() {
                 ) : null}
 
                 <ArticleFiles articleId={detailArticle.id} />
+                   <PlagiarismPanel
+   article={detailArticle}
+   files={detailFiles}
+                  currentUser={{role:"secretary"}}
+                  authorAccess="submit"
+                  onStoreStrike={null}
+                />
 
                 <div className="pt-1">
                   <Link to={`/articles/${detailArticle.id}`} className="w-full">

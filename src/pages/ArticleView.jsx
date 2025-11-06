@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import PlagiarismPanel from "@/components/plagiarism/PlagiarismPanel";
 import {
   Card,
   CardContent,
@@ -362,6 +363,22 @@ export default function ArticleView() {
           </CardHeader>
         </Card>
       )}
+        {/* Антиплагиат */}
+      <PlagiarismPanel
+        article={article}
+        files={files}
+        currentUser={me}
+        authorAccess={article?.plagiarism_author_access || "off"}
+        onStoreStrike={async ({id,score})=>{
+          try{
+            // если поле есть в API — сохраняем
+            await updateArticle(article.id, { strike_id:id, ...(Number.isFinite(score)? {strike_score:score}: {}) }, "patch");
+            const a = await getArticle(Number(id));
+            setArticle(a);
+          }catch{ /* можно молча */ }
+        }}
+      />
+
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">{t("articles:view.metadata.title", "Метаданные")}</CardTitle>

@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { http, withParams } from "@/lib/apiClient";
 import { API } from "@/constants/api";
-
+import PlagiarismPanel from "@/components/plagiarism/PlagiarismPanel";
 const typeLabel = {
   manuscript: "Рукопись",
   supplement: "Доп. файл",
@@ -142,6 +142,14 @@ export default function ArticleScreeningPage() {
           </div>
         </CardContent>
       </Card>
+
+       <PlagiarismPanel
+        article={article}
+        files={files}
+        currentUser={{role:"secretary"}}
+        authorAccess="submit"
+        onStoreStrike={null}
+      />
 
       <Card className="border-0 shadow-sm">
         <CardHeader>

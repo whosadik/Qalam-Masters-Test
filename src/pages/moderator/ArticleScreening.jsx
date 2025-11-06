@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import PlagiarismPanel from "@/components/plagiarism/PlagiarismPanel";
 import {
   getArticle,
   patchScreening,
@@ -73,6 +74,18 @@ export default function ArticleScreening() {
           <Button variant="outline">{t("review:Screening.open_article", "Открыть статью")}</Button>
         </Link>
       </div>
+
+          <PlagiarismPanel
+        article={a}
+        files={files}
+        currentUser={{role:"secretary"}}
+        authorAccess="submit"
+        onStoreStrike={async ({id,score})=>{
+          try{
+            await patchScreening(a.id,{ antiplag_ok: true });
+          }catch{}
+        }}
+      />
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6 space-y-4">
